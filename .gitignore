@@ -1,0 +1,14 @@
+._*
+.DS_Store
+*.xcuserstate
+project.xcworkspace/
+xcuserdata/
+*.o
+*.a
+core.*
+*.log
+*.dSYM
+*.so
+*.pyc
+
+__pycache__
