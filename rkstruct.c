@@ -1,4 +1,5 @@
 #include <Python.h>
+#include <numpy/arrayObject.h>
 #include <RadarKit.h>
 
 #define IS_PY3    defined(PyModule_Create)
