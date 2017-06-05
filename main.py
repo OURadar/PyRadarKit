@@ -9,7 +9,8 @@ import struct
 from argparse import ArgumentParser
 
 import radarkit
-import algorithms.highZ
+
+sys.path.insert(0, 'algorithms')
 
 if __name__ == "__main__":
     parser = ArgumentParser(prog="main")
@@ -19,9 +20,7 @@ if __name__ == "__main__":
 
     print('Version {}'.format(sys.version_info))
 
-    radarkit.test()
+    #radarkit.test()
 
     radar = radarkit.Radar(ipAddress=args.host)
-    radar.addAlgorithm('highZ')
-    radar.addAlgorithm('lowZ')
     radar.start()
