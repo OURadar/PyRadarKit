@@ -12,9 +12,16 @@ static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
 }
 
 static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
-    RKShowTypeSizes();
-    Py_INCREF(Py_None);
-    return Py_None;
+    //RKShowTypeSizes();
+    Py_buffer buffer;
+
+    //PyObject_GetBuffer(args, )
+    //PyBuffer_Release(buffer)
+
+    //Py_INCREF(Py_None);
+    //return Py_None;
+    PyObject *result = Py_BuildValue("d", 1.0);
+    return result;
 }
 
 static PyObject *PyRKTestShowColors(PyObject *self, PyObject *args, PyObject *keywords) {

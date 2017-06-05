@@ -32,8 +32,8 @@ RKNetDelimiter = netType + subType + packedSize + decodedSize + delimiterPad
 del netType, subType, packedSize, decodedSize, delimiterPad
 
 # Generic functions
-def test():
-    rkstruct.test()
+def test(sweep):
+    return rkstruct.test(sweep)
 
 def init():
     rkstruct.init()

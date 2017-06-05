@@ -8,8 +8,8 @@ class main(object):
 
     # Every algorithm should have this function defined
     def process(self,sweep):
-        print('highZ algorithm\n')
-        radarkit.test()
+        d = radarkit.test(sweep)
+        print('highZ algorithm.  d = {}\n'.format(d))
 
     # Every algorithm should have this function defined
     def name(self):
