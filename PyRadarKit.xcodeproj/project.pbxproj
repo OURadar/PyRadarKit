@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		B573913F1EE59B8700ACF25E /* __init__.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = __init__.py; sourceTree = "<group>"; };
 		B57391401EE59B9200ACF25E /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
 		B57391411EE59B9200ACF25E /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
 		B57391421EE59B9200ACF25E /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
@@ -23,7 +22,6 @@
 			children = (
 				B57391441EE59B9200ACF25E /* README.md */,
 				B57391421EE59B9200ACF25E /* Makefile */,
-				B573913F1EE59B8700ACF25E /* __init__.py */,
 				B57391411EE59B9200ACF25E /* main.py */,
 				B57391431EE59B9200ACF25E /* radarkit.py */,
 				B57391451EE59B9200ACF25E /* rkstruct.c */,
