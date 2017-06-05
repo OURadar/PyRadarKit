@@ -1,6 +1,8 @@
 #include <Python.h>
 #include <RadarKit.h>
 
+#define IS_PY3    defined(PyModule_Create)
+
 // Wrappers
 static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
@@ -28,7 +30,7 @@ static PyMethodDef PyRKMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-//#if defined(IS_PY3)
+#if IS_PY3
 
 static struct PyModuleDef PyRKModule = {
     PyModuleDef_HEAD_INIT,
@@ -38,20 +40,20 @@ static struct PyModuleDef PyRKModule = {
     PyRKMethods
 };
 
-//#endif
+#endif
 
 PyMODINIT_FUNC
 
-//#if defined(IS_PY3)
+#if IS_PY3
 
 PyInit_rkstruct(void) {
     return PyModule_Create(&PyRKModule);
 }
 
-//#else
+#else
 
-// initrkstruct(void) {
-//     (void) Py_InitModule("rkstruct", PyRKMethods);
-// }
+initrkstruct(void) {
+    (void) Py_InitModule("rkstruct", PyRKMethods);
+}
 
-//#endif
+#endif

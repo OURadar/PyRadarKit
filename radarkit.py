@@ -44,10 +44,8 @@ def showColors():
 # Radar class
 class Radar(object):
     """Handles the connection to the radar (created by RadarKit)
-
-        This class allows to retrieval of base data from the radar
-
-        """
+    This class allows to retrieval of base data from the radar
+    """
     def __init__(self, ipAddress=IP_ADDRESS, port=RADAR_PORT, timeout=2):
         self.ipAddress = ipAddress
         self.port = port
