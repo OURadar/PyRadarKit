@@ -4,4 +4,4 @@ rkstruct.so: setup.py rkstruct.c
 	python3 setup.py build_ext --inplace --include-dirs=/usr/local/include --library-dirs=/usr/local/lib --libraries=RadarKit
 
 clean:
-	rm -f rkstruct.so
+	rm -f rkstruct*.so
