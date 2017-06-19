@@ -53,6 +53,7 @@ class Radar(object):
         self.verbose = 1
         self.netDelimiter = bytearray(PACKET_DELIM_SIZE)
         self.payload = bytearray(BUFFER_SIZE)
+        self.latestPayloadType = 0
 
         self.algorithms = []
 
@@ -65,7 +66,10 @@ class Radar(object):
 
             payloadType = delimiter[0]
             payloadSize = delimiter[2]
-            print('Delimiter type {} of size {} {}'.format(payloadType, payloadSize, delimiter[3]))
+            self.latestPayloadType = payloadType
+
+            if payloadType != 1:
+                print('Delimiter type {} of size {} {}'.format(payloadType, payloadSize, delimiter[3]))
 
             if payloadSize > 0:
                 anchor = memoryview(self.payload)
@@ -115,12 +119,13 @@ class Radar(object):
                 self.socket.close()
                 continue
 
-            self.socket.send(b'sh\r\n')
+            self.socket.send(b'shz\r\n')
 
             while self.active:
                 self._recv()
-                for obj in self.algorithmObjects:
-                    obj.process(self.payload)
+                if self.latestPayloadType == 109:
+                    for obj in self.algorithmObjects:
+                        obj.process(self.payload)
 
     def close(self):
         self.socket.close()

@@ -20,7 +20,7 @@ static PyObject *RKStructTest(PyObject *self, PyObject *args, PyObject *keywords
 
     //Py_INCREF(Py_None);
     //return Py_None;
-    PyObject *result = Py_BuildValue("d", 1.0);
+    PyObject *result = Py_BuildValue("d", 1.2);
     return result;
 }
 
