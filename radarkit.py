@@ -32,8 +32,8 @@ RKNetDelimiter = netType + subType + packedSize + decodedSize + delimiterPad
 del netType, subType, packedSize, decodedSize, delimiterPad
 
 # Generic functions
-def test(sweep):
-    return rkstruct.test(sweep)
+def test(payload):
+    return rkstruct.test(payload)
 
 def init():
     rkstruct.init()
@@ -124,8 +124,11 @@ class Radar(object):
             while self.active:
                 self._recv()
                 if self.latestPayloadType == 109:
+                    print('====')
                     for obj in self.algorithmObjects:
                         obj.process(self.payload)
+                        print('----')
+                    print('\n')
 
     def close(self):
         self.socket.close()

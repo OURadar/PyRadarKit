@@ -9,7 +9,8 @@ class main(object):
 
     # Every algorithm should have this function defined
     def process(self,sweep):
-        print('lowZ algorithm\n')
+        print('lowZ algorithm:')
+        print('Nothing yet... just a placeholder')
         #radarkit.showColors()
 
     # Every algorithm should have this function defined

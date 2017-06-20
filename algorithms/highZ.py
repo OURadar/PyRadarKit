@@ -7,10 +7,10 @@ class main(object):
         self.threshold = 1.0
 
     # Every algorithm should have this function defined
-    def process(self,sweep):
-        #d = radarkit.test(sweep)
-        #print('highZ algorithm.  d = {}\n'.format(d))
-        print('highZ algorithm.')
+    def process(self,payload):
+        print('highZ algorithm:')
+        d = radarkit.test(payload)
+        print('Python space {}'.format(d[0:4:]))
 
     # Every algorithm should have this function defined
     def name(self):
