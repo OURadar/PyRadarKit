@@ -69,7 +69,7 @@ class Radar(object):
             self.latestPayloadType = payloadType
 
             if payloadType != 1:
-                print('Delimiter type {} of size {} {}'.format(payloadType, payloadSize, delimiter[3]))
+                print('Delimiter type {} of size {}'.format(payloadType, payloadSize))
 
             if payloadSize > 0:
                 anchor = memoryview(self.payload)
@@ -124,10 +124,10 @@ class Radar(object):
             while self.active:
                 self._recv()
                 if self.latestPayloadType == 109:
-                    print('====')
+                    print('========')
                     for obj in self.algorithmObjects:
                         obj.process(self.payload)
-                        print('----')
+                        print('--------')
                     print('\n')
 
     def close(self):

@@ -1,3 +1,5 @@
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+
 #include <Python.h>
 #include <numpy/arrayObject.h>
 #include <RadarKit.h>
@@ -31,11 +33,10 @@ static PyObject *RKStructTest(PyObject *self, PyObject *args, PyObject *keywords
     npy_intp dims[] = {ray->header.gateCount};
     uint8_t *data = RKGetUInt8DataFromRay(ray, RKProductIndexZ);
     
-    fprintf(stderr, "EL %.2f deg   AZ %.2f deg   Z = %d %d %d %d\n",
+    fprintf(stderr, "    C-Ext: EL %.2f deg   AZ %.2f deg   Zi = %d %d %d %d %d %d %d %d %d %d ...\n",
             ray->header.startElevation, ray->header.startAzimuth,
-            data[0], data[1], data[2], data[3]);
+            data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
     
-    //PyObject *returnObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOATLTR, data);
     PyObject *returnObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
     return Py_BuildValue("O", returnObject);
 }

@@ -10,7 +10,7 @@ class main(object):
     def process(self,payload):
         print('highZ algorithm:')
         d = radarkit.test(payload)
-        print('Python space {}'.format(d[0:4:]))
+        print('    PyRadarKit: Zi = {}'.format(d[0:10:]))
 
     # Every algorithm should have this function defined
     def name(self):
