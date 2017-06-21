@@ -33,7 +33,7 @@ static PyObject *RKStructTest(PyObject *self, PyObject *args, PyObject *keywords
     npy_intp dims[] = {ray->header.gateCount};
     uint8_t *data = RKGetUInt8DataFromRay(ray, RKProductIndexZ);
     
-    fprintf(stderr, "    C-Ext: EL %.2f deg   AZ %.2f deg   Zi = %d %d %d %d %d %d %d %d %d %d ...\n",
+    fprintf(stderr, "    C-Ext: \033[33mEL %.2f deg   AZ %.2f deg\033[0m   Zi = %d %d %d %d %d %d %d %d %d %d ...\n",
             ray->header.startElevation, ray->header.startAzimuth,
             data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
     
