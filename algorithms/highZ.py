@@ -9,8 +9,9 @@ class main(object):
     # Every algorithm should have this function defined
     def process(self,payload):
         print('highZ algorithm:')
-        d = radarkit.test(payload)
-        print('    PyRadarKit: Zi = {}'.format(d[0:10:]))
+        ray = radarkit.test(payload)
+        print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg'.format(ray['elevation'], ray['azimuth']), end='')
+        print('   Zi = {}'.format(ray['data'][0:10:]))
 
     # Every algorithm should have this function defined
     def name(self):

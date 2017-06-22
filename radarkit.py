@@ -119,7 +119,7 @@ class Radar(object):
                 self.socket.close()
                 continue
 
-            self.socket.send(b'shz\r\n')
+            self.socket.send(b'sz\r\n')
 
             while self.active:
                 self._recv()
