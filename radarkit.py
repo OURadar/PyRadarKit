@@ -43,6 +43,18 @@ def init():
 def showColors():
     rkstruct.showColors()
 
+class Sweep(object):
+    """An object that encapsulate a sweep
+    """
+    def __init__(self):
+        self.azimuth = 0.0
+        self.elevation = 0.0
+        self.sweepType = "PPI"
+        self.products = {
+            'Z': N.zeros((360, MAX_GATES), dtype=N.float),
+            'V': N.zeros((360, MAX_GATES), dtype=N.float)
+        }
+
 # Radar class
 class Radar(object):
     """Handles the connection to the radar (created by RadarKit)
@@ -58,7 +70,8 @@ class Radar(object):
         self.latestPayloadType = 0
 
         self.algorithms = []
-        self.sweep = N.zeros((360, MAX_GATES), dtype=N.float)
+    #self.sweep = N.zeros((360, MAX_GATES), dtype=N.float)
+        self.sweep = Sweep()
 
     def _recv(self):
         try:
@@ -132,7 +145,8 @@ class Radar(object):
                     ray = rkstruct.test(self.payload)
                     ii = int(ray['azimuth'])
                     ng = min(ray['gateCount'], MAX_GATES)
-                    self.sweep[ii, 0:ng] = ray['data'][0:ng]
+                    #self.sweep[ii, 0:ng] = ray['data'][0:ng]
+                    self.sweep.products['Z'][ii, 0:ng] = ray['data'][0:ng]
                     print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg'.format(ray['elevation'], ray['azimuth']), end='')
                     print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
                     # Call the collection of processes

@@ -10,9 +10,10 @@ class main(object):
     def process(self,sweep):
         print('highZ algorithm:')
         print('    Nothing yet... just a placeholder')
-        print('   Zi = {}'.format(sweep[0,0:10:]))
-        print('      = {}'.format(sweep[1,0:10:]))
-        print('      = {}'.format(sweep[-1,0:10:]))
+        z = sweep.products['Z']
+        print('   Zi = {}'.format(z[0,0:10:]))
+        print('      = {}'.format(z[1,0:10:]))
+        print('      = {}'.format(z[-1,0:10:]))
 
     # Every algorithm should have this function defined
     def name(self):
