@@ -23,6 +23,7 @@ RADAR_PORT = 10000
 BUFFER_SIZE = 10240
 PACKET_DELIM_SIZE = 16
 MAX_GATES = 4096
+PAYLOAD_TYPE_MOMENT = 109
 
 netType = b'H'
 subType = b'H'
@@ -125,12 +126,21 @@ class Radar(object):
 
             while self.active:
                 self._recv()
-                if self.latestPayloadType == 109:
+                if self.latestPayloadType == PAYLOAD_TYPE_MOMENT:
                     print('========')
-                    for obj in self.algorithmObjects:
-                        obj.process(self.payload)
-                        print('--------')
-                    print('\n')
+                    # Gather the ray into a sweep
+                    ray = rkstruct.test(self.payload)
+                    ii = int(ray['azimuth'])
+                    ng = min(ray['gateCount'], MAX_GATES)
+                    self.sweep[ii, 0:ng] = ray['data'][0:ng]
+                    print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg'.format(ray['elevation'], ray['azimuth']), end='')
+                    print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
+                    # Call the collection of processes
+                    if ray['sweepBegin']:
+                        for obj in self.algorithmObjects:
+                            obj.process(self.sweep)
+                            print('--------')
+                        print('\n')
 
     def close(self):
         self.socket.close()

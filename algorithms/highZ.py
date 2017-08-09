@@ -7,11 +7,12 @@ class main(object):
         self.threshold = 1.0
 
     # Every algorithm should have this function defined
-    def process(self,payload):
+    def process(self,sweep):
         print('highZ algorithm:')
-        ray = radarkit.test(payload)
-        print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg'.format(ray['elevation'], ray['azimuth']), end='')
-        print('   Zi = {}'.format(ray['data'][0:10:]))
+        print('    Nothing yet... just a placeholder')
+        print('   Zi = {}'.format(sweep[0,0:10:]))
+        print('      = {}'.format(sweep[1,0:10:]))
+        print('      = {}'.format(sweep[-1,0:10:]))
 
     # Every algorithm should have this function defined
     def name(self):
