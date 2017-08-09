@@ -22,6 +22,7 @@ IP_ADDRESS = '127.0.0.1'
 RADAR_PORT = 10000
 BUFFER_SIZE = 10240
 PACKET_DELIM_SIZE = 16
+MAX_GATES = 4096
 
 netType = b'H'
 subType = b'H'
@@ -56,6 +57,7 @@ class Radar(object):
         self.latestPayloadType = 0
 
         self.algorithms = []
+        self.sweep = N.zeros((360, MAX_GATES), dtype=N.float)
 
     def _recv(self):
         try:
