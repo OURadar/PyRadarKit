@@ -145,16 +145,16 @@ class Radar(object):
                     ray = rkstruct.test(self.payload)
                     ii = int(ray['azimuth'])
                     ng = min(ray['gateCount'], MAX_GATES)
-                    #self.sweep[ii, 0:ng] = ray['data'][0:ng]
-                    self.sweep.products['Z'][ii, 0:ng] = ray['data'][0:ng]
-                    print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg'.format(ray['elevation'], ray['azimuth']), end='')
-                    print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
-                    # Call the collection of processes
-                    if ray['sweepBegin']:
+                    if ray['sweepEnd']:
                         for obj in self.algorithmObjects:
                             obj.process(self.sweep)
                             print('--------')
                         print('\n')
+                    #self.sweep[ii, 0:ng] = ray['data'][0:ng]
+                    self.sweep.products['Z'][ii, 0:ng] = ray['data'][0:ng]
+                    print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg -> {2}'.format(ray['elevation'], ray['azimuth'], ii), end='')
+                    print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
+                    # Call the collection of processes
 
     def close(self):
         self.socket.close()

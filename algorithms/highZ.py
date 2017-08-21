@@ -15,6 +15,10 @@ class main(object):
 
         print('   Zi = {}'.format(z[0,0:10:]))
         print('      = {}'.format(z[1,0:10:]))
+        print('      = {}'.format(z[2,0:10:]))
+        print('      = ...')
+        print('      = {}'.format(z[-3,0:10:]))
+        print('      = {}'.format(z[-2,0:10:]))
         print('      = {}'.format(z[-1,0:10:]))
 
     # Every algorithm should have this function defined
