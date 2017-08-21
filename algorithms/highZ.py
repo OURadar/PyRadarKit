@@ -10,7 +10,9 @@ class main(object):
     def process(self,sweep):
         print('highZ algorithm:')
         print('    Nothing yet... just a placeholder')
+
         z = sweep.products['Z']
+
         print('   Zi = {}'.format(z[0,0:10:]))
         print('      = {}'.format(z[1,0:10:]))
         print('      = {}'.format(z[-1,0:10:]))
