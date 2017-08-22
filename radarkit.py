@@ -10,6 +10,7 @@ import os
 import sys
 import glob
 import time
+import enum
 import numpy as N
 
 import rkstruct
@@ -23,7 +24,21 @@ RADAR_PORT = 10000
 BUFFER_SIZE = 10240
 PACKET_DELIM_SIZE = 16
 MAX_GATES = 4096
-PAYLOAD_TYPE_MOMENT = 109
+
+class NETWORK_PACKET_TYPE:
+    BYTES = 0
+    BEACON = 1
+    PLAIN_TEXT = 2
+    PULSE_DATA = 3
+    RAY_DATA = 4
+    HEALTH = 5
+    CONTROLS = 6
+    COMMAND_RESPONSE = 7
+    RADAR_DESCRIPTION = 8
+    PROCESSOR_STATUS = 9
+    RAY_DISPLAY = 109
+    ALERT_MESSAGE = 110
+    CONFIG = 111
 
 netType = b'H'
 subType = b'H'
@@ -34,8 +49,9 @@ RKNetDelimiter = netType + subType + packedSize + decodedSize + delimiterPad
 del netType, subType, packedSize, decodedSize, delimiterPad
 
 # Generic functions
-def test(payload):
-    return rkstruct.test(payload)
+def test(payload, debug=False):
+    print('debug = {}'.format(debug))
+    return rkstruct.test(payload, debug=debug)
 
 def init():
     rkstruct.init()
@@ -60,17 +76,19 @@ class Radar(object):
     """Handles the connection to the radar (created by RadarKit)
     This class allows to retrieval of base data from the radar
     """
-    def __init__(self, ipAddress=IP_ADDRESS, port=RADAR_PORT, timeout=2):
+    def __init__(self, ipAddress=IP_ADDRESS, port=RADAR_PORT, timeout=2, verbose=0):
         self.ipAddress = ipAddress
         self.port = port
         self.timeout = timeout
-        self.verbose = 1
         self.netDelimiter = bytearray(PACKET_DELIM_SIZE)
         self.payload = bytearray(BUFFER_SIZE)
         self.latestPayloadType = 0
 
+        self.verbose = verbose
+        print('verbose = {}'.format(self.verbose))
+
+        # Initialize an empty list of algorithms
         self.algorithms = []
-    #self.sweep = N.zeros((360, MAX_GATES), dtype=N.float)
         self.sweep = Sweep()
 
     def _recv(self):
@@ -84,7 +102,7 @@ class Radar(object):
             payloadSize = delimiter[2]
             self.latestPayloadType = payloadType
 
-            if payloadType != 1:
+            if payloadType != NETWORK_PACKET_TYPE.BEACON and payloadType != NETWORK_PACKET_TYPE.RAY_DISPLAY:
                 print('Delimiter type {} of size {}'.format(payloadType, payloadSize))
 
             if payloadSize > 0:
@@ -96,8 +114,6 @@ class Radar(object):
                     anchor = anchor[length:]
                     toRead -= length
                     k += 1
-                if self.verbose > 1:
-                    print(self.payload.decode('utf-8'))
 
         except (socket.timeout, ValueError) as e:
             logger.exception(e)
@@ -139,10 +155,10 @@ class Radar(object):
 
             while self.active:
                 self._recv()
-                if self.latestPayloadType == PAYLOAD_TYPE_MOMENT:
-                    print('========')
+                if self.latestPayloadType == NETWORK_PACKET_TYPE.RAY_DISPLAY:
+                    # Parse the ray
+                    ray = rkstruct.parse(self.payload, verbose=self.verbose)
                     # Gather the ray into a sweep
-                    ray = rkstruct.test(self.payload)
                     ii = int(ray['azimuth'])
                     ng = min(ray['gateCount'], MAX_GATES)
                     if ray['sweepEnd']:
@@ -152,8 +168,10 @@ class Radar(object):
                         print('\n')
                     #self.sweep[ii, 0:ng] = ray['data'][0:ng]
                     self.sweep.products['Z'][ii, 0:ng] = ray['data'][0:ng]
-                    print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg -> {2}'.format(ray['elevation'], ray['azimuth'], ii), end='')
-                    print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
+                    if self.verbose > 1:
+                        print('========')
+                        print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg -> {2}'.format(ray['elevation'], ray['azimuth'], ii), end='')
+                        print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
                     # Call the collection of processes
 
     def close(self):
