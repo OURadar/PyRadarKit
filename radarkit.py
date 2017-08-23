@@ -1,5 +1,5 @@
 """
-Python wrapper for C functions to interact with RadarKit
+    Python wrapper for C functions to interact with RadarKit
 """
 
 import logging
@@ -15,15 +15,14 @@ import numpy as N
 
 import rkstruct
 
-__all__ = ['IP_ADDRESS', 'RADAR_PORT']
-
 logger = logging.getLogger(__name__)
 
-IP_ADDRESS = '127.0.0.1'
-RADAR_PORT = 10000
-BUFFER_SIZE = 10240
-PACKET_DELIM_SIZE = 16
-MAX_GATES = 4096
+class CONSTANTS:
+    IP = '127.0.0.1'
+    PORT = 10000
+    MAX_GATES = 4096
+    BUFFER_SIZE = 10240
+    PACKET_DELIM_SIZE = 16
 
 class NETWORK_PACKET_TYPE:
     BYTES = 0
@@ -60,32 +59,32 @@ def showColors():
     rkstruct.showColors()
 
 class Sweep(object):
-    """An object that encapsulate a sweep
+    """
+        An object that encapsulate a sweep
     """
     def __init__(self):
         self.azimuth = 0.0
         self.elevation = 0.0
         self.sweepType = "PPI"
         self.products = {
-            'Z': N.zeros((360, MAX_GATES), dtype=N.float),
-            'V': N.zeros((360, MAX_GATES), dtype=N.float)
+            'Z': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
+            'V': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float)
         }
 
 # Radar class
 class Radar(object):
-    """Handles the connection to the radar (created by RadarKit)
-    This class allows to retrieval of base data from the radar
     """
-    def __init__(self, ipAddress=IP_ADDRESS, port=RADAR_PORT, timeout=2, verbose=0):
+        Handles the connection to the radar (created by RadarKit)
+        This class allows to retrieval of base data from the radar
+    """
+    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, verbose=0):
         self.ipAddress = ipAddress
         self.port = port
         self.timeout = timeout
-        self.netDelimiter = bytearray(PACKET_DELIM_SIZE)
-        self.payload = bytearray(BUFFER_SIZE)
-        self.latestPayloadType = 0
-
         self.verbose = verbose
-        print('verbose = {}'.format(self.verbose))
+        self.netDelimiter = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
+        self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
+        self.latestPayloadType = 0
 
         # Initialize an empty list of algorithms
         self.algorithms = []
@@ -93,9 +92,9 @@ class Radar(object):
 
     def _recv(self):
         try:
-            length = self.socket.recv_into(self.netDelimiter, PACKET_DELIM_SIZE)
-            if length != PACKET_DELIM_SIZE:
-                raise ValueError('Length should be {}, not {}'.format(PACKET_DELIM_SIZE, length))
+            length = self.socket.recv_into(self.netDelimiter, CONSTANTS.PACKET_DELIM_SIZE)
+            if length != CONSTANTS.PACKET_DELIM_SIZE:
+                raise ValueError('Length should be {}, not {}'.format(CONSTANTS.PACKET_DELIM_SIZE, length))
             delimiter = struct.unpack(RKNetDelimiter, self.netDelimiter)
 
             payloadType = delimiter[0]
@@ -130,9 +129,12 @@ class Radar(object):
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
             self.algorithmObjects.append(obj)
-            print('File {} -> {} -> {}'.format(script, basename, obj.name()))
+            print('\033[38;5;220m{}\033[0m -> {} -> {}'.format(script, basename, obj.name()))
 
         self.reconnect()
+
+    def stop(self):
+        self.active = False
 
     def reconnect(self):
 
@@ -160,7 +162,7 @@ class Radar(object):
                     ray = rkstruct.parse(self.payload, verbose=self.verbose)
                     # Gather the ray into a sweep
                     ii = int(ray['azimuth'])
-                    ng = min(ray['gateCount'], MAX_GATES)
+                    ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
                     if ray['sweepEnd']:
                         for obj in self.algorithmObjects:
                             obj.process(self.sweep)
@@ -173,6 +175,8 @@ class Radar(object):
                         print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg -> {2}'.format(ray['elevation'], ray['azimuth'], ii), end='')
                         print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
                     # Call the collection of processes
+
+        self.socket.close()
 
     def close(self):
         self.socket.close()

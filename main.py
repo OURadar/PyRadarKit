@@ -23,5 +23,11 @@ if __name__ == "__main__":
 
     # radarkit.test(0, debug=bool(args.debug))
 
-    radar = radarkit.Radar(ipAddress=args.host, verbose=args.verbose)
-    radar.start()
+    try:
+        radar = radarkit.Radar(ipAddress=args.host, verbose=args.verbose)
+        radar.start()
+    except KeyboardInterrupt:
+        print('')
+        print('Deactivating radar ...')
+        radar.stop()
+        print('Done')
