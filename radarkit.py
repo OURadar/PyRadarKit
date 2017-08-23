@@ -39,13 +39,8 @@ class NETWORK_PACKET_TYPE:
     ALERT_MESSAGE = 110
     CONFIG = 111
 
-netType = b'H'
-subType = b'H'
-packedSize = b'I'
-decodedSize = b'I'
-delimiterPad = b'HH'
-RKNetDelimiter = netType + subType + packedSize + decodedSize + delimiterPad
-del netType, subType, packedSize, decodedSize, delimiterPad
+# Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
+RKNetDelimiter = b'HHIII'
 
 # Generic functions
 def test(payload, debug=False):
@@ -97,6 +92,8 @@ class Radar(object):
                 raise ValueError('Length should be {}, not {}'.format(CONSTANTS.PACKET_DELIM_SIZE, length))
             delimiter = struct.unpack(RKNetDelimiter, self.netDelimiter)
 
+            # 1st component: 16-bit type
+            # 3rd component: 16-bit subtype
             payloadType = delimiter[0]
             payloadSize = delimiter[2]
             self.latestPayloadType = payloadType
@@ -153,7 +150,8 @@ class Radar(object):
                 self.socket.close()
                 continue
 
-            self.socket.send(b'sz\r\n')
+            # Request status, Z and V
+            self.socket.send(b'szv\r\n')
 
             while self.active:
                 self._recv()
@@ -163,18 +161,20 @@ class Radar(object):
                     # Gather the ray into a sweep
                     ii = int(ray['azimuth'])
                     ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
+                    if self.verbose > 1:
+                        print('    PyRadarKit: \033[38;5;184mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2}'.format(ray['elevation'], ray['azimuth'], ii))
+                        if 'Z' in ray['data']:
+                            print('                Zi = {} / {}'.format(ray['data']['Z'][0:10:], ray['sweepEnd']))
+                        if 'V' in ray['data']:
+                            print('                Vi = {}'.format(ray['data']['V'][0:10:]))
+                        print('====')
                     if ray['sweepEnd']:
+                        # Call the collection of algorithms
                         for obj in self.algorithmObjects:
                             obj.process(self.sweep)
-                            print('--------')
+                            print('------')
                         print('\n')
-                    #self.sweep[ii, 0:ng] = ray['data'][0:ng]
-                    self.sweep.products['Z'][ii, 0:ng] = ray['data'][0:ng]
-                    if self.verbose > 1:
-                        print('========')
-                        print('    PyRadarKit: EL {0:0.2f} deg   AZ {1:0.2f} deg -> {2}'.format(ray['elevation'], ray['azimuth'], ii), end='')
-                        print('   Zi = {} / {}'.format(ray['data'][0:10:], ray['sweepBegin']))
-                    # Call the collection of processes
+                    self.sweep.products['Z'][ii, 0:ng] = ray['data']['Z'][0:ng]
 
         self.socket.close()
 

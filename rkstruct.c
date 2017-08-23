@@ -39,25 +39,51 @@ static PyObject *RKStructRayParse(PyObject *self, PyObject *args, PyObject *keyw
         return NULL;
     }
 
+    uint8_t *data;
     RKRay *ray = (RKRay *)object->ob_bytes;
     
     npy_intp dims[] = {ray->header.gateCount};
-    uint8_t *data = RKGetUInt8DataFromRay(ray, RKProductIndexZ);
 
-    if (verbose > 1) {
-        fprintf(stderr, "    C-Ext:      \033[33mEL %.2f deg   AZ %.2f deg\033[0m -> %d   Zi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                ray->header.startElevation, ray->header.startAzimuth, (int)ray->header.startAzimuth,
-                data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+    PyObject *dataArray = PyDict_New();
+    PyObject *dataObject = NULL;
+
+    if (ray->header.productList & RKProductListDisplayZ) {
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, RKGetUInt8DataFromRay(ray, RKProductIndexZ));
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
+    }
+    if (ray->header.productList & RKProductListDisplayV) {
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, RKGetUInt8DataFromRay(ray, RKProductIndexV));
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "V"), dataObject);
     }
 
-    PyObject *dataArrayObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
     PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
                                   "elevation", ray->header.startElevation,
                                   "azimuth", ray->header.startAzimuth,
                                   "gateCount", ray->header.gateCount,
                                   "sweepBegin", ray->header.marker & RKMarkerSweepBegin ? Py_True : Py_False,
                                   "sweepEnd", ray->header.marker & RKMarkerSweepEnd ? Py_True : Py_False,
-                                  "data", dataArrayObject);
+                                  "data", dataArray);
+
+    if (verbose > 1) {
+        fprintf(stderr, "    C-Ext:      \033[38;5;197mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
+                ray->header.startElevation, ray->header.startAzimuth, (int)ray->header.startAzimuth);
+        if (ray->header.productList & RKProductListDisplayZ) {
+            data = RKGetUInt8DataFromRay(ray, RKProductIndexZ);
+            fprintf(stderr, "                Zi = [%d %d %d %d %d %d %d %d %d %d ...\n",
+                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+        }
+        if (ray->header.productList & RKProductListDisplayV) {
+            data = RKGetUInt8DataFromRay(ray, RKProductIndexV);
+            fprintf(stderr, "                Vi = [%d %d %d %d %d %d %d %d %d %d ...\n",
+                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+        }
+        if (ray->header.productList & RKProductListDisplayW) {
+            data = RKGetUInt8DataFromRay(ray, RKProductIndexW);
+            fprintf(stderr, "                Wi = [%d %d %d %d %d %d %d %d %d %d ...\n",
+                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+        }
+    }
+
     return ret;
 }
 
