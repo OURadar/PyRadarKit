@@ -175,7 +175,6 @@ class Radar(object):
                     if self.verbose > 1:
                         print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(ray['elevation'], ray['azimuth'], ii, ray['sweepEnd']))
                         N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
-                        #for letter in ['Zi', 'Vi', 'Wi', 'Di', 'Pi', 'Ri']:
                         for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
                             if letter in ray['data']:
                                 print('                {} = {}'.format(letter, ray['data'][letter][0:10]))
