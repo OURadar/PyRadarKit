@@ -21,7 +21,7 @@ class CONSTANTS:
     IP = '127.0.0.1'
     PORT = 10000
     MAX_GATES = 4096
-    BUFFER_SIZE = 10240
+    BUFFER_SIZE = 262144
     PACKET_DELIM_SIZE = 16
 
 class NETWORK_PACKET_TYPE:
@@ -62,8 +62,18 @@ class Sweep(object):
         self.elevation = 0.0
         self.sweepType = "PPI"
         self.products = {
+            'Zi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            'Vi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            'Wi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            'Di': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            'Pi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            'Ri': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
             'Z': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
-            'V': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float)
+            'V': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
+            'W': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
+            'D': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
+            'P': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
+            'R': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float)
         }
 
 # Radar class
@@ -151,7 +161,8 @@ class Radar(object):
                 continue
 
             # Request status, Z and V
-            self.socket.send(b'szv\r\n')
+            #self.socket.send(b'szvwdpr\r\n')
+            self.socket.send(b'sZVWDPR\r\n')
 
             while self.active:
                 self._recv()
@@ -162,19 +173,23 @@ class Radar(object):
                     ii = int(ray['azimuth'])
                     ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
                     if self.verbose > 1:
-                        print('    PyRadarKit: \033[38;5;184mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2}'.format(ray['elevation'], ray['azimuth'], ii))
-                        if 'Z' in ray['data']:
-                            print('                Zi = {} / {}'.format(ray['data']['Z'][0:10:], ray['sweepEnd']))
-                        if 'V' in ray['data']:
-                            print('                Vi = {}'.format(ray['data']['V'][0:10:]))
-                        print('====')
+                        print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(ray['elevation'], ray['azimuth'], ii, ray['sweepEnd']))
+                        N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
+                        #for letter in ['Zi', 'Vi', 'Wi', 'Di', 'Pi', 'Ri']:
+                        for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
+                            if letter in ray['data']:
+                                print('                {} = {}'.format(letter, ray['data'][letter][0:10]))
+                        print('>>')
                     if ray['sweepEnd']:
                         # Call the collection of algorithms
                         for obj in self.algorithmObjects:
                             obj.process(self.sweep)
                             print('------')
                         print('\n')
-                    self.sweep.products['Z'][ii, 0:ng] = ray['data']['Z'][0:ng]
+                    # Gather all products
+                    for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
+                        if letter in self.sweep.products and letter in ray['data']:
+                            self.sweep.products[letter][ii, 0:ng] = ray['data'][letter][0:ng]
 
         self.socket.close()
 

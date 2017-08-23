@@ -11,17 +11,19 @@ class main(object):
         print('highZ algorithm:')
         print('    Nothing yet... just a placeholder')
 
-        z = sweep.products['Z']
+        for letter in ['Zi', 'Vi', 'Wi', 'Di', 'Pi', 'Ri']:
+            if letter in sweep.products:
+                d = sweep.products[letter]
+                print('    {}i = {}'.format(letter, d[0,0:10:]))
+                print('         {}'.format(d[1,0:10:]))
+                print('         {}'.format(d[2,0:10:]))
+                print('           ...')
+                print('         {}'.format(d[-3,0:10:]))
+                print('         {}'.format(d[-2,0:10:]))
+                print('         {}'.format(d[-1,0:10:]))
+                print('\n')
 
-        print('   Zi = {}'.format(z[0,0:10:]))
-        print('      = {}'.format(z[1,0:10:]))
-        print('      = {}'.format(z[2,0:10:]))
-        print('      = ...')
-        print('      = {}'.format(z[-3,0:10:]))
-        print('      = {}'.format(z[-2,0:10:]))
-        print('      = {}'.format(z[-1,0:10:]))
-
-    # Every algorithm should have this function defined
+# Every algorithm should have this function defined
     def name(self):
         string = 'High Reflectivity'
         return string

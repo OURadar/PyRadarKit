@@ -39,21 +39,72 @@ static PyObject *RKStructRayParse(PyObject *self, PyObject *args, PyObject *keyw
         return NULL;
     }
 
-    uint8_t *data;
     RKRay *ray = (RKRay *)object->ob_bytes;
-    
+
     npy_intp dims[] = {ray->header.gateCount};
 
     PyObject *dataArray = PyDict_New();
     PyObject *dataObject = NULL;
 
+    uint8_t *data = (uint8_t *)ray->data;
     if (ray->header.productList & RKProductListDisplayZ) {
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, RKGetUInt8DataFromRay(ray, RKProductIndexZ));
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Zi"), dataObject);
     }
     if (ray->header.productList & RKProductListDisplayV) {
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, RKGetUInt8DataFromRay(ray, RKProductIndexV));
+        data += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Vi"), dataObject);
+    }
+    if (ray->header.productList & RKProductListDisplayW) {
+        data += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Wi"), dataObject);
+    }
+    if (ray->header.productList & RKProductListDisplayD) {
+        data += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Di"), dataObject);
+    }
+    if (ray->header.productList & RKProductListDisplayP) {
+        data += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Pi"), dataObject);
+    }
+    if (ray->header.productList & RKProductListDisplayR) {
+        data += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Ri"), dataObject);
+    }
+    float *fdata = (float *)data;
+    if (ray->header.productList & RKProductListProductZ) {
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
+    }
+    if (ray->header.productList & RKProductListProductV) {
+        fdata += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "V"), dataObject);
+    }
+    if (ray->header.productList & RKProductListProductW) {
+        fdata += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "W"), dataObject);
+    }
+    if (ray->header.productList & RKProductListProductD) {
+        fdata += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "D"), dataObject);
+    }
+    if (ray->header.productList & RKProductListProductP) {
+        fdata += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "P"), dataObject);
+    }
+    if (ray->header.productList & RKProductListProductR) {
+        fdata += ray->header.gateCount;
+        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyDict_SetItem(dataArray, Py_BuildValue("s", "R"), dataObject);
     }
 
     PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
@@ -65,21 +116,66 @@ static PyObject *RKStructRayParse(PyObject *self, PyObject *args, PyObject *keyw
                                   "data", dataArray);
 
     if (verbose > 1) {
-        fprintf(stderr, "    C-Ext:      \033[38;5;197mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
+        fprintf(stderr, "   \033[48;5;197;38;5;15m C-Ext \033[0m      \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
                 ray->header.startElevation, ray->header.startAzimuth, (int)ray->header.startAzimuth);
+        fdata = (float *)ray->data;
+        if (ray->header.productList & RKProductListProductZ) {
+            fprintf(stderr, "                Z = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+        }
+        if (ray->header.productList & RKProductListProductV) {
+            fdata += ray->header.gateCount;
+            fprintf(stderr, "                V = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+        }
+        if (ray->header.productList & RKProductListProductW) {
+            fdata += ray->header.gateCount;
+            fprintf(stderr, "                W = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+        }
+        if (ray->header.productList & RKProductListProductD) {
+            fdata += ray->header.gateCount;
+            fprintf(stderr, "                D = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+        }
+        if (ray->header.productList & RKProductListProductP) {
+            fdata += ray->header.gateCount;
+            fprintf(stderr, "                P = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+        }
+        if (ray->header.productList & RKProductListProductR) {
+            fdata += ray->header.gateCount;
+            fprintf(stderr, "                R = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+        }
+        data = (uint8_t *)fdata;
         if (ray->header.productList & RKProductListDisplayZ) {
-            data = RKGetUInt8DataFromRay(ray, RKProductIndexZ);
             fprintf(stderr, "                Zi = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
         if (ray->header.productList & RKProductListDisplayV) {
-            data = RKGetUInt8DataFromRay(ray, RKProductIndexV);
+            data += ray->header.gateCount;
             fprintf(stderr, "                Vi = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
         if (ray->header.productList & RKProductListDisplayW) {
-            data = RKGetUInt8DataFromRay(ray, RKProductIndexW);
+            data += ray->header.gateCount;
             fprintf(stderr, "                Wi = [%d %d %d %d %d %d %d %d %d %d ...\n",
+                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+        }
+        if (ray->header.productList & RKProductListDisplayD) {
+            data += ray->header.gateCount;
+            fprintf(stderr, "                Di = [%d %d %d %d %d %d %d %d %d %d ...\n",
+                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+        }
+        if (ray->header.productList & RKProductListDisplayP) {
+            data += ray->header.gateCount;
+            fprintf(stderr, "                Pi = [%d %d %d %d %d %d %d %d %d %d ...\n",
+                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+        }
+        if (ray->header.productList & RKProductListDisplayR) {
+            data += ray->header.gateCount;
+            fprintf(stderr, "                Ri = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
     }
