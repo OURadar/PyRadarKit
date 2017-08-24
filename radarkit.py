@@ -52,6 +52,7 @@ def init():
 def showColors():
     rkstruct.showColors()
 
+# A sweep encapsulation
 class Sweep(object):
     """
         An object that encapsulate a sweep
@@ -102,6 +103,10 @@ class Radar(object):
         print('\033[38;5;226;48;5;24m  PyRadarKit  \033[0m')
         print('\033[38;5;226;48;5;24m              \033[0m')
 
+    """
+        Receives a frame: a network delimiter and the following payload described by the delimiter
+        This method always finishes the frame reading
+    """
     def _recv(self):
         try:
             length = self.socket.recv_into(self.netDelimiter, CONSTANTS.PACKET_DELIM_SIZE)
@@ -135,26 +140,37 @@ class Radar(object):
             logger.exception(e)
             raise OSError('Couldn\'t retrieve socket data')
 
+    """
+        Start the server
+    """
     def start(self):
         self.active = True
 
         # Loop through all the files under 'algorithms' folder
-        print('Loading algorithms ...')
+        if self.verbose:
+            print('Loading algorithms ...')
         self.algorithmObjects = []
         for script in glob.glob('algorithms/*.py'):
             basename = os.path.basename(script)[:-3]
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
             self.algorithmObjects.append(obj)
-            print(' • \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
+            if self.verbose:
+                print(' • \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
 
+        # Connect to the host
         self.reconnect()
 
+    """
+        Stop the server
+    """
     def stop(self):
         self.active = False
 
+    """
+        Make a network connection
+    """
     def reconnect(self):
-
         while self.active:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
@@ -173,6 +189,7 @@ class Radar(object):
             # Request status, Z, V, W, D, P and R
             self.socket.send(b'sZVWDPR\r\n')
 
+            # Keep reading while active
             while self.active:
                 self._recv()
                 if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
@@ -213,8 +230,14 @@ class Radar(object):
 
         self.socket.close()
 
+    """
+        Close the socket
+    """
     def close(self):
         self.socket.close()
         
+    """
+        Deallocate
+    """
     def __del__(self):
         self.close()
