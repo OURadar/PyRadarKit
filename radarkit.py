@@ -98,6 +98,10 @@ class Radar(object):
         self.algorithms = []
         self.sweep = Sweep()
 
+        print('\033[38;5;226;48;5;24m              \033[0m')
+        print('\033[38;5;226;48;5;24m  PyRadarKit  \033[0m')
+        print('\033[38;5;226;48;5;24m              \033[0m')
+
     def _recv(self):
         try:
             length = self.socket.recv_into(self.netDelimiter, CONSTANTS.PACKET_DELIM_SIZE)
@@ -135,14 +139,14 @@ class Radar(object):
         self.active = True
 
         # Loop through all the files under 'algorithms' folder
-        print('Loading algorithms ...\n')
+        print('Loading algorithms ...')
         self.algorithmObjects = []
         for script in glob.glob('algorithms/*.py'):
             basename = os.path.basename(script)[:-3]
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
             self.algorithmObjects.append(obj)
-            print('\033[38;5;220m{}\033[0m -> {} -> {}'.format(script, basename, obj.name))
+            print(' • \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
 
         self.reconnect()
 
