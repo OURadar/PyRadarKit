@@ -16,17 +16,8 @@ static PyObject *RKStructInit(PyObject *self, PyObject *args, PyObject *keywords
 
 static PyObject *RKStructTest(PyObject *self, PyObject *args, PyObject *keywords) {
     PyByteArrayObject *input;
-
     PyObject *ret = Py_BuildValue("d", 1.2);
-
     PyArg_ParseTuple(args, "d", &input);
-
-//    bool debug;
-//    static char *keywordList[] = {"input", "debug", NULL};
-//    if (!PyArg_ParseTupleAndKeywords(args, keywords, "d|i", keywordList, &input, &debug)) {
-//        fprintf(stderr, "Nothing specified");
-//        debug = false;
-//    }
     return ret;
 }
 

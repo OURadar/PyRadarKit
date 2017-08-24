@@ -35,7 +35,7 @@ class NETWORK_PACKET_TYPE:
     COMMAND_RESPONSE = 7
     RADAR_DESCRIPTION = 8
     PROCESSOR_STATUS = 9
-    RAY_DISPLAY = 109
+    MOMENT_DATA = 109
     ALERT_MESSAGE = 110
     CONFIG = 111
 
@@ -44,7 +44,6 @@ RKNetDelimiter = b'HHIII'
 
 # Generic functions
 def test(payload, debug=False):
-    print('debug = {}'.format(debug))
     return rkstruct.test(payload, debug=debug)
 
 def init():
@@ -61,13 +60,15 @@ class Sweep(object):
         self.azimuth = 0.0
         self.elevation = 0.0
         self.sweepType = "PPI"
+        self.rayCount = 0
+        self.gateCount = 0
         self.products = {
-            'Zi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-            'Vi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-            'Wi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-            'Di': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-            'Pi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-            'Ri': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            # 'Zi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            # 'Vi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            # 'Wi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            # 'Di': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            # 'Pi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
+            # 'Ri': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
             'Z': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
             'V': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
             'W': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
@@ -91,6 +92,8 @@ class Radar(object):
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
 
+        rkstruct.init()
+        
         # Initialize an empty list of algorithms
         self.algorithms = []
         self.sweep = Sweep()
@@ -103,14 +106,17 @@ class Radar(object):
             delimiter = struct.unpack(RKNetDelimiter, self.netDelimiter)
 
             # 1st component: 16-bit type
-            # 3rd component: 16-bit subtype
+            # 2nd component: 16-bit subtype (not used)
+            # 3rd component: 32-bit size
+            # 4th component: 32-bit decoded size (not used)
             payloadType = delimiter[0]
             payloadSize = delimiter[2]
             self.latestPayloadType = payloadType
 
-            if payloadType != NETWORK_PACKET_TYPE.BEACON and payloadType != NETWORK_PACKET_TYPE.RAY_DISPLAY:
+            if payloadType != NETWORK_PACKET_TYPE.BEACON and payloadType != NETWORK_PACKET_TYPE.MOMENT_DATA:
                 print('Delimiter type {} of size {}'.format(payloadType, payloadSize))
 
+            # Beacon is 0 size, data payload otherwise
             if payloadSize > 0:
                 anchor = memoryview(self.payload)
                 k = 0
@@ -136,7 +142,7 @@ class Radar(object):
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
             self.algorithmObjects.append(obj)
-            print('\033[38;5;220m{}\033[0m -> {} -> {}'.format(script, basename, obj.name()))
+            print('\033[38;5;220m{}\033[0m -> {} -> {}'.format(script, basename, obj.name))
 
         self.reconnect()
 
@@ -160,13 +166,12 @@ class Radar(object):
                 self.socket.close()
                 continue
 
-            # Request status, Z and V
-            #self.socket.send(b'szvwdpr\r\n')
+            # Request status, Z, V, W, D, P and R
             self.socket.send(b'sZVWDPR\r\n')
 
             while self.active:
                 self._recv()
-                if self.latestPayloadType == NETWORK_PACKET_TYPE.RAY_DISPLAY:
+                if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
                     # Parse the ray
                     ray = rkstruct.parse(self.payload, verbose=self.verbose)
                     # Gather the ray into a sweep
@@ -175,20 +180,32 @@ class Radar(object):
                     if self.verbose > 1:
                         print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(ray['elevation'], ray['azimuth'], ii, ray['sweepEnd']))
                         N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
-                        for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
+                        for letter in self.sweep.products.keys():
                             if letter in ray['data']:
                                 print('                {} = {}'.format(letter, ray['data'][letter][0:10]))
                         print('>>')
                     if ray['sweepEnd']:
+                        # Use this end ray only if it is not a begin ray and accumulated count < 360
+                        if ray['sweepBegin'] == False and k < 360:
+                            # Gather all products
+                            for letter in self.sweep.products.keys():
+                                if letter in ray['data']:
+                                    self.sweep.products[letter][ii, 0:ng] = ray['data'][letter][0:ng]
                         # Call the collection of algorithms
                         for obj in self.algorithmObjects:
                             obj.process(self.sweep)
-                            print('------')
-                        print('\n')
+                        print('')
+                    # Zero out all data when a sweep begin is encountered
+                    if ray['sweepBegin']:
+                        self.sweep.rayCount = 0
+                        self.sweep.gateCount = ng
+                        for letter in self.sweep.products.keys():
+                            self.sweep.products[letter][:] = 0
                     # Gather all products
-                    for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
-                        if letter in self.sweep.products and letter in ray['data']:
+                    for letter in self.sweep.products.keys():
+                        if letter in ray['data']:
                             self.sweep.products[letter][ii, 0:ng] = ray['data'][letter][0:ng]
+                    self.sweep.rayCount += 1
 
         self.socket.close()
 
