@@ -1,13 +1,13 @@
 import numpy as N
-import scipy
+import scipy as S
 import radarkit
 
 class main(object):
     def __init__(self):
         self.threshold = 1.0
-        self.name = 'High Reflectivity'
+        self.name = 'Algorithm 1'
 
     # Every algorithm should have this function defined
     def process(self,sweep):
-        print('highZ algorithm:')
+        print('{}:'.format(self.name))
         print('    Nothing yet... just a placeholder')

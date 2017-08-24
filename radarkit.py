@@ -141,8 +141,8 @@ class Radar(object):
             payloadSize = delimiter[2]
             self.latestPayloadType = payloadType
 
-            if payloadType != NETWORK_PACKET_TYPE.BEACON and payloadType != NETWORK_PACKET_TYPE.MOMENT_DATA:
-                logger.info('Delimiter type {} of size {}'.format(payloadType, payloadSize))
+            if self.verbose > 1 and payloadType != NETWORK_PACKET_TYPE.BEACON and payloadType != NETWORK_PACKET_TYPE.MOMENT_DATA:
+                print('Delimiter type {} of size {}'.format(payloadType, payloadSize))
 
             # Beacon is 0 size, data payload otherwise
             if payloadSize > 0:
@@ -163,8 +163,6 @@ class Radar(object):
         Start the server
     """
     def start(self):
-        self.active = True
-
         # Loop through all the files under 'algorithms' folder
         logger.info('Loading algorithms ...')
         self.algorithmObjects = []
@@ -176,6 +174,7 @@ class Radar(object):
             logger.info(' • \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
 
         # Connect to the host
+        self.active = True
         self.reconnect()
 
     """
