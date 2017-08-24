@@ -2,6 +2,8 @@
     Python wrapper for C functions to interact with RadarKit
 """
 
+import os
+import datetime
 import logging
 import math
 import socket
@@ -103,6 +105,23 @@ class Radar(object):
         print('\033[38;5;226;48;5;24m  PyRadarKit  \033[0m')
         print('\033[38;5;226;48;5;24m              \033[0m')
 
+        logFolder = 'log'
+        if not os.path.exists(logFolder):
+            os.makedirs(logFolder)
+
+        logFile = logFolder + '/' + datetime.datetime.now().strftime('pyrk-%Y%m%d.log')
+        logging.basicConfig(filename=logFile, level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%I:%M:%S')
+
+        ch = logging.StreamHandler()
+        if self.verbose > 0:
+            ch.setLevel(logging.INFO)
+        else:
+            ch.setLevel(logging.WARNING)
+        ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%I:%M:%S'))
+        logger.addHandler(ch)
+
+        logger.info('PyRadarKit started.')
+
     """
         Receives a frame: a network delimiter and the following payload described by the delimiter
         This method always finishes the frame reading
@@ -123,7 +142,7 @@ class Radar(object):
             self.latestPayloadType = payloadType
 
             if payloadType != NETWORK_PACKET_TYPE.BEACON and payloadType != NETWORK_PACKET_TYPE.MOMENT_DATA:
-                print('Delimiter type {} of size {}'.format(payloadType, payloadSize))
+                logger.info('Delimiter type {} of size {}'.format(payloadType, payloadSize))
 
             # Beacon is 0 size, data payload otherwise
             if payloadSize > 0:
@@ -147,16 +166,14 @@ class Radar(object):
         self.active = True
 
         # Loop through all the files under 'algorithms' folder
-        if self.verbose:
-            print('Loading algorithms ...')
+        logger.info('Loading algorithms ...')
         self.algorithmObjects = []
         for script in glob.glob('algorithms/*.py'):
             basename = os.path.basename(script)[:-3]
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
             self.algorithmObjects.append(obj)
-            if self.verbose:
-                print(' • \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
+            logger.info(' • \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
 
         # Connect to the host
         self.reconnect()
@@ -175,7 +192,7 @@ class Radar(object):
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
             try:
-                print('\nConnecting {}:{}...'.format(self.ipAddress, self.port))
+                logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
                 self.socket.connect((self.ipAddress, self.port))
             except:
                 t = 3
