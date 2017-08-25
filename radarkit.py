@@ -13,6 +13,7 @@ import logging
 import socket
 import struct
 import numpy as N
+import scipy as S
 
 import rkstruct
 
