@@ -1,5 +1,5 @@
 import numpy as N
-import scipy
+import scipy as S
 import radarkit
 
 class main(object):

@@ -3,16 +3,15 @@
 """
 
 import os
+import sys
+import enum
+import glob
+import math
+import time
 import datetime
 import logging
-import math
 import socket
 import struct
-import os
-import sys
-import glob
-import time
-import enum
 import numpy as N
 
 import rkstruct
