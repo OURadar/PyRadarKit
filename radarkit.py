@@ -194,10 +194,11 @@ class Radar(object):
                 logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
                 self.socket.connect((self.ipAddress, self.port))
             except:
-                t = 3
+                t = 30
                 while t > 0:
-                    print('Retry in {} seconds ...\r'.format(t))
-                    time.sleep(1)
+                    if self.verbose > 1 and t % 10 == 0:
+                        print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
+                    time.sleep(0.1)
                     t -= 1
                 self.socket.close()
                 continue
