@@ -31,6 +31,7 @@
 		B57391441EE59B9200ACF25E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B57391451EE59B9200ACF25E /* rkstruct.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rkstruct.c; sourceTree = "<group>"; };
 		B57391461EE59B9200ACF25E /* setup.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setup.py; sourceTree = "<group>"; };
+		B5902EF01F5F027B00C7CC7A /* ppi_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = ppi_demo.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +62,7 @@
 				B57391431EE59B9200ACF25E /* radarkit.py */,
 				B57391451EE59B9200ACF25E /* rkstruct.c */,
 				B57391461EE59B9200ACF25E /* setup.py */,
+				B5902EF01F5F027B00C7CC7A /* ppi_demo.py */,
 				B57391401EE59B9200ACF25E /* algorithms */,
 				B51343101EF96BE800DE7CBC /* Products */,
 			);
@@ -254,6 +256,7 @@
 				B51343151EF96BE800DE7CBC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "PyRadarKit" */ = {
 			isa = XCConfigurationList;
