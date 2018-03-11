@@ -15,7 +15,7 @@ PyRadarKit is a Python interface to communicate with the RadarKit socket interfa
 
 On macOS, if you use brew, the dependencies can be installed via
 ```shell
-brew install numpy scipy --with-python3
+brew install numpy scipy netcdf --with-python3
 ``````
 
 To build the extension
@@ -49,11 +49,6 @@ python3 main.py -H localhost
 
 
 ## Some Unfinalized Notes
-
-```shell
-export HDF5_DIR=/usr/local/Cellar/hdf5/1.10.1_2
-brew install hdf5
-```
 
 ```shell
 pip3 install numpy scipy netcdf

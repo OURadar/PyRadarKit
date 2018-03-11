@@ -54,6 +54,9 @@ def init():
 def showColors():
     rk.showColors()
 
+def read(filename, verbose=0):
+    rk.read(filename, verbose=0)
+
 # A sweep encapsulation
 class Sweep(object):
     """
