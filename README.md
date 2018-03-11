@@ -10,6 +10,8 @@ PyRadarKit is a Python interface to communicate with the RadarKit socket interfa
 - [Python]
 - [NumPy]
 - [SciPy]
+- [HDF5]
+- [NetCDF]
 
 On macOS, if you use brew, the dependencies can be installed via
 ```shell
@@ -34,6 +36,20 @@ python3 main.py -H localhost
 [Python]: https://www.python.org
 [NumPy]: http://www.numpy.org
 [SciPy]: https://www.scipy.org
+[HDF5]: https://support.hdfgroup.org/HDF5
+[NetCDF]: https://www.unidata.ucar.edu/software/netcdf
 [Baltrad]: http://theradarcommunity.wikidot.com/tool:2
 [PyART]: http://arm-doe.github.io/pyart
 [wradlib]: http://wradlib.org
+
+
+## Some Unfinalized Notes
+
+```shell
+export HDF5_DIR=/usr/local/Cellar/hdf5/1.10.1_2
+brew install hdf5
+```
+
+```shell
+pip3 install numpy scipy netcdf
+```
