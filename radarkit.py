@@ -14,6 +14,7 @@ import socket
 import struct
 import numpy as N
 import scipy as S
+import netcdf
 
 import rkstruct
 
@@ -79,6 +80,16 @@ class Sweep(object):
             'P': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
             'R': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float)
         }
+
+    """
+        Read a sweep from a netcdf file
+    """
+    def read(self, filename):
+        file = netcdf.Dataset(filename, 'r')
+        print file.data_model
+        self.globalAttributes = file.ncattrs()
+        file.close()
+
 
 # Radar class
 class Radar(object):

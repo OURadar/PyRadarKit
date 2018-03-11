@@ -24,6 +24,7 @@
 
 /* Begin PBXFileReference section */
 		B513430F1EF96BE800DE7CBC /* rkstruct */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rkstruct; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5559EE52055816700E5B34F /* chart.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = chart.py; sourceTree = "<group>"; };
 		B57391401EE59B9200ACF25E /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
 		B57391411EE59B9200ACF25E /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
 		B57391421EE59B9200ACF25E /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
@@ -62,6 +63,7 @@
 				B57391431EE59B9200ACF25E /* radarkit.py */,
 				B57391451EE59B9200ACF25E /* rkstruct.c */,
 				B57391461EE59B9200ACF25E /* setup.py */,
+				B5559EE52055816700E5B34F /* chart.py */,
 				B5902EF01F5F027B00C7CC7A /* ppi_demo.py */,
 				B57391401EE59B9200ACF25E /* algorithms */,
 				B51343101EF96BE800DE7CBC /* Products */,
