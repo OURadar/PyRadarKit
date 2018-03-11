@@ -88,6 +88,19 @@ class Sweep(object):
         file = netcdf.Dataset(filename, 'r')
         print file.data_model
         self.globalAttributes = file.ncattrs()
+        dims = [dim for dim in file.dimensions]
+        print "NetCDF dimension information:"
+        for dim in dims:
+            print "\tName:", dim 
+            print "\t\tsize:", len(file.dimensions[dim])
+            print_ncattr(dim)
+        vars = [var for var in file.variables]
+        for var in vars:
+            if var not in dims:
+                print '\tName:', var
+                print "\t\tdimensions:", file.variables[var].dimensions
+                print "\t\tsize:", file.variables[var].size
+                #print_ncattr(var)
         file.close()
 
 
