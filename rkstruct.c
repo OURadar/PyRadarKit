@@ -26,7 +26,7 @@ static PyObject *RKStructRayParse(PyObject *self, PyObject *args, PyObject *keyw
     PyByteArrayObject *object;
     static char *keywordList[] = {"input", "verbose", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywords, "Y|i", keywordList, &object, &verbose)) {
-        fprintf(stderr, "Nothing provided.");
+        fprintf(stderr, "Nothing provided.\n");
         return NULL;
     }
 
@@ -180,12 +180,38 @@ static PyObject *RKStructTestShowColors(PyObject *self, PyObject *args, PyObject
     return Py_None;
 }
 
+static PyObject *RKStructRead(PyObject *self, PyObject *args, PyObject *keywords) {
+    int verbose = 0;
+    char *filename;
+    static char *keywordList[] = {"filename", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &filename, &verbose)) {
+        fprintf(stderr, "Nothing provided.\n");
+        return Py_None;
+    }
+    printf("Using the method from RadarKit ...\n");
+    
+    printf("Reading from file %s ...\n", filename);
+    
+    PyObject *dataArray = PyDict_New();
+
+    PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
+        "elevation", 0.0f,
+        "azimuth", 0.0f,
+        "gateCount", 10,
+        "sweepBegin", Py_True,
+        "sweepEnd", Py_False,
+        "data", dataArray);
+
+   return ret;
+}
+
 // Standard boiler plates
 static PyMethodDef RKStructMethods[] = {
     {"init",       (PyCFunction)RKStructInit,           METH_VARARGS | METH_KEYWORDS, "Init module"},
     {"test",       (PyCFunction)RKStructTest,           METH_VARARGS | METH_KEYWORDS, "Test module"},
     {"parse",      (PyCFunction)RKStructRayParse,       METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
     {"showColors", (PyCFunction)RKStructTestShowColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
+    {"read",       (PyCFunction)RKStructRead,           METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
     {NULL, NULL, 0, NULL}
 };
 

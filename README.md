@@ -18,6 +18,11 @@ On macOS, if you use brew, the dependencies can be installed via
 brew install numpy scipy --with-python3
 ``````
 
+To build the extension
+```shell
+make
+```
+
 ## Usage
 
 Launch from command line

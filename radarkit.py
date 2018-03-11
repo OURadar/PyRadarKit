@@ -14,9 +14,8 @@ import socket
 import struct
 import numpy as N
 import scipy as S
-import netcdf
 
-import rkstruct
+import rkstruct as rk
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +46,13 @@ RKNetDelimiter = b'HHIII'
 
 # Generic functions
 def test(payload, debug=False):
-    return rkstruct.test(payload, debug=debug)
+    return rk.test(payload, debug=debug)
 
 def init():
-    rkstruct.init()
+    rk.init()
 
 def showColors():
-    rkstruct.showColors()
+    rk.showColors()
 
 # A sweep encapsulation
 class Sweep(object):
@@ -84,24 +83,24 @@ class Sweep(object):
     """
         Read a sweep from a netcdf file
     """
-    def read(self, filename):
-        file = netcdf.Dataset(filename, 'r')
-        print file.data_model
-        self.globalAttributes = file.ncattrs()
-        dims = [dim for dim in file.dimensions]
-        print "NetCDF dimension information:"
-        for dim in dims:
-            print "\tName:", dim 
-            print "\t\tsize:", len(file.dimensions[dim])
-            print_ncattr(dim)
-        vars = [var for var in file.variables]
-        for var in vars:
-            if var not in dims:
-                print '\tName:', var
-                print "\t\tdimensions:", file.variables[var].dimensions
-                print "\t\tsize:", file.variables[var].size
-                #print_ncattr(var)
-        file.close()
+    # def read(self, filename):
+        # file = netcdf.Dataset(filename, 'r')
+        # print file.data_model
+        # self.globalAttributes = file.ncattrs()
+        # dims = [dim for dim in file.dimensions]
+        # print "NetCDF dimension information:"
+        # for dim in dims:
+        #     print "\tName:", dim 
+        #     print "\t\tsize:", len(file.dimensions[dim])
+        #     print_ncattr(dim)
+        # vars = [var for var in file.variables]
+        # for var in vars:
+        #     if var not in dims:
+        #         print '\tName:', var
+        #         print "\t\tdimensions:", file.variables[var].dimensions
+        #         print "\t\tsize:", file.variables[var].size
+        #         #print_ncattr(var)
+        # file.close()
 
 
 # Radar class
@@ -119,7 +118,7 @@ class Radar(object):
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
 
-        rkstruct.init()
+        rk.init()
         
         # Initialize an empty list of algorithms
         self.algorithms = []
@@ -235,7 +234,7 @@ class Radar(object):
                 self._recv()
                 if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
                     # Parse the ray
-                    ray = rkstruct.parse(self.payload, verbose=self.verbose)
+                    ray = rk.parse(self.payload, verbose=self.verbose)
                     # Gather the ray into a sweep
                     ii = int(ray['azimuth'])
                     ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
