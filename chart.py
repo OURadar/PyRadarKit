@@ -102,7 +102,7 @@ class Chart:
         return
 
 
-def showPPI(x, y, z, cmap=None, vmin=0.0, vmax=80.0, title=None):
+def showPPI(x, y, z, cmap=None, vmin=0.0, vmax=80.0, title=None, maxrange=40):
     w = 5
     h = 5.5
     # Duplicate the first azimuth and append it to the end
@@ -120,8 +120,8 @@ def showPPI(x, y, z, cmap=None, vmin=0.0, vmax=80.0, title=None):
     if cmap is None:
         cmap = zmap()
     ax = matplotlib.pyplot.axes(rect, facecolor=bgColor)
-    ax.set_xlim((-50, 50))
-    ax.set_ylim((-50, 50))
+    ax.set_xlim((-maxrange, maxrange))
+    ax.set_ylim((-maxrange, maxrange))
     pc = matplotlib.pyplot.pcolormesh(xx, yy, zz, vmin=vmin, vmax=vmax, axes=ax, cmap=cmap)
     ax2 = matplotlib.pyplot.axes(rect, facecolor=None, frameon=False, sharex=ax, sharey=ax)
     matplotlib.pyplot.xlabel('X Distance (km)', axes=ax2)

@@ -209,6 +209,9 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
 	RKSetWantScreenOutput(true);
 
+    // Do this before we use any Python array creation
+    import_array();
+    
 	// Read the sweep using RadarKit
 	RKSweep *sweep = RKSweepRead(filename);
 	if (sweep == NULL) {
@@ -216,12 +219,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 		return Py_None;
 	}
 
-	// Do this before we use any Python array creation
-	import_array();
-
 	// A new dictionary for output
 	PyObject *momentDic = PyDict_New();
-
 
 	// Some constants
 	npy_intp dims[] = {sweep->rayCount, sweep->gateCount};
@@ -271,7 +270,6 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 			fprintf(stderr, "Early return.\n");
 			break;
 		}
-		//printf("symbol[%d] -> %s\n", p, symbol);
 
 		// A scratch space for data arragement
 		scratch = (float *)malloc(sweep->rayCount * sweep->gateCount * sizeof(float));
@@ -293,8 +291,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 		Py_DECREF(key);
 	}
 
-//	printf("Returning array ...\n");
-
+    // Return dictionary
 	PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:O,s:O,s:O,s:O,s:O,s:O}",
 								  "name", sweep->desc.name,
 								  "sweepElevation", ray->header.sweepElevation,
@@ -312,9 +309,9 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 	Py_DECREF(range);
 	Py_DECREF(momentDic);
 
-	RKSweepFree(sweep);
+    RKSweepFree(sweep);
 
-   return ret;
+    return ret;
 }
 
 // Standard boiler plates
