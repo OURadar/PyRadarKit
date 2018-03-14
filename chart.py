@@ -25,6 +25,27 @@ def zmap():
     ]
     return matplotlib.colors.LinearSegmentedColormap.from_list('zmap', colors, N=len(colors))
 
+def vmap():
+    colors = [
+        ( 24,  24, 181),
+        ( 76,  76, 255),
+        (  1, 179, 179),
+        ( 76, 255, 255),
+        (  0, 179,   1),
+        ( 76, 255,  76),
+        (102, 102, 102),
+        ( 10,  10,  10),
+        (179, 179, 179),
+        (255, 255,  76),
+        (179, 179,   0),
+        (255,  76,  76),
+        (179,   0,   1),
+        (255,  76, 255),
+        (179,   0, 179)
+    ];
+    colors = np.array(colors) / 255
+    return matplotlib.colors.LinearSegmentedColormap.from_list('vmap', colors, N=len(colors))
+
 class Chart:
     """
         A Chart Class
@@ -81,13 +102,14 @@ class Chart:
         return
 
 
-def showPPI(x, y, z, cmap='default'):
+def showPPI(x, y, z, cmap=None, vmin=0.0, vmax=80.0, title=None):
     w = 5
     h = 5.5
     # Duplicate the first azimuth and append it to the end
     xx = np.append(x, x[0:1, :], axis=0)
     yy = np.append(y, y[0:1, :], axis=0)
     zz = np.append(z, z[0:1, :], axis=0)
+    zz = np.ma.masked_array(zz, zz < -9000.0)
     # Now we setup the figure
     fig = matplotlib.pyplot.figure(figsize=(w, h), dpi=144, facecolor=None)
     if w > h:
@@ -95,20 +117,31 @@ def showPPI(x, y, z, cmap='default'):
     else:
         rect = [0.14, 0.1, 0.8, 0.8 * w / h]
     rect = [round(x * 72.0) / 72.0 + 0.5 / 72.0 for x in rect]
-    if not cmap is 'default':
-        cmap = colormap(cmap)
-    else:
+    if cmap is None:
         cmap = zmap()
     ax = matplotlib.pyplot.axes(rect, facecolor=bgColor)
     ax.set_xlim((-50, 50))
     ax.set_ylim((-50, 50))
-    pc = matplotlib.pyplot.pcolormesh(xx, yy, zz, vmin=0.0, vmax=80.0, axes=ax, cmap=cmap)
+    pc = matplotlib.pyplot.pcolormesh(xx, yy, zz, vmin=vmin, vmax=vmax, axes=ax, cmap=cmap)
     ax2 = matplotlib.pyplot.axes(rect, facecolor=None, frameon=False, sharex=ax, sharey=ax)
     matplotlib.pyplot.xlabel('X Distance (km)', axes=ax2)
     matplotlib.pyplot.ylabel('Y Distance (km)', axes=ax2)
     # pos = fig.add_axes((0.88, 0.3, 0.03, 0.5))
     cax = fig.add_axes((rect[0], rect[1] + rect[3] + 0.06, rect[2], 0.03))
     cb = matplotlib.pyplot.colorbar(ax=ax2, cax=cax, orientation='horizontal')
-    cax.set_title('Reflectivity (dBZ)')
-    dic = {'figure':fig, 'axes':ax, 'pcolor':pc, 'coloraxes':cax, 'colobar':cb}
+    if not title is None:
+        cax.set_title(title)
+    else:
+        cax.set_title('Data')
+    dic = {'figure':fig, 'axes':ax, 'axesc':ax2, 'pcolor':pc, 'coloraxes':cax, 'colobar':cb}
     return dic
+
+def updatePPI(ppi, x, y, v, cmap=None, vmin=0.0, vmax=80.0, title=None):
+    ppi['axes'].clear()
+    ppi['coloraxes'].clear()
+    if cmap is None:
+        cmap = zmap()
+    pc = ppi['axes'].pcolormesh(x, y, v, vmin=vmin, vmax=vmax, axes=ppi['axes'], cmap=cmap)
+    cb= matplotlib.pyplot.colorbar(ax=ppi['axesc'], cax=ppi['coloraxes'], orientation='horizontal')
+    if not title is None:
+        ppi['coloraxes'].set_title(title)
