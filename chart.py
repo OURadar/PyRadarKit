@@ -100,13 +100,15 @@ def showPPI(x, y, z, cmap='default'):
     else:
         cmap = zmap()
     ax = matplotlib.pyplot.axes(rect, facecolor=bgColor)
-    pc = matplotlib.pyplot.pcolormesh(xx, yy, zz, vmin=0.0, vmax=80.0, axes=ax, cmap=cmap)
+    ax.set_xlim((-50, 50))
+    ax.set_ylim((-50, 50))
+    pc = matplotlib.pyplot.pcolor(xx, yy, zz, vmin=0.0, vmax=80.0, axes=ax, cmap=cmap)
     ax2 = matplotlib.pyplot.axes(rect, facecolor=None, frameon=False, sharex=ax, sharey=ax)
     matplotlib.pyplot.xlabel('X Distance (km)', axes=ax2)
     matplotlib.pyplot.ylabel('Y Distance (km)', axes=ax2)
     # pos = fig.add_axes((0.88, 0.3, 0.03, 0.5))
     cax = fig.add_axes((rect[0], rect[1] + rect[3] + 0.06, rect[2], 0.03))
     cb = matplotlib.pyplot.colorbar(ax=ax2, cax=cax, orientation='horizontal')
-    cax.set_title('Example Reflectivity (dBZ)')
+    cax.set_title('Reflectivity (dBZ)')
     dic = {'figure':fig, 'axes':ax, 'pcolor':pc, 'coloraxes':cax, 'colobar':cb}
     return dic

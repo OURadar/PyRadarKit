@@ -55,7 +55,7 @@ def showColors():
     rk.showColors()
 
 def read(filename, verbose=0):
-    rk.read(filename, verbose=0)
+    return rk.read(filename, verbose=0)
 
 # A sweep encapsulation
 class Sweep(object):
@@ -245,16 +245,16 @@ class Radar(object):
                         print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(ray['elevation'], ray['azimuth'], ii, ray['sweepEnd']))
                         N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                         for letter in self.sweep.products.keys():
-                            if letter in ray['data']:
-                                print('                {} = {}'.format(letter, ray['data'][letter][0:10]))
+                            if letter in ray['moments']:
+                                print('                {} = {}'.format(letter, ray['moments'][letter][0:10]))
                         print('>>')
                     if ray['sweepEnd']:
                         # Use this end ray only if it is not a begin ray and accumulated count < 360
                         if ray['sweepBegin'] == False and k < 360:
                             # Gather all products
                             for letter in self.sweep.products.keys():
-                                if letter in ray['data']:
-                                    self.sweep.products[letter][ii, 0:ng] = ray['data'][letter][0:ng]
+                                if letter in ray['moments']:
+                                    self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
                         # Call the collection of algorithms
                         for obj in self.algorithmObjects:
                             obj.process(self.sweep)
@@ -267,8 +267,8 @@ class Radar(object):
                             self.sweep.products[letter][:] = 0
                     # Gather all products
                     for letter in self.sweep.products.keys():
-                        if letter in ray['data']:
-                            self.sweep.products[letter][ii, 0:ng] = ray['data'][letter][0:ng]
+                        if letter in ray['moments']:
+                            self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
                     self.sweep.rayCount += 1
 
         self.socket.close()

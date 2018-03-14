@@ -7,21 +7,33 @@
 #define IS_PY3    defined(PyModule_Create)
 
 // Wrappers
-static PyObject *RKStructInit(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
     Py_INCREF(Py_None);
     import_array();
     return Py_None;
 }
 
-static PyObject *RKStructTest(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
+	import_array();
     PyByteArrayObject *input;
-    PyObject *ret = Py_BuildValue("d", 1.2);
-    PyArg_ParseTuple(args, "d", &input);
+//    PyObject *ret = Py_BuildValue("d", 1.2);
+//    PyArg_ParseTuple(args, "d", &input);
+	npy_intp dims[] = {10, 20};
+	PyObject *ret = PyDict_New();
+	if (ret == NULL) {
+		RKLog("Error. Unable to create a new dictionary.\n");
+		return NULL;
+	}
+	PyObject *key = Py_BuildValue("s", "Z");
+	PyObject *value = PyArray_SimpleNew(2, dims, NPY_FLOAT32);
+	PyDict_SetItem(ret, key, value);
+	Py_DECREF(key);
+	Py_DECREF(value);
     return ret;
 }
 
-static PyObject *RKStructRayParse(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords) {
     int verbose = 0;
     PyByteArrayObject *object;
     static char *keywordList[] = {"input", "verbose", NULL};
@@ -104,7 +116,7 @@ static PyObject *RKStructRayParse(PyObject *self, PyObject *args, PyObject *keyw
                                   "gateCount", ray->header.gateCount,
                                   "sweepBegin", ray->header.marker & RKMarkerSweepBegin ? Py_True : Py_False,
                                   "sweepEnd", ray->header.marker & RKMarkerSweepEnd ? Py_True : Py_False,
-                                  "data", dataArray);
+                                  "moments", dataArray);
 
     if (verbose > 1) {
         fprintf(stderr, "   \033[48;5;197;38;5;15m C-Ext \033[0m      \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
@@ -174,55 +186,87 @@ static PyObject *RKStructRayParse(PyObject *self, PyObject *args, PyObject *keyw
     return ret;
 }
 
-static PyObject *RKStructTestShowColors(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKTestShowColors(PyObject *self, PyObject *args, PyObject *keywords) {
     RKTestShowColors();
     Py_INCREF(Py_None);
     return Py_None;
 }
 
-static PyObject *RKStructRead(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
+	int k;
     int verbose = 0;
     char *filename;
-    static char *keywordList[] = {"filename", "verbose", NULL};
+
+	static char *keywordList[] = {"filename", "verbose", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &filename, &verbose)) {
         fprintf(stderr, "Nothing provided.\n");
         return Py_None;
     }
-    printf("Using the method from RadarKit ...\n");
-    
-    printf("Reading from file %s ...\n", filename);
-    
-    PyObject *dataArray = PyDict_New();
+
+	RKSetWantScreenOutput(true);
+
+	RKSweep *sweep = RKSweepRead(filename);
+	if (sweep == NULL) {
+		fprintf(stderr, "No sweep.\n");
+		return Py_None;
+	}
+
+	import_array();
+
+	PyObject *dataArray = PyDict_New();
+	PyObject *dataObject = NULL;
+
+	float *scratch = (float *)malloc(sweep->rayCount * sweep->gateCount * sizeof(float));
+	if (scratch == NULL) {
+		RKLog("Error. Unable to allocate memory.\n");
+		return Py_None;
+	}
+
+	for (k = 0; k < (int)sweep->rayCount; k++) {
+		RKRay *ray = RKGetRay(sweep->rayBuffer, k);
+		memcpy(scratch + k * sweep->gateCount, RKGetFloatDataFromRay(ray, RKProductIndexZ), sweep->gateCount * sizeof(float));
+	}
+
+	npy_intp dims[] = {sweep->rayCount, sweep->gateCount};
+
+	dataObject = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
+	PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
+
+	RKRay *ray = RKGetRay(sweep->rayBuffer, 0);
 
     PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
-        "elevation", 0.0f,
-        "azimuth", 0.0f,
-        "gateCount", 10,
+        "sweepElevation", ray->header.sweepElevation,
+        "sweepAzimuth", ray->header.sweepAzimuth,
+        "gateCount", sweep->gateCount,
         "sweepBegin", Py_True,
         "sweepEnd", Py_False,
-        "data", dataArray);
+        "moments", dataArray);
+
+	free(scratch);
+
+	RKSweepFree(sweep);
 
    return ret;
 }
 
 // Standard boiler plates
-static PyMethodDef RKStructMethods[] = {
-    {"init",       (PyCFunction)RKStructInit,           METH_VARARGS | METH_KEYWORDS, "Init module"},
-    {"test",       (PyCFunction)RKStructTest,           METH_VARARGS | METH_KEYWORDS, "Test module"},
-    {"parse",      (PyCFunction)RKStructRayParse,       METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
-    {"showColors", (PyCFunction)RKStructTestShowColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
-    {"read",       (PyCFunction)RKStructRead,           METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
+static PyMethodDef PyRKMethods[] = {
+    {"init",       (PyCFunction)PyRKInit,           METH_VARARGS | METH_KEYWORDS, "Init module"},
+    {"test",       (PyCFunction)PyRKTest,           METH_VARARGS | METH_KEYWORDS, "Test module"},
+    {"parse",      (PyCFunction)PyRKRayParse,       METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
+    {"showColors", (PyCFunction)PyRKTestShowColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
+    {"read",       (PyCFunction)PyRKRead,           METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
     {NULL, NULL, 0, NULL}
 };
 
 #if IS_PY3
 
-static struct PyModuleDef RKStructModule = {
+static struct PyModuleDef PyRKModule = {
     PyModuleDef_HEAD_INIT,
     "rk",
     NULL,
     -1,
-    RKStructMethods
+    PyRKMethods
 };
 
 #endif
@@ -232,13 +276,13 @@ PyMODINIT_FUNC
 #if IS_PY3
 
 PyInit_rkstruct(void) {
-    return PyModule_Create(&RKStructModule);
+    return PyModule_Create(&PyRKModule);
 }
 
 #else
 
 initrkstruct(void) {
-    (void) Py_InitModule("rkstruct", RKStructMethods);
+    (void) Py_InitModule("rkstruct", PyRKMethods);
 }
 
 #endif
