@@ -1,26 +1,33 @@
 PyRadarKit
 ==========
 
-PyRadarKit is a Python interface to communicate with the RadarKit socket interface. This extension is mainly for parsing the pre-defined structure in RadarKit into well-behaved C arrays and then into NumPy arrays. More coming soon ...
+PyRadarKit is a Python interface to communicate with the RadarKit socket interface. This extension is mainly for parsing the pre-defined structure in RadarKit into well-behaved C arrays and then into NumPy arrays.
+
+It also contains extensions that utilizes [RadarKit] to perform some low-level tasks, such as reading the native moment files.
+
+More coming soon ...
 
 
 ## Requirements
 
-- [RadarKit]
+- [RadarKit] and its dependencies
 - [Python]
 - [NumPy]
 - [SciPy]
-- [HDF5]
-- [NetCDF]
 
 On macOS, if you use brew, the dependencies can be installed via
 ```shell
-brew install numpy scipy netcdf --with-python3
+brew install numpy scipy
 ``````
 
-To build the extension
+To build the extension:
 ```shell
 make
+```
+
+Someitmes you might need to clean the current built to force a re-build, which can be done as:
+```shell
+make clean && make
 ```
 
 ## Usage
