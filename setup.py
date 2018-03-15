@@ -11,7 +11,7 @@ print('\033[34m===>\033[0m lib_dirs = {}'.format(lib_dirs))
 rkstruct = Extension('rkstruct', sources=['rkstruct.c'],
                      include_dirs = inc_dirs,
                      library_dirs = lib_dirs,
-                     extra_compile_args = ['-Wno-strict-prototypes'],
+                     extra_compile_args = ['-Wno-strict-prototypes', '-Wno-microsoft'],
                      libraries = ['radarkit', 'fftw3f', 'netcdf'])
 
 # Run the setup
