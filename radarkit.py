@@ -197,7 +197,7 @@ class Radar(object):
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
             self.algorithmObjects.append(obj)
-            logger.info(' • \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
+            logger.info(' - \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
 
         # Connect to the host
         self.active = True
