@@ -64,26 +64,21 @@ class Sweep(object):
 	"""
 		An object that encapsulate a sweep
 	"""
-	def __init__(self):
+	def __init__(self, rays=360, gates=CONSTANTS.MAX_GATES):
 		self.azimuth = 0.0
 		self.elevation = 0.0
 		self.sweepType = "PPI"
 		self.rayCount = 0
 		self.gateCount = 0
 		self.receivedRayCount = 0
+		self.validSymbols = []
 		self.products = {
-			# 'Zi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-			# 'Vi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-			# 'Wi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-			# 'Di': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-			# 'Pi': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-			# 'Ri': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.uint8),
-			'Z': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
-			'V': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
-			'W': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
-			'D': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
-			'P': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float),
-			'R': N.zeros((360, CONSTANTS.MAX_GATES), dtype=N.float)
+			'Z': N.zeros((rays, gates), dtype=N.float),
+			'V': N.zeros((rays, gates), dtype=N.float),
+			'W': N.zeros((rays, gates), dtype=N.float),
+			'D': N.zeros((rays, gates), dtype=N.float),
+			'P': N.zeros((rays, gates), dtype=N.float),
+			'R': N.zeros((rays, gates), dtype=N.float)
 		}
 
 	"""
@@ -246,6 +241,7 @@ class Radar(object):
 			# Keep reading while active
 			while self.active:
 				self._recv()
+
 				if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
 					# Parse the ray
 					ray = rk.parseRay(self.payload, verbose=self.verbose)
@@ -266,7 +262,7 @@ class Radar(object):
 							for letter in self.sweep.products.keys():
 								if letter in ray['moments']:
 									self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
-						# Call the collection of algorithms
+						# Call the collection of algorithms (deprecating)
 						for obj in self.algorithmObjects:
 							obj.process(self.sweep)
 						print('')
@@ -281,20 +277,45 @@ class Radar(object):
 						if letter in ray['moments']:
 							self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
 					self.sweep.rayCount += 1
+
 				elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_HEADER:
+
 					# Parse the sweep
 					sweepHeader = rk.parseSweep(self.payload, verbose=self.verbose)
 					self.sweep.gateCount = sweepHeader['gateCount']
 					self.sweep.rayCount = sweepHeader['rayCount']
+					self.sweep.validSymbols = sweepHeader['moments']
+					self.sweep.range = N.zeros(self.sweep.gateCount, dtype=N.float)
+					self.sweep.azimuth = N.zeros(self.sweep.gateCount, dtype=N.float)
+					self.sweep.elevation = N.zeros(self.sweep.gateCount, dtype=N.float)
 					self.sweep.receivedRayCount = 0;
-					print('  New sweep -> {} x {}   moment keys = {}'.format(sweepHeader['gateCount'], sweepHeader['rayCount'], sweepHeader['moments']))
-				elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
-					ray = rk.parseRay(self.payload, verbose=self.verbose)
-					self.sweep.receivedRayCount += 1
+					self.sweep.products = {}
 					if self.verbose > 1:
-						print('  ray {} / {}  {}'.format(self.sweep.receivedRayCount, self.sweep.rayCount, list(ray['moments'].keys())))
+						print('validSymbols = {}'.format(self.sweep.validSymbols))
+					for symbol in self.sweep.validSymbols:
+						self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
+					print('  New sweep -> {} x {}   moments = {}'.format(self.sweep.rayCount, self.sweep.gateCount, sweepHeader['moments']))
+
+				elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
+
+					ray = rk.parseRay(self.payload, verbose=self.verbose)
+					k = self.sweep.receivedRayCount;
+					self.sweep.azimuth[k] = ray['azimuth']
+					self.sweep.elevation[k] = ray['elevation']
+					for symbol in self.sweep.validSymbols:
+						self.sweep.products[symbol][k, 0:self.sweep.gateCount] = ray['moments'][symbol][0:self.sweep.gateCount]
+					if self.verbose > 1:
+						print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(self.sweep.elevation[k], self.sweep.azimuth[k], k, self.sweep.rayCount))
+						N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
+						for symbol in self.sweep.products.keys():
+							print('                {} = {}'.format(symbol, self.sweep.products[symbol][k, 0:10]))
+						print('>>')
+					self.sweep.receivedRayCount += 1
 					if self.sweep.receivedRayCount == self.sweep.rayCount:
-						print('  sweep ends.')
+						# Call the collection of algorithms
+						for obj in self.algorithmObjects:
+							obj.process(self.sweep)
+						print('')
 
 
 		self.socket.close()
