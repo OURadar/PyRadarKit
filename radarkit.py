@@ -177,7 +177,7 @@ class Radar(object):
 			payloadSize = delimiter[2]
 			self.latestPayloadType = payloadType
 
-			if self.verbose > 1:
+			if self.verbose > 2:
 				print('Delimiter: type {} size {}   k = {}'.format(payloadType, payloadSize, k))
 
 			# Beacon is 0 size, data payload otherwise
@@ -286,14 +286,15 @@ class Radar(object):
 					sweepHeader = rk.parseSweep(self.payload, verbose=self.verbose)
 					self.sweep.gateCount = sweepHeader['gateCount']
 					self.sweep.rayCount = sweepHeader['rayCount']
-					print('  New sweep -> {} x {}'.format(sweepHeader['gateCount'], sweepHeader['rayCount']))
+					self.sweep.receivedRayCount = 0;
+					print('  New sweep -> {} x {}   moment keys = {}'.format(sweepHeader['gateCount'], sweepHeader['rayCount'], sweepHeader['moments']))
 				elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
 					ray = rk.parseRay(self.payload, verbose=self.verbose)
 					self.sweep.receivedRayCount += 1
 					if self.verbose > 1:
 						print('  ray {} / {}  {}'.format(self.sweep.receivedRayCount, self.sweep.rayCount, list(ray['moments'].keys())))
-					if self.sweep.receivedRayCount is self.sweep.rayCount:
-
+					if self.sweep.receivedRayCount == self.sweep.rayCount:
+						print('  sweep ends.')
 
 
 		self.socket.close()

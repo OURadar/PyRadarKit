@@ -188,6 +188,7 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
 }
 
 static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywords) {
+	int r;
 	int verbose = 0;
 	PyByteArrayObject *object;
 	static char *keywordList[] = {"input", "verbose", NULL};
@@ -196,10 +197,33 @@ static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywor
 		return NULL;
 	}
 	RKSweepHeader *sweepHeader = (RKSweepHeader *)object->ob_bytes;
-	PyObject *ret = Py_BuildValue("{s:i,s:i}",
+
+	RKName name;
+	RKName symbol;
+	uint32_t productList = sweepHeader->productList;
+	uint32_t productCount = __builtin_popcount(productList);
+	uint32_t productIndex;
+
+	PyObject *list = PyList_New(productCount);
+//	printf("count= %d\n", productCount);
+
+	for (uint32_t k = 0; k < productCount; k++) {
+		// Get the symbol, name, unit, colormap, etc. from the product list
+		r = RKGetNextProductDescription(symbol, name, NULL, NULL, &productIndex, &productList);
+		if (r != RKResultSuccess) {
+			fprintf(stderr, "Early return.\n");
+			break;
+		}
+		PyList_SetItem(list, k, Py_BuildValue("s", symbol));
+	}
+
+	PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:i,s:O}",
+								  "name", sweepHeader->desc.name,
+								  "sweepElevation", sweepHeader->config.sweepElevation,
+								  "sweepAzimuth", sweepHeader->config.sweepAzimuth,
 								  "gateCount", sweepHeader->gateCount,
-								  "rayCount", sweepHeader->rayCount);
-	fprintf(stderr, "gateCount = %d   rayCount = %d\n", sweepHeader->gateCount, sweepHeader->rayCount);
+								  "rayCount", sweepHeader->rayCount,
+								  "moments", list);
 	return ret;
 }
 
@@ -269,9 +293,9 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 	PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
 
 	// Some product description
-	uint32_t productIndex;
 	RKName name;
 	RKName symbol;
+	uint32_t productIndex;
 
 	// A shadow copy of productList so we can manipulate it without affecting the original ray
 	uint32_t productList = sweep->header.productList;
