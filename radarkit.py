@@ -40,6 +40,8 @@ class NETWORK_PACKET_TYPE:
     MOMENT_DATA = 109
     ALERT_MESSAGE = 110
     CONFIG = 111
+    SWEEP_HEADER = 113
+    SWEEP_RAY = 114
 
 # Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
 RKNetDelimiter = b'HHIII'
@@ -230,14 +232,15 @@ class Radar(object):
                 continue
 
             # Request status, Z, V, W, D, P and R
-            self.socket.send(b'sZVWDPR\r\n')
+            #self.socket.send(b'sZVWDPR\r\n')
+            self.socket.send(b'sYU\r\n')
 
             # Keep reading while active
             while self.active:
                 self._recv()
                 if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
                     # Parse the ray
-                    ray = rk.parse(self.payload, verbose=self.verbose)
+                    ray = rk.parseRay(self.payload, verbose=self.verbose)
                     # Gather the ray into a sweep
                     ii = int(ray['azimuth'])
                     ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
@@ -270,6 +273,11 @@ class Radar(object):
                         if letter in ray['moments']:
                             self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
                     self.sweep.rayCount += 1
+                elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_HEADER:
+                    # Parse the sweep
+                    sweepHeader = rk.parseSweep(self.payload, verbose=self.verbose)
+                elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
+					#ray = rk.parseRay(self.payload, verbose=self.verbose)
 
         self.socket.close()
 
