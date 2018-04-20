@@ -210,6 +210,9 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     // Do this before we use any Python array creation
     import_array();
     
+    // RKRadarDect
+//     RKRadarDesc *Desc = (RKRadarDesc *)object->ob_bytes;
+    
 	// Read the sweep using RadarKit
 	RKSweep *sweep = RKSweepRead(filename);
 	if (sweep == NULL) {
@@ -288,13 +291,17 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 		Py_DECREF(value);
 		Py_DECREF(key);
 	}
-
+    
     // Return dictionary
-	PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:O,s:O,s:O,s:O,s:O,s:O}",
+    PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:f,s:f,s:f,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
 								  "name", sweep->desc.name,
 								  "sweepElevation", ray->header.sweepElevation,
 								  "sweepAzimuth", ray->header.sweepAzimuth,
 								  "gateCount", sweep->gateCount,
+                                  "gateSizeMeters", ray->header.gateSizeMeters,
+                                  "latitude", sweep->desc.latitude,
+                                  "longitude", sweep->desc.longitude, // bug -> It contains latitude not longitude.
+                                  "altitude", sweep->desc.radarHeight,
 								  "sweepBegin", Py_True,
 								  "sweepEnd", Py_False,
 								  "elevation", elevation,
