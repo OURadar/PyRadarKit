@@ -219,6 +219,8 @@ static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywor
 
 	PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:i,s:O}",
 								  "name", sweepHeader->desc.name,
+								  "latitude", sweepHeader->desc.latitude,
+								  "longitude", sweepHeader->desc.longitude,
 								  "sweepElevation", sweepHeader->config.sweepElevation,
 								  "sweepAzimuth", sweepHeader->config.sweepAzimuth,
 								  "gateCount", sweepHeader->gateCount,
@@ -331,8 +333,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     // Return dictionary
 	PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:O,s:O,s:O,s:O,s:O,s:O}",
 								  "name", sweep->header.desc.name,
-								  "sweepElevation", ray->header.sweepElevation,
-								  "sweepAzimuth", ray->header.sweepAzimuth,
+								  "sweepElevation", sweep->header.config.sweepElevation,
+								  "sweepAzimuth", sweep->header.config.sweepAzimuth,
 								  "gateCount", sweep->header.gateCount,
 								  "sweepBegin", Py_True,
 								  "sweepEnd", Py_False,
