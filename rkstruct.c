@@ -205,7 +205,6 @@ static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywor
 	uint32_t productIndex;
 
 	PyObject *list = PyList_New(productCount);
-//	printf("count= %d\n", productCount);
 
 	for (uint32_t k = 0; k < productCount; k++) {
 		// Get the symbol, name, unit, colormap, etc. from the product list
@@ -217,7 +216,7 @@ static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywor
 		PyList_SetItem(list, k, Py_BuildValue("s", symbol));
 	}
 
-	PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:i,s:O}",
+    PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:f,s:f,s:i,s:i,s:O}",
 								  "name", sweepHeader->desc.name,
 								  "latitude", sweepHeader->desc.latitude,
 								  "longitude", sweepHeader->desc.longitude,
@@ -226,6 +225,7 @@ static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywor
 								  "gateCount", sweepHeader->gateCount,
 								  "rayCount", sweepHeader->rayCount,
 								  "moments", list);
+    
 	return ret;
 }
 
