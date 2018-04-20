@@ -17,7 +17,7 @@ rkstruct = Extension('rkstruct', sources=['rkstruct.c'],
 # Run the setup
 setup(
       name = 'PyRK',
-      version = '0.2',
+      version = '0.3',
       description = 'RadarKit Python Extension',
       ext_modules = [rkstruct]
 )
