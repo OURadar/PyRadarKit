@@ -2,12 +2,7 @@ import numpy as N
 import scipy as S
 import radarkit
 
-class main(object):
+class main(radarkit.Algorithm):
     def __init__(self):
-        self.threshold = 1.0
+        radarkit.Algorithm.__init__(self)
         self.name = 'Algorithm 1'
-
-    # Every algorithm should have this function defined
-    def process(self,sweep):
-        print('{}:'.format(self.name))
-        print('    Nothing yet... just a placeholder')

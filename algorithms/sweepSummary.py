@@ -2,14 +2,16 @@ import numpy as N
 import scipy as S
 import radarkit
 
-class main(object):
+class main(radarkit.Algorithm):
     def __init__(self):
-        self.threshold = 1.0
+        radarkit.Algorithm.__init__(self)
         self.name = 'Sweep Summary'
+        self.threshold = 1.0
 
-    # Every algorithm should have this function defined
+    # Every algorithm should have this function implemented
     def process(self, sweep):
         print('{}:  N = {}'.format(self.name, sweep.rayCount))
+        #radarkit.algorithm.process(self, sweep)
 
         N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
 

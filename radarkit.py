@@ -59,6 +59,17 @@ def showColors():
 def read(filename, verbose=0):
 	return rk.read(filename, verbose=0)
 
+# An algorithm encapsulation
+class Algorithm(object):
+    def __init__(self):
+        self.name = 'Algorithm'
+        self.active = False
+
+    # Every algorithm should have this function defined
+    def process(self, sweep):
+        print('{}:  N = {}'.format(self.name, sweep.rayCount))
+        print('    Nothing yet... just a placeholder')
+
 # A sweep encapsulation
 class Sweep(object):
 	"""

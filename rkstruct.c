@@ -252,9 +252,6 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     // Do this before we use any Python array creation
     import_array();
     
-    // RKRadarDect
-//     RKRadarDesc *Desc = (RKRadarDesc *)object->ob_bytes;
-    
 	// Read the sweep using RadarKit
 	RKSweep *sweep = RKSweepRead(filename);
 	if (sweep == NULL) {
