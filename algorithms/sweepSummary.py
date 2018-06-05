@@ -6,6 +6,9 @@ class main(radarkit.Algorithm):
     def __init__(self):
         radarkit.Algorithm.__init__(self)
         self.name = 'Sweep Summary'
+        self.active = True
+
+        # Other variables
         self.threshold = 1.0
 
     # Every algorithm should have this function implemented
@@ -24,3 +27,7 @@ class main(radarkit.Algorithm):
                 print('         {}'.format(d[-2,0:10:]))
                 print('         {}'.format(d[-1,0:10:]))
                 print('')
+
+        u = sweep.products['Z'] + 5.0
+
+        return u
