@@ -42,9 +42,10 @@ class NETWORK_PACKET_TYPE:
     CONFIG = 111
     SWEEP_HEADER = 113
     SWEEP_RAY = 114
+    USER_SWEEP_DATA = 115
 
 # Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
-RKNetDelimiter = b'HHIII'
+RKNetDelimiterFormat = b'HHIII'
 
 # Generic functions
 def test(payload, debug=False):
@@ -127,6 +128,7 @@ class Radar(object):
         self.timeout = timeout
         self.verbose = verbose
         self.netDelimiter = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
+        self.netDelimiterStruct = struct.Struct(RKNetDelimiterFormat)
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
 
@@ -173,7 +175,7 @@ class Radar(object):
                 k += 1
             if toRead:
                 raise ValueError('Length should be {}, not {}   k = {}'.format(CONSTANTS.PACKET_DELIM_SIZE, length, k))
-            delimiter = struct.unpack(RKNetDelimiter, self.netDelimiter)
+            delimiter = struct.unpack(RKNetDelimiterFormat, self.netDelimiter)
 
             # 1st component: 16-bit type
             # 2nd component: 16-bit subtype (not used)
@@ -196,6 +198,10 @@ class Radar(object):
                     anchor = anchor[length:]
                     toRead -= length
                     k += 1
+            else:
+                if not self.connected:
+                    self.connected = True
+                    logger.info('Connected.')
 
         except (socket.timeout, ValueError) as e:
             logger.exception(e)
@@ -230,6 +236,7 @@ class Radar(object):
     """
     def reconnect(self):
         while self.active:
+            self.connected = False
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
             try:
@@ -328,21 +335,21 @@ class Radar(object):
                             product = obj.process(self.sweep)
                             if obj.active is True:
                                 print('    Sending product ...\n')
-                                self.socket.send(b'u\r\n')
+                                #self.socket.send(b'u\r\n')
                     
                                 # 1st component: 16-bit type
                                 # 2nd component: 16-bit subtype (not used)
                                 # 3rd component: 32-bit size
                                 # 4th component: 32-bit decoded size (not used)
-
-#                                self.netDelimiter = b'
-#                                anchor = memoryview(self.netDelimiter)
-#                                self.socket.send(anchor, CONSTANTS.PACKET_DELIM_SIZE);
+                                values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, 4, 4, 0)
+                                packet = self.netDelimiterStruct.pack(*values)
+                                n = self.socket.send(packet, CONSTANTS.PACKET_DELIM_SIZE);
 
 #                                product should be a dictionary of:
 #                                {'name', [Product Description],
 #                                 'data', [Array, same size as Z]}
-                                self.socket.send(b'\01\02\04\08')
+#                                n = self.socket.send(b'abcd')
+                                print('n = {}'.format(n))
                         print('')
 
 
