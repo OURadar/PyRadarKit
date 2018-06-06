@@ -325,10 +325,24 @@ class Radar(object):
                     if self.sweep.receivedRayCount == self.sweep.rayCount:
                         # Call the collection of algorithms
                         for obj in self.algorithmObjects:
-                            obj.process(self.sweep)
+                            product = obj.process(self.sweep)
                             if obj.active is True:
                                 print('    Sending product ...\n')
                                 self.socket.send(b'u\r\n')
+                    
+                                # 1st component: 16-bit type
+                                # 2nd component: 16-bit subtype (not used)
+                                # 3rd component: 32-bit size
+                                # 4th component: 32-bit decoded size (not used)
+
+#                                self.netDelimiter = b'
+#                                anchor = memoryview(self.netDelimiter)
+#                                self.socket.send(anchor, CONSTANTS.PACKET_DELIM_SIZE);
+
+#                                product should be a dictionary of:
+#                                {'name', [Product Description],
+#                                 'data', [Array, same size as Z]}
+                                self.socket.send(b'\01\02\04\08')
                         print('')
 
 

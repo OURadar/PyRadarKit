@@ -229,8 +229,8 @@ static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywor
 	return ret;
 }
 
-static PyObject *PyRKTestShowColors(PyObject *self, PyObject *args, PyObject *keywords) {
-    RKTestShowColors();
+static PyObject *PyRKTestTerminalColors(PyObject *self, PyObject *args, PyObject *keywords) {
+    RKTestTerminalColors();
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -359,12 +359,12 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
 // Standard boiler plates
 static PyMethodDef PyRKMethods[] = {
-    {"init",       (PyCFunction)PyRKInit,           METH_VARARGS | METH_KEYWORDS, "Init module"},
-    {"test",       (PyCFunction)PyRKTest,           METH_VARARGS | METH_KEYWORDS, "Test module"},
-    {"parseRay",   (PyCFunction)PyRKRayParse,       METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
-	{"parseSweep", (PyCFunction)PyRKSweepParse,     METH_VARARGS | METH_KEYWORDS, "Sweep parse module"},
-    {"showColors", (PyCFunction)PyRKTestShowColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
-    {"read",       (PyCFunction)PyRKRead,           METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
+    {"init",       (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
+    {"test",       (PyCFunction)PyRKTest,               METH_VARARGS | METH_KEYWORDS, "Test module"},
+    {"parseRay",   (PyCFunction)PyRKRayParse,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
+	{"parseSweep", (PyCFunction)PyRKSweepParse,         METH_VARARGS | METH_KEYWORDS, "Sweep parse module"},
+    {"showColors", (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
+    {"read",       (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
     {NULL, NULL, 0, NULL}
 };
 
