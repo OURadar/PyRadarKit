@@ -67,11 +67,12 @@ class Algorithm(object):
         self.active = False
 
     def __str__(self):
-        return '{}   active {}'.format(self.name, self.active)
+        return '{}   active = {}'.format(self.name, self.active)
 
     # Every algorithm should have this function defined
     def process(self, sweep):
-        print('{}:  R = {}  G = {}'.format(self.name, sweep.rayCount, sweep.gateCount))
+        logger.info(self)
+        logger.info('{}   rays = {}  gateCount = {}'.format(self.name, sweep.rayCount, sweep.gateCount))
 
 # A sweep encapsulation
 class Sweep(object):
@@ -315,7 +316,7 @@ class Radar(object):
                         print('validSymbols = {}'.format(self.sweep.validSymbols))
                     for symbol in self.sweep.validSymbols:
                         self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
-                    print('  New sweep -> {} x {}   moments = {}'.format(self.sweep.rayCount, self.sweep.gateCount, sweepHeader['moments']))
+                    logger.info('New sweep arrived ({} x {})   moments = {}'.format(self.sweep.rayCount, self.sweep.gateCount, sweepHeader['moments']))
 
                 elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
 
@@ -337,7 +338,11 @@ class Radar(object):
                         for obj in self.algorithmObjects:
                             userProduct = obj.process(self.sweep)
                             if obj.active is True:
-                                print('    Sending product ...\n')
+                                if userProduct is None:
+                                    logger.exception('Expected a product from {}', obj)
+                                    continue
+                                if self.verbose > 1:
+                                    print('Sending product ...\n')
                                 # 1st component: 16-bit type
                                 # 2nd component: 16-bit subtype (not used)
                                 # 3rd component: 32-bit size
@@ -346,13 +351,13 @@ class Radar(object):
                                 bytes = self.sweep.gateCount * self.sweep.rayCount * 4
                                 values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
                                 packet = self.netDelimiterStruct.pack(*values)
-                                self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
-
-#                                product should be a dictionary of:
-#                                {'name', [Product Description],
-#                                 'data', [Array, same size as Z]}
-                                n = self.socket.sendall(userProduct.astype('f').tobytes())
-                        print('')
+                                r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
+                                if r is not None:
+                                    logger.exception('Error sending netDelimiter.')
+                                r = self.socket.sendall(userProduct.astype('f').tobytes())
+                                if r is not None:
+                                    logger.exception('Error sending userProduct.')
+                                logger.info('Product sent')
 
 
         self.socket.close()

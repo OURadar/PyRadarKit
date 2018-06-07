@@ -6,7 +6,6 @@ class main(radarkit.Algorithm):
     def __init__(self):
         super().__init__()
         self.name = 'Sweep Summary'
-        self.active = True
 
         # Other variables
         self.threshold = 1.0
@@ -16,7 +15,7 @@ class main(radarkit.Algorithm):
         # Call the ancestor method, which shows the sweep summary info
         super().process(sweep)
 
-        N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
+        N.set_printoptions(formatter={'float': '{: 6.2f}'.format})
 
         for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
             if letter in sweep.products:
@@ -27,14 +26,3 @@ class main(radarkit.Algorithm):
                 print('         {}'.format(d[-2,0:10:]))
                 print('         {}'.format(d[-1,0:10:]))
                 print('')
-
-        letter = 'U'
-        d = sweep.products['Z'] + 5.0
-        print('     {} = {}'.format(letter, d[0,0:10:]))
-        print('         {}'.format(d[1,0:10:]))
-        print('         [  ...')
-        print('         {}'.format(d[-2,0:10:]))
-        print('         {}'.format(d[-1,0:10:]))
-        print('')
-
-        return d
