@@ -4,5 +4,5 @@ import radarkit
 
 class main(radarkit.Algorithm):
     def __init__(self):
-        radarkit.Algorithm.__init__(self)
+        super().__init__()
         self.name = 'Algorithm 1'

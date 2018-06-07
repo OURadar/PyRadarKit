@@ -4,7 +4,7 @@ import radarkit
 
 class main(radarkit.Algorithm):
     def __init__(self):
-        radarkit.Algorithm.__init__(self)
+        super().__init__()
         self.name = 'Sweep Summary'
         self.active = True
 
@@ -13,8 +13,8 @@ class main(radarkit.Algorithm):
 
     # Every algorithm should have this function implemented
     def process(self, sweep):
-        print('{}:  N = {}'.format(self.name, sweep.rayCount))
-        #radarkit.algorithm.process(self, sweep)
+        # Call the ancestor method, which shows the sweep summary info
+        super().process(sweep)
 
         N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
 
@@ -28,6 +28,13 @@ class main(radarkit.Algorithm):
                 print('         {}'.format(d[-1,0:10:]))
                 print('')
 
-        u = sweep.products['Z'] + 5.0
+        letter = 'U'
+        d = sweep.products['Z'] + 5.0
+        print('     {} = {}'.format(letter, d[0,0:10:]))
+        print('         {}'.format(d[1,0:10:]))
+        print('         [  ...')
+        print('         {}'.format(d[-2,0:10:]))
+        print('         {}'.format(d[-1,0:10:]))
+        print('')
 
-        return u
+        return d

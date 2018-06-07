@@ -66,10 +66,12 @@ class Algorithm(object):
         self.name = 'Algorithm'
         self.active = False
 
+    def __str__(self):
+        return '{}   active {}'.format(self.name, self.active)
+
     # Every algorithm should have this function defined
     def process(self, sweep):
-        print('{}:  N = {}'.format(self.name, sweep.rayCount))
-        print('    Nothing yet... just a placeholder')
+        print('{}:  R = {}  G = {}'.format(self.name, sweep.rayCount, sweep.gateCount))
 
 # A sweep encapsulation
 class Sweep(object):
@@ -127,8 +129,9 @@ class Radar(object):
         self.port = port
         self.timeout = timeout
         self.verbose = verbose
-        self.netDelimiter = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
+        self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
         self.netDelimiterStruct = struct.Struct(RKNetDelimiterFormat)
+        self.netDelimiterValues = [0, 0, 0, 0, 0]
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
 
@@ -167,7 +170,7 @@ class Radar(object):
         try:
             k = 0;
             toRead = CONSTANTS.PACKET_DELIM_SIZE
-            anchor = memoryview(self.netDelimiter)
+            anchor = memoryview(self.netDelimiterBytes)
             while toRead and k < 100:
                 length = self.socket.recv_into(anchor, toRead)
                 anchor = anchor[length:]
@@ -175,7 +178,7 @@ class Radar(object):
                 k += 1
             if toRead:
                 raise ValueError('Length should be {}, not {}   k = {}'.format(CONSTANTS.PACKET_DELIM_SIZE, length, k))
-            delimiter = struct.unpack(RKNetDelimiterFormat, self.netDelimiter)
+            delimiter = self.netDelimiterStruct.unpack(self.netDelimiterBytes)
 
             # 1st component: 16-bit type
             # 2nd component: 16-bit subtype (not used)
@@ -332,24 +335,23 @@ class Radar(object):
                     if self.sweep.receivedRayCount == self.sweep.rayCount:
                         # Call the collection of algorithms
                         for obj in self.algorithmObjects:
-                            product = obj.process(self.sweep)
+                            userProduct = obj.process(self.sweep)
                             if obj.active is True:
                                 print('    Sending product ...\n')
-                                #self.socket.send(b'u\r\n')
-                    
                                 # 1st component: 16-bit type
                                 # 2nd component: 16-bit subtype (not used)
                                 # 3rd component: 32-bit size
                                 # 4th component: 32-bit decoded size (not used)
-                                values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, 4, 4, 0)
+                                # 5th component: 32-bit padding
+                                bytes = self.sweep.gateCount * self.sweep.rayCount * 4
+                                values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
                                 packet = self.netDelimiterStruct.pack(*values)
-                                n = self.socket.send(packet, CONSTANTS.PACKET_DELIM_SIZE);
+                                self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
 
 #                                product should be a dictionary of:
 #                                {'name', [Product Description],
 #                                 'data', [Array, same size as Z]}
-#                                n = self.socket.send(b'abcd')
-                                print('n = {}'.format(n))
+                                n = self.socket.sendall(userProduct.astype('f').tobytes())
                         print('')
 
 
