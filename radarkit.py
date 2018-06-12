@@ -14,6 +14,7 @@ import socket
 import struct
 import numpy as N
 import scipy as S
+import json
 
 import rkstruct as rk
 
@@ -64,10 +65,19 @@ def read(filename, verbose=0):
 class Algorithm(object):
     def __init__(self):
         self.name = 'Algorithm'
+        self.symbol = 'U'
         self.active = False
+        self.b = 1.0
+        self.w = 0.0
+        self.minValue = 0.0
+        self.maxValue = 100.0
 
     def __str__(self):
         return '{}   active = {}'.format(self.name, self.active)
+
+    def description(self):
+        dic = {'name': self.name, 'symbol': self.symbol, 'b': self.b, 'w': self.w}
+        return json.dumps(dic)
 
     # Every algorithm should have this function defined
     def process(self, sweep):
@@ -135,6 +145,7 @@ class Radar(object):
         self.netDelimiterValues = [0, 0, 0, 0, 0]
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
+        self.registerString = ''
 
         rk.init()
         
@@ -223,8 +234,11 @@ class Radar(object):
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
             self.algorithmObjects.append(obj)
+            if (obj.active):
+                self.registerString += 'u {};'.format(obj.description())
             logger.info(' - \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
 
+        print(self.registerString)
         # Connect to the host
         self.active = True
         self.reconnect()
@@ -258,7 +272,11 @@ class Radar(object):
 
             # Request status, Z, V, W, D, P and R
             #self.socket.send(b'sZVWDPR\r\n')
-            self.socket.send(b'sYU\r\n')
+            #self.socket.send(b'sYU;u {"name":"U", "b": -32, "w", 0.5}\r\n')
+
+            greetCommand = 'sYU;' + self.registerString + '\r\n'
+            print(greetCommand.encode())
+            self.socket.sendall(greetCommand.encode())
 
             # Keep reading while active
             while self.active:
