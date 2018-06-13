@@ -55,8 +55,8 @@ class COLOR:
     teal = "\033[38;5;49m"
     iceblue = "\033[38;5;51m"
     skyblue = "\033[38;5;39m"
-    blue = "\033[38;5;21m"
-    purple = "\033[38;5;93m"
+    blue = "\033[38;5;27m"
+    purple = "\033[38;5;99m"
     indigo = "\033[38;5;201m"
     hotpink = "\033[38;5;199m"
     pink = "\033[38;5;213m"
@@ -76,6 +76,9 @@ def showColors():
     rk.showColors()
 
 def read(filename, verbose=0):
+    """
+        Read a sweep from a netcdf file
+    """
     return rk.read(filename, verbose=0)
 
 # An algorithm encapsulation
@@ -90,7 +93,7 @@ class Algorithm(object):
         self.maxValue = 100.0
 
     def __str__(self):
-        return '{}   active = {}'.format(self.name, self.active)
+        return '{}   active = {}{}{}'.format(self.name, COLOR.purple, self.active, COLOR.reset)
 
     def description(self):
         dic = {'name': self.name, 'symbol': self.symbol, 'b': self.b, 'w': self.w}
@@ -99,7 +102,9 @@ class Algorithm(object):
     # Every algorithm should have this function defined
     def process(self, sweep):
         logger.info(self)
-        logger.info('{}   rays = {}  gateCount = {}'.format(self.name, sweep.rayCount, sweep.gateCount))
+        logger.info('{}   rays = {}{}{}  gateCount = {}{}{}'.format(self.name,
+                                                                    COLOR.lime, sweep.rayCount, COLOR.reset,
+                                                                    COLOR.lime, sweep.gateCount, COLOR.reset))
 
 # A sweep encapsulation
 class Sweep(object):
@@ -122,29 +127,6 @@ class Sweep(object):
             'P': N.zeros((rays, gates), dtype=N.float),
             'R': N.zeros((rays, gates), dtype=N.float)
         }
-
-    """
-        Read a sweep from a netcdf file
-    """
-    # def read(self, filename):
-        # file = netcdf.Dataset(filename, 'r')
-        # print file.data_model
-        # self.globalAttributes = file.ncattrs()
-        # dims = [dim for dim in file.dimensions]
-        # print "NetCDF dimension information:"
-        # for dim in dims:
-        #     print "\tName:", dim 
-        #     print "\t\tsize:", len(file.dimensions[dim])
-        #     print_ncattr(dim)
-        # vars = [var for var in file.variables]
-        # for var in vars:
-        #     if var not in dims:
-        #         print '\tName:', var
-        #         print "\t\tdimensions:", file.variables[var].dimensions
-        #         print "\t\tsize:", file.variables[var].size
-        #         #print_ncattr(var)
-        # file.close()
-
 
 # Radar class
 class Radar(object):
@@ -218,7 +200,7 @@ class Radar(object):
             self.latestPayloadSize = delimiter[2]
 
             if self.verbose > 2:
-                print('Delimiter: type {} size {}   k = {}'.format(self.latestPayloadType, self.latestPayloadSize, k))
+                logger.info('Delimiter: type {} size {}   k = {}'.format(self.latestPayloadType, self.latestPayloadSize, k))
 
             # Beacon is 0 size, data payload otherwise
             if self.latestPayloadSize > 0:
@@ -323,7 +305,7 @@ class Radar(object):
                             logger.exception('Expected a product from {}', obj)
                             continue
                         if self.verbose > 1:
-                            print('Sending product ...\n')
+                            logger.info('Sending product ...\n')
                         # 1st component: 16-bit type
                         # 2nd component: 16-bit subtype (not used)
                         # 3rd component: 32-bit size
@@ -362,6 +344,9 @@ class Radar(object):
             w = max(w, len(obj.basename))
             if (obj.active):
                 self.registerString += 'u {};'.format(obj.description())
+        # Remove the last ';'
+        self.registerString = self.registerString[:-1]
+        # Build a format so that the basename uses the widest name width
         stringFormat = '> {0}{1}{2} - {3}{4:' + str(w) + 's}{5} -> {6}'
         for obj in self.algorithmObjects:
             logger.info(stringFormat.format(COLOR.yellow, obj.symbol, COLOR.reset, COLOR.lime, obj.basename, COLOR.reset, obj.name))
@@ -388,7 +373,7 @@ class Radar(object):
 
             # Request status, Z, V, W, D, P and R
             greetCommand = 'sYU;' + self.registerString + '\r\n'
-            print(greetCommand.encode())
+            logger.info('First packet - {}{}{}'.format(COLOR.salmon, greetCommand.encode('utf-8'), COLOR.reset))
             self.socket.sendall(greetCommand.encode())
 
             # Keep reading while active
