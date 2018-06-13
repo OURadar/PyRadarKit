@@ -5,7 +5,8 @@ import radarkit
 class main(radarkit.Algorithm):
     def __init__(self):
         super().__init__()
-        self.name = 'Sweep Summary'
+        self.name = 'Summary'
+        self.symbol = 'G'
 
         # Other variables
         self.threshold = 1.0

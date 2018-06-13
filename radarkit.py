@@ -3,6 +3,7 @@
 """
 
 import os
+import re
 import sys
 import enum
 import glob
@@ -44,6 +45,7 @@ class NETWORK_PACKET_TYPE:
     SWEEP_HEADER = 113
     SWEEP_RAY = 114
     USER_SWEEP_DATA = 115
+    USER_PRODUCT_DESCRIPTION = 116
 
 class COLOR:
     reset = "\033[0m"
@@ -91,9 +93,14 @@ class Algorithm(object):
         self.w = 0.0
         self.minValue = 0.0
         self.maxValue = 100.0
+        self.productId = 0
+        self.verbose = 0
 
     def __str__(self):
-        return '{}   active = {}{}{}'.format(self.name, COLOR.purple, self.active, COLOR.reset)
+        return '{} ({}{}{})   {}active{} = {}{}{}'.format(self.name,
+                                                          COLOR.yellow, self.symbol, COLOR.reset,
+                                                          COLOR.orange, COLOR.reset,
+                                                          COLOR.purple, self.active, COLOR.reset)
 
     def description(self):
         dic = {'name': self.name, 'symbol': self.symbol, 'b': self.b, 'w': self.w}
@@ -101,8 +108,7 @@ class Algorithm(object):
 
     # Every algorithm should have this function defined
     def process(self, sweep):
-        logger.info(self)
-        logger.info('{}   rays = {}{}{}  gateCount = {}{}{}'.format(self.name,
+        logger.info('{}   rays = {}{}{}  gateCount = {}{}{}'.format(self,
                                                                     COLOR.lime, sweep.rayCount, COLOR.reset,
                                                                     COLOR.lime, sweep.gateCount, COLOR.reset))
 
@@ -298,7 +304,7 @@ class Radar(object):
             self.sweep.receivedRayCount += 1
             if self.sweep.receivedRayCount == self.sweep.rayCount:
                 # Call the collection of algorithms
-                for obj in self.algorithmObjects:
+                for symbol, obj in self.algorithmObjects.items():
                     userProduct = obj.process(self.sweep)
                     if obj.active is True:
                         if userProduct is None:
@@ -320,12 +326,22 @@ class Radar(object):
                         r = self.socket.sendall(userProduct.astype('f').tobytes())
                         if r is not None:
                             logger.exception('Error sending userProduct.')
-                        logger.info('Product sent')
+                        logger.info('{}   User product {}{}{} sent'.format(obj.name, COLOR.yellow, obj.symbol, COLOR.reset))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
             responseString = self.payload[0:self.latestPayloadSize].decode('utf-8').rstrip('\r\n\x00')
             logger.info('Command response = {}{}{}'.format(COLOR.skyblue, responseString, COLOR.reset))
+            curlyBracketPosition = responseString.find('{')
+            if curlyBracketPosition > 0:
+                payloadDict = json.loads(responseString[curlyBracketPosition:])
+                if payloadDict['type'] == 'productDescription':
+                    symbol = payloadDict['symbol']
+                    if symbol is not None:
+                        self.algorithmObjects[symbol].productId = payloadDict['pid']
+                        logger.info('Product {}{}{} received {}productId{} = {}{}{}'.format(COLOR.yellow, symbol, COLOR.reset,
+                                                                                            COLOR.orange, COLOR.reset,
+                                                                                            COLOR.purple, payloadDict['pid'], COLOR.reset))
 
     """
         Start the server
@@ -334,13 +350,14 @@ class Radar(object):
         # Loop through all the files under 'algorithms' folder
         logger.info('Loading algorithms ...')
         w = 1
-        self.algorithmObjects = []
+        self.algorithmObjects = {}
         for script in glob.glob('algorithms/*.py'):
-            basename = os.path.basename(script)[:-3]
-            mod = __import__(basename)
+            basename = os.path.basename(script)
+            mod = __import__(basename[:-3])
             obj = getattr(mod, 'main')()
-            obj.basename = basename + '.py'
-            self.algorithmObjects.append(obj)
+            obj.basename = basename
+            #self.algorithmObjects[obj.symbol] = obj
+            self.algorithmObjects.update({obj.symbol: obj})
             w = max(w, len(obj.basename))
             if (obj.active):
                 self.registerString += 'u {};'.format(obj.description())
@@ -348,9 +365,10 @@ class Radar(object):
         self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
         stringFormat = '> {0}{1}{2} - {3}{4:' + str(w) + 's}{5} -> {6}'
-        for obj in self.algorithmObjects:
-            logger.info(stringFormat.format(COLOR.yellow, obj.symbol, COLOR.reset, COLOR.lime, obj.basename, COLOR.reset, obj.name))
-
+        for symbol, obj in self.algorithmObjects.items():
+            logger.info(stringFormat.format(COLOR.yellow, obj.symbol, COLOR.reset,
+                                            COLOR.lime, obj.basename, COLOR.reset, obj.name))
+        # Composite registration string is built at this point
         logger.info('Registration = {}{}{}'.format(COLOR.salmon, self.registerString, COLOR.reset))
         # Connect to the host and reconnect until it has been set not active
         self.active = True
