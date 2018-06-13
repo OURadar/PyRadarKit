@@ -45,6 +45,23 @@ class NETWORK_PACKET_TYPE:
     SWEEP_RAY = 114
     USER_SWEEP_DATA = 115
 
+class COLOR:
+    reset = "\033[0m"
+    red = "\033[38;5;196m"
+    orange = "\033[38;5;214m"
+    yellow = "\033[38;5;226m"
+    lime = "\033[38;5;118m"
+    green = "\033[38;5;46m"
+    teal = "\033[38;5;49m"
+    iceblue = "\033[38;5;51m"
+    skyblue = "\033[38;5;39m"
+    blue = "\033[38;5;21m"
+    purple = "\033[38;5;93m"
+    indigo = "\033[38;5;201m"
+    hotpink = "\033[38;5;199m"
+    pink = "\033[38;5;213m"
+    salmon = "\033[38;5;210m"
+
 # Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
 RKNetDelimiterFormat = b'HHIII'
 
@@ -223,36 +240,135 @@ class Radar(object):
             raise OSError('Couldn\'t retrieve socket data')
 
     """
+        Interpret the network payload
+    """
+    def _interpretPayload():
+        if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
+            # Parse the ray
+            ray = rk.parseRay(self.payload, verbose=self.verbose)
+            # Gather the ray into a sweep
+            ii = int(ray['azimuth'])
+            ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
+            if self.verbose > 1:
+                print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(ray['elevation'], ray['azimuth'], ii, ray['sweepEnd']))
+                N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
+                for letter in self.sweep.products.keys():
+                    if letter in ray['moments']:
+                        print('                {} = {}'.format(letter, ray['moments'][letter][0:10]))
+                    print('>>')
+                if ray['sweepEnd']:
+                    # Use this end ray only if it is not a begin ray and accumulated count < 360
+                    if ray['sweepBegin'] == False and k < 360:
+                        # Gather all products
+                        for letter in self.sweep.products.keys():
+                            if letter in ray['moments']:
+                                self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
+                    # Call the collection of algorithms (deprecating... updated 6/13/2018: how?)
+                    for obj in self.algorithmObjects:
+                        obj.process(self.sweep)
+                    print('')
+                # Zero out all data when a sweep begin is encountered
+                if ray['sweepBegin']:
+                    self.sweep.rayCount = 0
+                    self.sweep.gateCount = ng
+                    for letter in self.sweep.products.keys():
+                        self.sweep.products[letter][:] = 0
+
+                # Gather all products
+                for letter in self.sweep.products.keys():
+                    if letter in ray['moments']:
+                        self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
+                self.sweep.rayCount += 1
+
+        elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_HEADER:
+
+            # Parse the sweep
+            sweepHeader = rk.parseSweep(self.payload, verbose=self.verbose)
+            self.sweep.gateCount = sweepHeader['gateCount']
+            self.sweep.rayCount = sweepHeader['rayCount']
+            self.sweep.validSymbols = sweepHeader['moments']
+            self.sweep.range = N.zeros(self.sweep.gateCount, dtype=N.float)
+            self.sweep.azimuth = N.zeros(self.sweep.gateCount, dtype=N.float)
+            self.sweep.elevation = N.zeros(self.sweep.gateCount, dtype=N.float)
+            self.sweep.receivedRayCount = 0;
+            self.sweep.products = {}
+            if self.verbose > 1:
+                print('validSymbols = {}'.format(self.sweep.validSymbols))
+            for symbol in self.sweep.validSymbols:
+                self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
+            logger.info('New sweep arrived ({} x {})   moments = {}'.format(self.sweep.rayCount, self.sweep.gateCount, sweepHeader['moments']))
+
+        elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
+
+            # Parse the individual ray of a sweep
+            ray = rk.parseRay(self.payload, verbose=self.verbose)
+            k = self.sweep.receivedRayCount;
+            self.sweep.azimuth[k] = ray['azimuth']
+            self.sweep.elevation[k] = ray['elevation']
+            for symbol in self.sweep.validSymbols:
+                self.sweep.products[symbol][k, 0:self.sweep.gateCount] = ray['moments'][symbol][0:self.sweep.gateCount]
+            if self.verbose > 1:
+                print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(self.sweep.elevation[k], self.sweep.azimuth[k], k, self.sweep.rayCount))
+                N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
+                for symbol in self.sweep.products.keys():
+                    print('                {} = {}'.format(symbol, self.sweep.products[symbol][k, 0:10]))
+                print('>>')
+            self.sweep.receivedRayCount += 1
+            if self.sweep.receivedRayCount == self.sweep.rayCount:
+                # Call the collection of algorithms
+                for obj in self.algorithmObjects:
+                    userProduct = obj.process(self.sweep)
+                    if obj.active is True:
+                        if userProduct is None:
+                            logger.exception('Expected a product from {}', obj)
+                            continue
+                        if self.verbose > 1:
+                            print('Sending product ...\n')
+                        # 1st component: 16-bit type
+                        # 2nd component: 16-bit subtype (not used)
+                        # 3rd component: 32-bit size
+                        # 4th component: 32-bit decoded size (not used)
+                        # 5th component: 32-bit padding
+                        bytes = self.sweep.gateCount * self.sweep.rayCount * 4
+                        values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
+                        packet = self.netDelimiterStruct.pack(*values)
+                        r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
+                        if r is not None:
+                            logger.exception('Error sending netDelimiter.')
+                        r = self.socket.sendall(userProduct.astype('f').tobytes())
+                        if r is not None:
+                            logger.exception('Error sending userProduct.')
+                        logger.info('Product sent')
+
+        elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
+
+            logger.info('Command response.')
+            print(self.payload)
+
+    """
         Start the server
     """
     def start(self):
         # Loop through all the files under 'algorithms' folder
         logger.info('Loading algorithms ...')
+        w = 1
         self.algorithmObjects = []
         for script in glob.glob('algorithms/*.py'):
             basename = os.path.basename(script)[:-3]
             mod = __import__(basename)
             obj = getattr(mod, 'main')()
+            obj.basename = basename + '.py'
             self.algorithmObjects.append(obj)
+            w = max(w, len(obj.basename))
             if (obj.active):
                 self.registerString += 'u {};'.format(obj.description())
-            logger.info(' - \033[38;5;220m{0:16s}\033[0m -> {1}'.format(basename, obj.name))
+        stringFormat = ' - {0}{1}{2} - {3}{4:' + str(w) + 's}{5} -> {6}'
+        for obj in self.algorithmObjects:
+            logger.info(stringFormat.format(COLOR.yellow, obj.symbol, COLOR.reset, COLOR.lime, obj.basename, COLOR.reset, obj.name))
 
-        print(self.registerString)
-        # Connect to the host
+        logger.info('Registration - {}'.format(self.registerString))
+        # Connect to the host and reconnect until it has been set not active
         self.active = True
-        self.reconnect()
-
-    """
-        Stop the server
-    """
-    def stop(self):
-        self.active = False
-
-    """
-        Make a network connection
-    """
-    def reconnect(self):
         while self.active:
             self.connected = False
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -271,9 +387,6 @@ class Radar(object):
                 continue
 
             # Request status, Z, V, W, D, P and R
-            #self.socket.send(b'sZVWDPR\r\n')
-            #self.socket.send(b'sYU;u {"name":"U", "b": -32, "w", 0.5}\r\n')
-
             greetCommand = 'sYU;' + self.registerString + '\r\n'
             print(greetCommand.encode())
             self.socket.sendall(greetCommand.encode())
@@ -281,104 +394,16 @@ class Radar(object):
             # Keep reading while active
             while self.active:
                 self._recv()
+                self._interpretPayload()
 
-                if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
-                    # Parse the ray
-                    ray = rk.parseRay(self.payload, verbose=self.verbose)
-                    # Gather the ray into a sweep
-                    ii = int(ray['azimuth'])
-                    ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
-                    if self.verbose > 1:
-                        print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(ray['elevation'], ray['azimuth'], ii, ray['sweepEnd']))
-                        N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
-                        for letter in self.sweep.products.keys():
-                            if letter in ray['moments']:
-                                print('                {} = {}'.format(letter, ray['moments'][letter][0:10]))
-                        print('>>')
-                    if ray['sweepEnd']:
-                        # Use this end ray only if it is not a begin ray and accumulated count < 360
-                        if ray['sweepBegin'] == False and k < 360:
-                            # Gather all products
-                            for letter in self.sweep.products.keys():
-                                if letter in ray['moments']:
-                                    self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
-                        # Call the collection of algorithms (deprecating)
-                        for obj in self.algorithmObjects:
-                            obj.process(self.sweep)
-                        print('')
-                    # Zero out all data when a sweep begin is encountered
-                    if ray['sweepBegin']:
-                        self.sweep.rayCount = 0
-                        self.sweep.gateCount = ng
-                        for letter in self.sweep.products.keys():
-                            self.sweep.products[letter][:] = 0
-                    # Gather all products
-                    for letter in self.sweep.products.keys():
-                        if letter in ray['moments']:
-                            self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
-                    self.sweep.rayCount += 1
-
-                elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_HEADER:
-
-                    # Parse the sweep
-                    sweepHeader = rk.parseSweep(self.payload, verbose=self.verbose)
-                    self.sweep.gateCount = sweepHeader['gateCount']
-                    self.sweep.rayCount = sweepHeader['rayCount']
-                    self.sweep.validSymbols = sweepHeader['moments']
-                    self.sweep.range = N.zeros(self.sweep.gateCount, dtype=N.float)
-                    self.sweep.azimuth = N.zeros(self.sweep.gateCount, dtype=N.float)
-                    self.sweep.elevation = N.zeros(self.sweep.gateCount, dtype=N.float)
-                    self.sweep.receivedRayCount = 0;
-                    self.sweep.products = {}
-                    if self.verbose > 1:
-                        print('validSymbols = {}'.format(self.sweep.validSymbols))
-                    for symbol in self.sweep.validSymbols:
-                        self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
-                    logger.info('New sweep arrived ({} x {})   moments = {}'.format(self.sweep.rayCount, self.sweep.gateCount, sweepHeader['moments']))
-
-                elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
-
-                    ray = rk.parseRay(self.payload, verbose=self.verbose)
-                    k = self.sweep.receivedRayCount;
-                    self.sweep.azimuth[k] = ray['azimuth']
-                    self.sweep.elevation[k] = ray['elevation']
-                    for symbol in self.sweep.validSymbols:
-                        self.sweep.products[symbol][k, 0:self.sweep.gateCount] = ray['moments'][symbol][0:self.sweep.gateCount]
-                    if self.verbose > 1:
-                        print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(self.sweep.elevation[k], self.sweep.azimuth[k], k, self.sweep.rayCount))
-                        N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
-                        for symbol in self.sweep.products.keys():
-                            print('                {} = {}'.format(symbol, self.sweep.products[symbol][k, 0:10]))
-                        print('>>')
-                    self.sweep.receivedRayCount += 1
-                    if self.sweep.receivedRayCount == self.sweep.rayCount:
-                        # Call the collection of algorithms
-                        for obj in self.algorithmObjects:
-                            userProduct = obj.process(self.sweep)
-                            if obj.active is True:
-                                if userProduct is None:
-                                    logger.exception('Expected a product from {}', obj)
-                                    continue
-                                if self.verbose > 1:
-                                    print('Sending product ...\n')
-                                # 1st component: 16-bit type
-                                # 2nd component: 16-bit subtype (not used)
-                                # 3rd component: 32-bit size
-                                # 4th component: 32-bit decoded size (not used)
-                                # 5th component: 32-bit padding
-                                bytes = self.sweep.gateCount * self.sweep.rayCount * 4
-                                values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
-                                packet = self.netDelimiterStruct.pack(*values)
-                                r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
-                                if r is not None:
-                                    logger.exception('Error sending netDelimiter.')
-                                r = self.socket.sendall(userProduct.astype('f').tobytes())
-                                if r is not None:
-                                    logger.exception('Error sending userProduct.')
-                                logger.info('Product sent')
-
-
+        logger.info('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()
+
+    """
+        Stop the server
+    """
+    def stop(self):
+        self.active = False
 
     """
         Close the socket
