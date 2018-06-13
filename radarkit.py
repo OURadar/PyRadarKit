@@ -162,6 +162,7 @@ class Radar(object):
         self.netDelimiterValues = [0, 0, 0, 0, 0]
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
+        self.latestPayloadSize = 0
         self.registerString = ''
 
         rk.init()
@@ -213,17 +214,16 @@ class Radar(object):
             # 2nd component: 16-bit subtype (not used)
             # 3rd component: 32-bit size
             # 4th component: 32-bit decoded size (not used)
-            payloadType = delimiter[0]
-            payloadSize = delimiter[2]
-            self.latestPayloadType = payloadType
+            self.latestPayloadType = delimiter[0]
+            self.latestPayloadSize = delimiter[2]
 
             if self.verbose > 2:
-                print('Delimiter: type {} size {}   k = {}'.format(payloadType, payloadSize, k))
+                print('Delimiter: type {} size {}   k = {}'.format(self.latestPayloadType, self.latestPayloadSize, k))
 
             # Beacon is 0 size, data payload otherwise
-            if payloadSize > 0:
+            if self.latestPayloadSize > 0:
                 k = 0
-                toRead = payloadSize
+                toRead = self.latestPayloadSize
                 anchor = memoryview(self.payload)
                 while toRead and k < 100:
                     length = self.socket.recv_into(anchor, toRead)
@@ -242,7 +242,7 @@ class Radar(object):
     """
         Interpret the network payload
     """
-    def _interpretPayload():
+    def _interpretPayload(self):
         if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
             # Parse the ray
             ray = rk.parseRay(self.payload, verbose=self.verbose)
@@ -342,8 +342,8 @@ class Radar(object):
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
-            logger.info('Command response.')
-            print(self.payload)
+            responseString = self.payload[0:self.latestPayloadSize].decode('utf-8').rstrip('\r\n\x00')
+            logger.info('Command response = {}{}{}'.format(COLOR.skyblue, responseString, COLOR.reset))
 
     """
         Start the server
@@ -362,11 +362,11 @@ class Radar(object):
             w = max(w, len(obj.basename))
             if (obj.active):
                 self.registerString += 'u {};'.format(obj.description())
-        stringFormat = ' - {0}{1}{2} - {3}{4:' + str(w) + 's}{5} -> {6}'
+        stringFormat = '> {0}{1}{2} - {3}{4:' + str(w) + 's}{5} -> {6}'
         for obj in self.algorithmObjects:
             logger.info(stringFormat.format(COLOR.yellow, obj.symbol, COLOR.reset, COLOR.lime, obj.basename, COLOR.reset, obj.name))
 
-        logger.info('Registration - {}'.format(self.registerString))
+        logger.info('Registration = {}{}{}'.format(COLOR.salmon, self.registerString, COLOR.reset))
         # Connect to the host and reconnect until it has been set not active
         self.active = True
         while self.active:
