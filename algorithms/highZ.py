@@ -18,12 +18,8 @@ class main(radarkit.Algorithm):
 
         N.set_printoptions(formatter={'float': '{: 6.2f}'.format})
 
-        letter = 'U'
         d = sweep.products['Z'] + 5.0
-        print('     {} = {}'.format(letter, d[0,0:10:]))
-        print('         {}'.format(d[1,0:10:]))
-        print('         [  ...')
-        print('         {}'.format(d[-2,0:10:]))
-        print('         {}'.format(d[-1,0:10:]))
 
+        radarkit.showArray(d, letter=self.symbol)
+        
         return d

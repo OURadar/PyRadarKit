@@ -21,9 +21,4 @@ class main(radarkit.Algorithm):
         for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
             if letter in sweep.products:
                 d = sweep.products[letter]
-                print('     {} = {}'.format(letter, d[0,0:10:]))
-                print('         {}'.format(d[1,0:10:]))
-                print('         [  ...')
-                print('         {}'.format(d[-2,0:10:]))
-                print('         {}'.format(d[-1,0:10:]))
-                print('')
+                radarkit.showArray(d, letter=letter)

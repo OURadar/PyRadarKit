@@ -83,6 +83,21 @@ def read(filename, verbose=0):
     """
     return rk.read(filename, verbose=0)
 
+def showArray(d, letter='U'):
+    formatDesc = ' {:6.2f}'
+    j = 0
+    print('    {}{}{} = [ {} ... {} ]'.format(COLOR.yellow, letter, COLOR.reset,
+                                              ' '.join([formatDesc.format(x) for x in d[j, :3]]),
+                                              ' '.join([formatDesc.format(x) for x in d[j, -3:]])))
+    for j in range(1, 3):
+        print('        [ {} ... {} ]'.format(' '.join([formatDesc.format(x) for x in d[j, :3]]),
+                                             ' '.join([formatDesc.format(x) for x in d[j, -3:]])))
+    print('        [  ...')
+    for j in range(-3, 0):
+        print('        [ {} ... {} ]'.format(' '.join([formatDesc.format(x) for x in d[j, :3]]),
+                                             ' '.join([formatDesc.format(x) for x in d[j, -3:]])))
+    print('')
+
 # An algorithm encapsulation
 class Algorithm(object):
     def __init__(self):
@@ -342,6 +357,10 @@ class Radar(object):
                         r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
                         if r is not None:
                             logger.exception('Error sending netDelimiter.')
+                        # Product header
+                        # sweepId ?
+
+                        # Data array in plain float
                         r = self.socket.sendall(userProduct.astype('f').tobytes())
                         if r is not None:
                             logger.exception('Error sending userProduct.')
