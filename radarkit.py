@@ -63,6 +63,7 @@ class COLOR:
     hotpink = "\033[38;5;199m"
     pink = "\033[38;5;213m"
     salmon = "\033[38;5;210m"
+    python = "\033[38;5;226;48;5;24m"
 
 # Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
 RKNetDelimiterFormat = b'HHIII'
@@ -96,7 +97,6 @@ def showArray(d, letter='U'):
     for j in range(-3, 0):
         print('        [ {} ... {} ]'.format(' '.join([formatDesc.format(x) for x in d[j, :3]]),
                                              ' '.join([formatDesc.format(x) for x in d[j, -3:]])))
-    print('')
 
 def colorize(string, color):
     return '{}{}{}'.format(color, string, COLOR.reset)
@@ -180,14 +180,12 @@ class Radar(object):
         self.registerString = ''
 
         rk.init()
+
+        self._showName()
         
         # Initialize an empty list of algorithms
         self.algorithms = []
         self.sweep = Sweep()
-
-        print('\033[38;5;226;48;5;24m              \033[0m')
-        print('\033[38;5;226;48;5;24m  PyRadarKit  \033[0m')
-        print('\033[38;5;226;48;5;24m              \033[0m')
 
         logFolder = 'log'
         if not os.path.exists(logFolder):
@@ -205,6 +203,11 @@ class Radar(object):
         logger.addHandler(ch)
 
         logger.info('PyRadarKit started.')
+
+    def _showName(self):
+        # Size of the current terminal
+        rows, columns = os.popen('stty size', 'r').read().split()
+        print(colorize('\n\n\n{}\n\n'.format('PyRadarKit'.center(int(columns)-1, ' ')), COLOR.python))
 
     """
         Receives a frame: a network delimiter and the following payload described by the delimiter
@@ -283,7 +286,9 @@ class Radar(object):
             ii = int(ray['azimuth'])
             ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
             if self.verbose > 1:
-                print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(ray['elevation'], ray['azimuth'], ii, ray['sweepEnd']))
+                print('   {} {} -> {2} / {3}'.format(colorize(' PyRadarKit ', COLOR.python),
+                                                     colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
+                                                     ii, ray['sweepEnd']))
                 N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                 for letter in self.sweep.products.keys():
                     if letter in ray['moments']:
