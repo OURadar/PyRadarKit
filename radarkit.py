@@ -86,7 +86,7 @@ def read(filename, verbose=0):
 def showArray(d, letter='U'):
     formatDesc = ' {:6.2f}'
     j = 0
-    print('    {}{}{} = [ {} ... {} ]'.format(COLOR.yellow, letter, COLOR.reset,
+    print('    {} = [ {} ... {} ]'.format(colorize(letter, COLOR.yellow),
                                               ' '.join([formatDesc.format(x) for x in d[j, :3]]),
                                               ' '.join([formatDesc.format(x) for x in d[j, -3:]])))
     for j in range(1, 3):
@@ -392,7 +392,7 @@ class Radar(object):
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
             responseString = self.payload[0:self.latestPayloadSize].decode('utf-8').rstrip('\r\n\x00')
-            logger.info('Command response = {}{}{}'.format(COLOR.skyblue, responseString, COLOR.reset))
+            logger.info('Command -> {}'.format(colorize(responseString, COLOR.skyblue)))
             curlyBracketPosition = responseString.find('{')
             if curlyBracketPosition > 0:
                 payloadDict = json.loads(responseString[curlyBracketPosition:])
@@ -425,15 +425,15 @@ class Radar(object):
         # Remove the last ';'
         self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
-        stringFormat = '> {0}{1}{2} - {3}{4:' + str(w) + 's}{5} -> {6}'
+        stringFormat = '> {} - {}{:' + str(w) + 's}{} -> {}'
         for symbol, obj in self.algorithmObjects.items():
-            logger.info(stringFormat.format(COLOR.yellow, obj.symbol, COLOR.reset,
+            logger.info(stringFormat.format(colorize(obj.symbol, COLOR.yellow),
                                             COLOR.lime, obj.basename, COLOR.reset, obj.name))
         # Composite registration string is built at this point
-        logger.info('Registration = {}{}{}'.format(COLOR.salmon, self.registerString, COLOR.reset))
+        logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         # Prepend data stream request
         greetCommand = 'sYU;' + self.registerString + '\r\n'
-        logger.info('First packet - {}{}{}'.format(COLOR.salmon, greetCommand.encode('utf-8'), COLOR.reset))
+        logger.info('First packet - {}'.format(colorize(greetCommand.encode('utf-8'), COLOR.salmon)))
 
         # Connect to the host and reconnect until it has been set not active
         self.active = True
