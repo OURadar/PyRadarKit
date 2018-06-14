@@ -187,15 +187,25 @@ class Radar(object):
     def _recv(self):
         try:
             k = 0;
+            length = 0
             toRead = CONSTANTS.PACKET_DELIM_SIZE
             anchor = memoryview(self.netDelimiterBytes)
             while toRead and k < 100:
-                length = self.socket.recv_into(anchor, toRead)
+                try:
+                    length = self.socket.recv_into(anchor, toRead)
+                except ConnectionResetError:
+                    logger.exception('Connection reset during network delimiter.')
+                    break
+                except (ValueError) as e:
+                    logger.exception(e)
+                    break
+
                 anchor = anchor[length:]
                 toRead -= length
                 k += 1
             if toRead:
-                raise ValueError('Length should be {}, not {}   k = {}'.format(CONSTANTS.PACKET_DELIM_SIZE, length, k))
+                logger.warning('Length should be {}, not {}   k = {}'.format(CONSTANTS.PACKET_DELIM_SIZE, length, k))
+                return False
             delimiter = self.netDelimiterStruct.unpack(self.netDelimiterBytes)
 
             # 1st component: 16-bit type
@@ -214,7 +224,15 @@ class Radar(object):
                 toRead = self.latestPayloadSize
                 anchor = memoryview(self.payload)
                 while toRead and k < 100:
-                    length = self.socket.recv_into(anchor, toRead)
+                    try:
+                        length = self.socket.recv_into(anchor, toRead)
+                    except ConnectionResetError:
+                        logger.info('Connection reset during payload.')
+                        break
+                    except (ValueError) as e:
+                        logger.exception(e)
+                        break
+
                     anchor = anchor[length:]
                     toRead -= length
                     k += 1
@@ -222,10 +240,11 @@ class Radar(object):
                 if not self.connected:
                     self.connected = True
                     logger.info('Connected.')
+            return True
 
         except (socket.timeout, ValueError) as e:
             logger.exception(e)
-            raise OSError('Couldn\'t retrieve socket data')
+            return False
 
     """
         Interpret the network payload
@@ -356,7 +375,6 @@ class Radar(object):
             mod = __import__(basename[:-3])
             obj = getattr(mod, 'main')()
             obj.basename = basename
-            #self.algorithmObjects[obj.symbol] = obj
             self.algorithmObjects.update({obj.symbol: obj})
             w = max(w, len(obj.basename))
             if (obj.active):
@@ -370,6 +388,10 @@ class Radar(object):
                                             COLOR.lime, obj.basename, COLOR.reset, obj.name))
         # Composite registration string is built at this point
         logger.info('Registration = {}{}{}'.format(COLOR.salmon, self.registerString, COLOR.reset))
+        # Prepend data stream request
+        greetCommand = 'sYU;' + self.registerString + '\r\n'
+        logger.info('First packet - {}{}{}'.format(COLOR.salmon, greetCommand.encode('utf-8'), COLOR.reset))
+
         # Connect to the host and reconnect until it has been set not active
         self.active = True
         while self.active:
@@ -389,15 +411,15 @@ class Radar(object):
                 self.socket.close()
                 continue
 
-            # Request status, Z, V, W, D, P and R
-            greetCommand = 'sYU;' + self.registerString + '\r\n'
-            logger.info('First packet - {}{}{}'.format(COLOR.salmon, greetCommand.encode('utf-8'), COLOR.reset))
+            # Send the greeting packet
             self.socket.sendall(greetCommand.encode())
 
             # Keep reading while active
             while self.active:
-                self._recv()
-                self._interpretPayload()
+                if self._recv() == True:
+                    self._interpretPayload()
+                else:
+                    break;
 
         logger.info('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()
