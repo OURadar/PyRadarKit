@@ -98,6 +98,9 @@ def showArray(d, letter='U'):
                                              ' '.join([formatDesc.format(x) for x in d[j, -3:]])))
     print('')
 
+def colorize(string, color):
+    return '{}{}{}'.format(color, string, COLOR.reset)
+
 # An algorithm encapsulation
 class Algorithm(object):
     def __init__(self):
@@ -112,10 +115,10 @@ class Algorithm(object):
         self.verbose = 0
 
     def __str__(self):
-        return '{} ({}{}{})   {}active{} = {}{}{}'.format(self.name,
-                                                          COLOR.yellow, self.symbol, COLOR.reset,
-                                                          COLOR.orange, COLOR.reset,
-                                                          COLOR.purple, self.active, COLOR.reset)
+        return '{} -> {}   {} = {}'.format(colorize(self.name, COLOR.salmon),
+                                        colorize(self.symbol, COLOR.yellow),
+                                        colorize('active', COLOR.orange), colorize(self.active, COLOR.purple)
+                                        )
 
     def description(self):
         dic = {'name': self.name, 'symbol': self.symbol, 'b': self.b, 'w': self.w}
@@ -123,11 +126,10 @@ class Algorithm(object):
 
     # Every algorithm should have this function defined
     def process(self, sweep):
-        logger.info('{}   {}rays{} = {}{}{}  {}gateCount{} = {}{}{}'.format(self,
-                                                                            COLOR.orange, COLOR.reset,
-                                                                            COLOR.lime, sweep.rayCount, COLOR.reset,
-                                                                            COLOR.orange, COLOR.reset,
-                                                                            COLOR.lime, sweep.gateCount, COLOR.reset))
+        logger.info('Algorithm {}   {} = {}   {} = {}'.format(self,
+                                                    colorize('rays', COLOR.orange), colorize(sweep.rayCount, COLOR.lime),
+                                                    colorize('gates', COLOR.orange), colorize(sweep.gateCount, COLOR.lime)
+                                                    ))
 
 # A sweep encapsulation
 class Sweep(object):
@@ -336,10 +338,10 @@ class Radar(object):
             for symbol in self.sweep.validSymbols:
                 self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
             # Show some sweep info
-            logger.info('New sweep arrived ({} x {})   Id = {}   moments = {}'.format(self.sweep.rayCount,
-                                                                                      self.sweep.gateCount,
-                                                                                      self.sweep.configId,
-                                                                                      self.sweep.validSymbols))
+            logger.info('New sweep   {} = {}   {} = {}   {} = {}   moments = {}'.format(colorize('configId', COLOR.orange), colorize(self.sweep.configId, COLOR.lime),
+                                                                                        colorize('rays', COLOR.orange), colorize(self.sweep.rayCount, COLOR.lime),
+                                                                                        colorize('gates', COLOR.orange), colorize(self.sweep.gateCount, COLOR.lime),
+                                                                                        self.sweep.validSymbols))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
 
@@ -398,9 +400,10 @@ class Radar(object):
                     symbol = payloadDict['symbol']
                     if symbol is not None:
                         self.algorithmObjects[symbol].productId = payloadDict['pid']
-                        logger.info('Product {}{}{} received {}productId{} = {}{}{}'.format(COLOR.yellow, symbol, COLOR.reset,
-                                                                                            COLOR.orange, COLOR.reset,
-                                                                                            COLOR.purple, payloadDict['pid'], COLOR.reset))
+                        logger.info('Product {} registered   {} = {}'.format(
+                            colorize(symbol, COLOR.yellow),
+                            colorize('productId', COLOR.orange),
+                            colorize(payloadDict['pid'], COLOR.purple)))
 
     """
         Start the server
