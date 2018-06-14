@@ -13,24 +13,24 @@ static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
 }
 
 static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
-	import_array();
+    import_array();
     PyByteArrayObject *input;
-	PyArg_ParseTuple(args, "d", &input);
+    PyArg_ParseTuple(args, "d", &input);
 
-	//PyObject *ret = Py_BuildValue("d", 1.2);
+    //PyObject *ret = Py_BuildValue("d", 1.2);
 
-	npy_intp dims[] = {10, 20};
-	PyObject *ret = PyDict_New();
-	if (ret == NULL) {
-		RKLog("Error. Unable to create a new dictionary.\n");
-		return NULL;
-	}
-	PyObject *key = Py_BuildValue("s", "Z");
-	PyObject *value = PyArray_SimpleNew(2, dims, NPY_FLOAT32);
-	PyDict_SetItem(ret, key, value);
+    npy_intp dims[] = {10, 20};
+    PyObject *ret = PyDict_New();
+    if (ret == NULL) {
+        RKLog("Error. Unable to create a new dictionary.\n");
+        return NULL;
+    }
+    PyObject *key = Py_BuildValue("s", "Z");
+    PyObject *value = PyArray_SimpleNew(2, dims, NPY_FLOAT32);
+    PyDict_SetItem(ret, key, value);
 
-	Py_DECREF(key);
-	Py_DECREF(value);
+    Py_DECREF(key);
+    Py_DECREF(value);
     return ret;
 }
 
@@ -187,46 +187,48 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
     return ret;
 }
 
-static PyObject *PyRKSweepParse(PyObject *self, PyObject *args, PyObject *keywords) {
-	int r;
-	int verbose = 0;
-	PyByteArrayObject *object;
-	static char *keywordList[] = {"input", "verbose", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "Y|i", keywordList, &object, &verbose)) {
-		fprintf(stderr, "Nothing provided.\n");
-		return NULL;
-	}
-	RKSweepHeader *sweepHeader = (RKSweepHeader *)object->ob_bytes;
+static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *keywords) {
+    int r;
+    int verbose = 0;
+    PyByteArrayObject *object;
+    static char *keywordList[] = {"input", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "Y|i", keywordList, &object, &verbose)) {
+        fprintf(stderr, "Nothing provided.\n");
+        return NULL;
+    }
+    RKSweepHeader *sweepHeader = (RKSweepHeader *)object->ob_bytes;
 
-	RKName name;
-	RKName symbol;
-	uint32_t productList = sweepHeader->productList;
-	uint32_t productCount = __builtin_popcount(productList);
-	uint32_t productIndex;
+    RKName name;
+    RKName symbol;
+    uint32_t productList = sweepHeader->productList;
+    uint32_t productCount = __builtin_popcount(productList);
+    uint32_t productIndex;
 
-	PyObject *list = PyList_New(productCount);
+    PyObject *momentList = PyList_New(productCount);
 
-	for (uint32_t k = 0; k < productCount; k++) {
-		// Get the symbol, name, unit, colormap, etc. from the product list
-		r = RKGetNextProductDescription(symbol, name, NULL, NULL, &productIndex, &productList);
-		if (r != RKResultSuccess) {
-			fprintf(stderr, "Early return.\n");
-			break;
-		}
-		PyList_SetItem(list, k, Py_BuildValue("s", symbol));
-	}
-
-    PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:f,s:f,s:i,s:i,s:O}",
-								  "name", sweepHeader->desc.name,
-								  "latitude", sweepHeader->desc.latitude,
-								  "longitude", sweepHeader->desc.longitude,
-								  "sweepElevation", sweepHeader->config.sweepElevation,
-								  "sweepAzimuth", sweepHeader->config.sweepAzimuth,
-								  "gateCount", sweepHeader->gateCount,
-								  "rayCount", sweepHeader->rayCount,
-								  "moments", list);
+    for (uint32_t k = 0; k < productCount; k++) {
+        // Get the symbol, name, unit, colormap, etc. from the product list
+        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &productIndex, &productList);
+        if (r != RKResultSuccess) {
+            fprintf(stderr, "Early return.\n");
+            break;
+        }
+        PyList_SetItem(momentList, k, Py_BuildValue("s", symbol));
+    }
+    PyObject *ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O}",
+                                  "name", sweepHeader->desc.name,
+                                  "configId", sweepHeader->config.i,
+                                  "rayCount", sweepHeader->rayCount,
+                                  "gateCount", sweepHeader->gateCount,
+                                  "gateSizeMeters", sweepHeader->gateSizeMeters,
+                                  "sweepAzimuth", sweepHeader->config.sweepAzimuth,
+                                  "sweepElevation", sweepHeader->config.sweepElevation,
+                                  "latitude", sweepHeader->desc.latitude,
+                                  "longitude", sweepHeader->desc.longitude,
+                                  "altitude", sweepHeader->desc.radarHeight,
+                                  "moments", momentList);
     
-	return ret;
+    return ret;
 }
 
 static PyObject *PyRKTestTerminalColors(PyObject *self, PyObject *args, PyObject *keywords) {
@@ -236,121 +238,123 @@ static PyObject *PyRKTestTerminalColors(PyObject *self, PyObject *args, PyObject
 }
 
 static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
-	int p, r, k;
+    int p, r, k;
     int verbose = 0;
     char *filename;
-	float *scratch;
+    float *scratch;
 
-	static char *keywordList[] = {"filename", "verbose", NULL};
+    static char *keywordList[] = {"filename", "verbose", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &filename, &verbose)) {
         fprintf(stderr, "Nothing provided.\n");
         return Py_None;
     }
 
-	RKSetWantScreenOutput(true);
+    RKSetWantScreenOutput(true);
 
     // Do this before we use any Python array creation
     import_array();
     
-	// Read the sweep using RadarKit
-	RKSweep *sweep = RKSweepRead(filename);
-	if (sweep == NULL) {
-		fprintf(stderr, "No sweep.\n");
-		return Py_None;
-	}
+    // Read the sweep using RadarKit
+    RKSweep *sweep = RKSweepRead(filename);
+    if (sweep == NULL) {
+        fprintf(stderr, "No sweep.\n");
+        return Py_None;
+    }
 
-	// A new dictionary for output
-	PyObject *momentDic = PyDict_New();
+    // A new dictionary for output
+    PyObject *momentDic = PyDict_New();
 
-	// Some constants
-	npy_intp dims[] = {sweep->header.rayCount, sweep->header.gateCount};
+    // Some constants
+    npy_intp dims[] = {sweep->header.rayCount, sweep->header.gateCount};
 
-	// The first ray
-	RKRay *ray = RKGetRay(sweep->rayBuffer, 0);
+    // The first ray
+    RKRay *ray = RKGetRay(sweep->rayBuffer, 0);
 
-	// Range
-	scratch = (float *)malloc(sweep->header.gateCount * sizeof(float));
-	for (k = 0; k < (int)sweep->header.gateCount; k++) {
-		scratch[k] = (float)k * ray->header.gateSizeMeters;
-	}
-	PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
-	PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
+    // Range
+    scratch = (float *)malloc(sweep->header.gateCount * sizeof(float));
+    for (k = 0; k < (int)sweep->header.gateCount; k++) {
+        scratch[k] = (float)k * ray->header.gateSizeMeters;
+    }
+    PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
 
-	// Azimuth
-	scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
-	for (k = 0; k < (int)sweep->header.rayCount; k++) {
-		RKRay *ray = RKGetRay(sweep->rayBuffer, k);
-		scratch[k] = ray->header.startAzimuth;
-	}
-	PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
-	PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
+    // Azimuth
+    scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
+    for (k = 0; k < (int)sweep->header.rayCount; k++) {
+        RKRay *ray = RKGetRay(sweep->rayBuffer, k);
+        scratch[k] = ray->header.startAzimuth;
+    }
+    PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
 
-	// Elevation
-	scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
-	for (k = 0; k < (int)sweep->header.rayCount; k++) {
-		RKRay *ray = RKGetRay(sweep->rayBuffer, k);
-		scratch[k] = ray->header.startElevation;
-	}
-	PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
-	PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
+    // Elevation
+    scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
+    for (k = 0; k < (int)sweep->header.rayCount; k++) {
+        RKRay *ray = RKGetRay(sweep->rayBuffer, k);
+        scratch[k] = ray->header.startElevation;
+    }
+    PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
 
-	// Some product description
-	RKName name;
-	RKName symbol;
-	uint32_t productIndex;
+    // Some product description
+    RKName name;
+    RKName symbol;
+    uint32_t productIndex;
 
-	// A shadow copy of productList so we can manipulate it without affecting the original ray
-	uint32_t productList = sweep->header.productList;
-	int productCount = __builtin_popcount(productList);
+    // A shadow copy of productList so we can manipulate it without affecting the original ray
+    uint32_t productList = sweep->header.productList;
+    int productCount = __builtin_popcount(productList);
 
-	for (p = 0; p < productCount; p++) {
-		// Get the symbol, name, unit, colormap, etc. from the product list
-		r = RKGetNextProductDescription(symbol, name, NULL, NULL, &productIndex, &productList);
-		if (r != RKResultSuccess) {
-			fprintf(stderr, "Early return.\n");
-			break;
-		}
+    for (p = 0; p < productCount; p++) {
+        // Get the symbol, name, unit, colormap, etc. from the product list
+        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &productIndex, &productList);
+        if (r != RKResultSuccess) {
+            fprintf(stderr, "Early return.\n");
+            break;
+        }
 
-		// A scratch space for data arragement
-		scratch = (float *)malloc(sweep->header.rayCount * sweep->header.gateCount * sizeof(float));
-		if (scratch == NULL) {
-			RKLog("Error. Unable to allocate memory.\n");
-			return Py_None;
-		}
+        // A scratch space for data arragement
+        scratch = (float *)malloc(sweep->header.rayCount * sweep->header.gateCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
 
-		// Arrange the data in an array
-		for (k = 0; k < (int)sweep->header.rayCount; k++) {
-			memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], productIndex), sweep->header.gateCount * sizeof(float));
-		}
-		PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
-		PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
-		PyObject *key = Py_BuildValue("s", symbol);
-		PyDict_SetItem(momentDic, key, value);
-		Py_DECREF(value);
-		Py_DECREF(key);
-	}
+        // Arrange the data in an array
+        for (k = 0; k < (int)sweep->header.rayCount; k++) {
+            memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], productIndex), sweep->header.gateCount * sizeof(float));
+        }
+        PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+        PyObject *key = Py_BuildValue("s", symbol);
+        PyDict_SetItem(momentDic, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
+    }
     
     // Return dictionary
-	PyObject *ret = Py_BuildValue("{s:s,s:f,s:f,s:i,s:f,s:f,s:f,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
-								  "name", sweep->header.desc.name,
-								  "sweepElevation", sweep->header.config.sweepElevation,
-								  "sweepAzimuth", sweep->header.config.sweepAzimuth,
-								  "gateCount", sweep->header.gateCount,
-                                  "gateSizeMeters", ray->header.gateSizeMeters,
+    PyObject *ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+                                  "name", sweep->header.desc.name,
+                                  "configId", sweep->header.config.i,
+                                  "rayCount", sweep->header.rayCount,
+                                  "gateCount", sweep->header.gateCount,
+                                  "sweepAzimuth", sweep->header.config.sweepAzimuth,
+                                  "sweepElevation", sweep->header.config.sweepElevation,
+                                  "gateSizeMeters", sweep->header.gateSizeMeters,
                                   "latitude", sweep->header.desc.latitude,
-                                  "longitude", sweep->header.desc.longitude, // bug -> It contains latitude not longitude.
+                                  "longitude", sweep->header.desc.longitude,
                                   "altitude", sweep->header.desc.radarHeight,
-								  "sweepBegin", Py_True,
-								  "sweepEnd", Py_False,
-								  "elevation", elevation,
-								  "azimuth", azimuth,
-								  "range", range,
-								  "moments", momentDic);
+                                  "sweepBegin", Py_True,
+                                  "sweepEnd", Py_False,
+                                  "elevation", elevation,
+                                  "azimuth", azimuth,
+                                  "range", range,
+                                  "moments", momentDic);
 
-	Py_DECREF(elevation);
-	Py_DECREF(azimuth);
-	Py_DECREF(range);
-	Py_DECREF(momentDic);
+    Py_DECREF(elevation);
+    Py_DECREF(azimuth);
+    Py_DECREF(range);
+    Py_DECREF(momentDic);
 
     RKSweepFree(sweep);
 
@@ -359,12 +363,12 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
 // Standard boiler plates
 static PyMethodDef PyRKMethods[] = {
-    {"init",       (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
-    {"test",       (PyCFunction)PyRKTest,               METH_VARARGS | METH_KEYWORDS, "Test module"},
-    {"parseRay",   (PyCFunction)PyRKRayParse,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
-	{"parseSweep", (PyCFunction)PyRKSweepParse,         METH_VARARGS | METH_KEYWORDS, "Sweep parse module"},
-    {"showColors", (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
-    {"read",       (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
+    {"init",             (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
+    {"test",             (PyCFunction)PyRKTest,               METH_VARARGS | METH_KEYWORDS, "Test module"},
+    {"parseRay",         (PyCFunction)PyRKRayParse,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
+    {"parseSweepHeader", (PyCFunction)PyRKSweepHeaderParse,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
+    {"showColors",       (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
+    {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
     {NULL, NULL, 0, NULL}
 };
 

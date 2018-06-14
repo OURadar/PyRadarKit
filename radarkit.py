@@ -123,9 +123,11 @@ class Algorithm(object):
 
     # Every algorithm should have this function defined
     def process(self, sweep):
-        logger.info('{}   rays = {}{}{}  gateCount = {}{}{}'.format(self,
-                                                                    COLOR.lime, sweep.rayCount, COLOR.reset,
-                                                                    COLOR.lime, sweep.gateCount, COLOR.reset))
+        logger.info('{}   {}rays{} = {}{}{}  {}gateCount{} = {}{}{}'.format(self,
+                                                                            COLOR.orange, COLOR.reset,
+                                                                            COLOR.lime, sweep.rayCount, COLOR.reset,
+                                                                            COLOR.orange, COLOR.reset,
+                                                                            COLOR.lime, sweep.gateCount, COLOR.reset))
 
 # A sweep encapsulation
 class Sweep(object):
@@ -133,11 +135,18 @@ class Sweep(object):
         An object that encapsulate a sweep
     """
     def __init__(self, rays=360, gates=CONSTANTS.MAX_GATES):
-        self.azimuth = 0.0
-        self.elevation = 0.0
-        self.sweepType = "PPI"
+        self.name = 'RadarKit'
+        self.configId = 0
         self.rayCount = 0
         self.gateCount = 0
+        self.sweepAzimuth = 0.0
+        self.sweepElevation = 0.0
+        self.gateSizeMeters = 1.0
+        self.latitude = 0.0
+        self.longitude = 0.0
+        self.azimuth = 0.0
+        self.elevation = 0.0
+        self.sweepType = 'PPI'
         self.receivedRayCount = 0
         self.validSymbols = []
         self.products = {
@@ -305,9 +314,17 @@ class Radar(object):
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_HEADER:
 
             # Parse the sweep
-            sweepHeader = rk.parseSweep(self.payload, verbose=self.verbose)
-            self.sweep.gateCount = sweepHeader['gateCount']
+            sweepHeader = rk.parseSweepHeader(self.payload, verbose=self.verbose)
+            #print(sweepHeader)
+            self.sweep.name = sweepHeader['name']
+            self.sweep.configId = sweepHeader['configId']
             self.sweep.rayCount = sweepHeader['rayCount']
+            self.sweep.gateCount = sweepHeader['gateCount']
+            self.sweep.gateSizeMeters = sweepHeader['gateSizeMeters']
+            self.sweep.sweepAzimuth = sweepHeader['sweepAzimuth']
+            self.sweep.sweepElevation = sweepHeader['sweepAzimuth']
+            self.sweep.latitude = sweepHeader['latitude']
+            self.sweep.longitude = sweepHeader['longitude']
             self.sweep.validSymbols = sweepHeader['moments']
             self.sweep.range = N.zeros(self.sweep.gateCount, dtype=N.float)
             self.sweep.azimuth = N.zeros(self.sweep.gateCount, dtype=N.float)
@@ -318,7 +335,11 @@ class Radar(object):
                 print('validSymbols = {}'.format(self.sweep.validSymbols))
             for symbol in self.sweep.validSymbols:
                 self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
-            logger.info('New sweep arrived ({} x {})   moments = {}'.format(self.sweep.rayCount, self.sweep.gateCount, sweepHeader['moments']))
+            # Show some sweep info
+            logger.info('New sweep arrived ({} x {})   Id = {}   moments = {}'.format(self.sweep.rayCount,
+                                                                                      self.sweep.gateCount,
+                                                                                      self.sweep.configId,
+                                                                                      self.sweep.validSymbols))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
 
