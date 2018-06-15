@@ -5,7 +5,7 @@ import radarkit
 class main(radarkit.Algorithm):
     def __init__(self):
         super().__init__()
-        self.name = 'High Z'
+        self.name = 'Z-Shift'
         self.symbol = 'Y'
         self.active = True
         self.b = -32

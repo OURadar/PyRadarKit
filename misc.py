@@ -35,10 +35,10 @@ def colorize(string, color):
     return '{}{}{}'.format(color, string, COLOR.reset)
 
 def variableInString(name, value):
-    if isinstance(value, (int, float)):
-        return '{}{}{} = {}{}{}'.format(COLOR.orange, name, COLOR.reset, COLOR.lime, value, COLOR.reset)
-    elif isinstance(value, (bool)):
+    if isinstance(value, (bool)):
         return '{}{}{} = {}{}{}'.format(COLOR.orange, name, COLOR.reset, COLOR.purple, value, COLOR.reset)
+    elif isinstance(value, (int, float)):
+        return '{}{}{} = {}{}{}'.format(COLOR.orange, name, COLOR.reset, COLOR.lime, value, COLOR.reset)
     else:
         return '{}{}{} = {}{}{}'.format(COLOR.orange, name, COLOR.reset, COLOR.yellow, value, COLOR.reset)
 
