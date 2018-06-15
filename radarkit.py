@@ -172,6 +172,8 @@ class Radar(object):
         self.port = port
         self.timeout = timeout
         self.verbose = verbose
+        self.active = False
+        self.wantActive = False
         self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
         self.netDelimiterStruct = struct.Struct(RKNetDelimiterFormat)
         self.netDelimiterValues = [0, 0, 0, 0, 0]
@@ -400,7 +402,7 @@ class Radar(object):
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
             responseString = self.payload[0:self.latestPayloadSize].decode('utf-8').rstrip('\r\n\x00')
-            logger.info('Command -> {}'.format(colorize(responseString, COLOR.skyblue)))
+            logger.info('Response = {}'.format(colorize(responseString, COLOR.skyblue)))
             curlyBracketPosition = responseString.find('{')
             if curlyBracketPosition > 0:
                 payloadDict = json.loads(responseString[curlyBracketPosition:])
@@ -441,11 +443,12 @@ class Radar(object):
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         # Prepend data stream request
         greetCommand = 'sYU;' + self.registerString + '\r\n'
-        logger.info('First packet - {}'.format(colorize(greetCommand.encode('utf-8'), COLOR.salmon)))
+        logger.info('First packet = {}'.format(colorize(greetCommand.encode('utf-8'), COLOR.salmon)))
 
-        # Connect to the host and reconnect until it has been set not active
-        self.active = True
-        while self.active:
+        # Connect to the host and reconnect until it has been set not to wantActive
+        self.wantActive = True
+        while self.wantActive:
+            self.active = False
             self.connected = False
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(self.timeout)
@@ -465,26 +468,38 @@ class Radar(object):
             # Send the greeting packet
             self.socket.sendall(greetCommand.encode())
 
-            # Keep reading while active
-            while self.active:
+            # Keep reading while wantActive
+            while self.wantActive:
                 if self._recv() == True:
                     self._interpretPayload()
                 else:
                     break;
+                if not self.active:
+                    self.active = True
 
         logger.info('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()
+        self.active = False
 
     """
         Stop the server
     """
     def stop(self):
+        logger.info('Deactivating radar ...')
         self.active = False
+        k = 0
+        while self.active and k < 20:
+            time.sleep(0.1)
+            k += 1
+        if k >= 20:
+            logger.info('Force exit.')
+        logger.info('Done.')
 
     """
         Close the socket
     """
     def close(self):
+        wantActive = False
         self.socket.close()
         
     """
