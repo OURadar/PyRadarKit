@@ -19,8 +19,14 @@ import json
 
 import rkstruct as rk
 
+# Some global variables / functions
 logger = logging.getLogger(__name__)
+version_info = rk.version()
 
+# Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
+RKNetDelimiterFormat = b'HHIII'
+
+# Constants
 class CONSTANTS:
     IP = '127.0.0.1'
     PORT = 10000
@@ -64,16 +70,11 @@ class COLOR:
     pink = "\033[38;5;213m"
     salmon = "\033[38;5;210m"
     python = "\033[38;5;226;48;5;24m"
-
-# Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
-RKNetDelimiterFormat = b'HHIII'
+    radarkit = "\033[38;5;15;48;5;124m"
 
 # Generic functions
 def test(payload, debug=False):
     return rk.test(payload, debug=debug)
-
-def init():
-    rk.init()
 
 def showColors():
     rk.showColors()
@@ -202,12 +203,14 @@ class Radar(object):
         ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%I:%M:%S'))
         logger.addHandler(ch)
 
-        logger.info('PyRadarKit started.')
+        logger.info('Started.')
 
     def _showName(self):
+        print('Version {}'.format(sys.version_info))
         # Size of the current terminal
         rows, columns = os.popen('stty size', 'r').read().split()
-        print(colorize('\n\n\n{}\n\n'.format('PyRadarKit'.center(int(columns)-1, ' ')), COLOR.python))
+        print(colorize('\n\n{}\n'.format('RadarKit'.center(int(columns), ' ')), COLOR.radarkit))
+        print(colorize('\n\n{}\n'.format('PyRadarKit'.center(int(columns), ' ')), COLOR.python) + '\n')
 
     """
         Receives a frame: a network delimiter and the following payload described by the delimiter

@@ -361,6 +361,10 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     return ret;
 }
 
+static PyObject *PyRKVersion(PyObject *self) {
+    return Py_BuildValue("s", RKVersionString);
+}
+
 // Standard boiler plates
 static PyMethodDef PyRKMethods[] = {
     {"init",             (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
@@ -369,6 +373,7 @@ static PyMethodDef PyRKMethods[] = {
     {"parseSweepHeader", (PyCFunction)PyRKSweepHeaderParse,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
     {"showColors",       (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
     {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
+    {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
     {NULL, NULL, 0, NULL}
 };
 
