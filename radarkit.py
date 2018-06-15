@@ -70,7 +70,7 @@ def read(filename, verbose=0):
 
 # An algorithm encapsulation
 class Algorithm(object):
-    def __init__(self):
+    def __init__(self, verbose=0):
         self.name = 'Algorithm'
         self.symbol = 'U'
         self.active = False
@@ -79,7 +79,7 @@ class Algorithm(object):
         self.minValue = 0.0
         self.maxValue = 100.0
         self.productId = 0
-        self.verbose = 0
+        self.verbose = verbose
 
     def __str__(self):
         return '{} -> {}   {}'.format(colorize(self.name, COLOR.salmon),
@@ -175,8 +175,9 @@ class Radar(object):
         print('Version {}'.format(sys.version_info))
         # Size of the current terminal
         rows, columns = os.popen('stty size', 'r').read().split()
-        print(colorize('\n\n{}\n'.format('RadarKit'.center(int(columns), ' ')), COLOR.radarkit))
-        print(colorize('\n\n{}\n'.format('PyRadarKit'.center(int(columns), ' ')), COLOR.python) + '\n')
+        c = int(columns)
+        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'RadarKit'.center(c, ' '), ' ' * c), COLOR.radarkit))
+        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python) + '\n')
 
     """
         Receives a frame: a network delimiter and the following payload described by the delimiter

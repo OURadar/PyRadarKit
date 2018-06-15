@@ -3,8 +3,8 @@ import scipy as S
 import radarkit
 
 class main(radarkit.Algorithm):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, verbose=0):
+        super().__init__(verbose=verbose)
         self.name = 'Summary'
         self.symbol = 'G'
 
@@ -18,7 +18,9 @@ class main(radarkit.Algorithm):
 
         N.set_printoptions(formatter={'float': '{: 6.2f}'.format})
 
-        for letter in ['Z', 'V', 'W', 'D', 'P', 'R']:
-            if letter in sweep.products:
-                d = sweep.products[letter]
-                radarkit.showArray(d, letter=letter)
+        k = 0
+        for letter, dataArray in sweep.products.items():
+            if k > 0:
+                print('')
+            k += 1
+            radarkit.showArray(dataArray, letter=letter)
