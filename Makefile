@@ -1,9 +1,8 @@
-all: rkstruct.so
+SUBDIRS := radarkit
 
-rkstruct.so: setup.py rkstruct.c
-	rm -f rkstruct*.so
-	python setup.py build_ext --inplace
+all: $(SUBDIRS)
 
-clean:
-	rm -rf build
-	rm -f rkstruct*.so
+$(SUBDIRS):
+	$(MAKE) -C $@
+
+.PHONY: all $(SUBDIRS)

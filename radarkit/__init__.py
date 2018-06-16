@@ -17,9 +17,8 @@ import numpy as N
 import scipy as S
 import json
 
-import rkstruct as rk
-
-from misc import *
+from . import rkstruct as rk
+from .misc import *
 
 # Some global variables / functions
 logger = logging.getLogger(__name__)
