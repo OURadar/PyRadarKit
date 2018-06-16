@@ -1,14 +1,7 @@
 #!/usr/local/bin/python
 
 import sys
-import time
-import struct
-import signal
-import socket
-import logging
 import argparse
-import threading
-
 import radarkit
 
 # All algorithms are located under the folder 'algorithms'

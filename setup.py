@@ -1,5 +1,6 @@
 from setuptools import setup, Extension
-from os import path
+
+import os
 import numpy.distutils.misc_util
 
 # Define the extension module
@@ -23,16 +24,16 @@ console_scripts = [
 ]
 gui_scripts = []
 
-rkstruct = Extension('radarkit/rkstruct',
+rkstruct = Extension('radarkit.rkstruct',
                      ['radarkit/rkstruct.c'],
                      include_dirs=inc_dirs,
                      library_dirs=lib_dirs,
-                     extra_compile_args=['-Wno-strict-prototypes', '-Wno-microsoft'],
-                     libraries=['radarkit', 'fftw3f', 'netcdf'])
+                     libraries=['radarkit', 'fftw3f', 'netcdf'],
+                     extra_compile_args=['-Wno-strict-prototypes', '-Wno-microsoft'])
 
 # Get the long description from the README file
-here = path.abspath(path.dirname(__file__))
-with open(path.join(here, 'README.md')) as f:
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.md')) as f:
     long_description = f.read()
 
 setup(
@@ -42,6 +43,7 @@ setup(
     author='Boonleng Cheong',
     author_email='boonleng@ou.edu',
     url='https://github.com/ouradar/pyradarkit',
+    package_dir={'radarkit': 'radarkit'},
     packages=['radarkit'],
     ext_modules=[rkstruct],
     install_requires=install_requires,

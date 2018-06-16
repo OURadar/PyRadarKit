@@ -1,8 +1,19 @@
-SUBDIRS := radarkit
+all : inplace
 
-all: $(SUBDIRS)
+.PHONY : all
 
-$(SUBDIRS):
-	$(MAKE) -C $@
+.FORCE :
 
-.PHONY: all $(SUBDIRS)
+inplace : .FORCE
+	python setup.py build build_ext -f -i
+
+radarkit : .FORCE
+	python setup.py build build_ext -f
+
+install :
+	python setup.py install
+	
+clean :
+	rm -rf build
+	rm -f radarkit/*.so
+

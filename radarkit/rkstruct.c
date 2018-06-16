@@ -120,7 +120,7 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
                                   "moments", dataArray);
 
     if (verbose > 1) {
-        fprintf(stderr, "   \033[48;5;197;38;5;15m C-Ext \033[0m      \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
+        fprintf(stderr, "   \033[38;5;15;48;5;124m  RadarKit  \033[0m \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
                 ray->header.startElevation, ray->header.startAzimuth, (int)ray->header.startAzimuth);
         fdata = (float *)ray->data;
         if (ray->header.productList & RKProductListProductZ) {

@@ -6,10 +6,6 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		B51343171EF96BF900DE7CBC /* rkstruct.c in Sources */ = {isa = PBXBuildFile; fileRef = B57391451EE59B9200ACF25E /* rkstruct.c */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		B513430D1EF96BE800DE7CBC /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -24,16 +20,14 @@
 
 /* Begin PBXFileReference section */
 		B513430F1EF96BE800DE7CBC /* rkstruct */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rkstruct; sourceTree = BUILT_PRODUCTS_DIR; };
-		B51BE8EE20D40DED00A774ED /* misc.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = misc.py; sourceTree = "<group>"; };
 		B5559EE52055816700E5B34F /* chart.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = chart.py; sourceTree = "<group>"; };
 		B57391401EE59B9200ACF25E /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
 		B57391411EE59B9200ACF25E /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
 		B57391421EE59B9200ACF25E /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
-		B57391431EE59B9200ACF25E /* radarkit.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = radarkit.py; sourceTree = "<group>"; };
 		B57391441EE59B9200ACF25E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		B57391451EE59B9200ACF25E /* rkstruct.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = rkstruct.c; sourceTree = "<group>"; };
 		B57391461EE59B9200ACF25E /* setup.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setup.py; sourceTree = "<group>"; };
 		B5902EF01F5F027B00C7CC7A /* ppi_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = ppi_demo.py; sourceTree = "<group>"; };
+		B5FAD8D020D5582100E0A767 /* radarkit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = radarkit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,12 +63,10 @@
 				B57391441EE59B9200ACF25E /* README.md */,
 				B57391421EE59B9200ACF25E /* Makefile */,
 				B57391461EE59B9200ACF25E /* setup.py */,
-				B57391451EE59B9200ACF25E /* rkstruct.c */,
-				B51BE8EE20D40DED00A774ED /* misc.py */,
 				B5559EE52055816700E5B34F /* chart.py */,
-				B57391431EE59B9200ACF25E /* radarkit.py */,
 				B5902EF01F5F027B00C7CC7A /* ppi_demo.py */,
 				B57391401EE59B9200ACF25E /* algorithms */,
+				B5FAD8D020D5582100E0A767 /* radarkit */,
 				B51BE8EF20D4272600A774ED /* Main */,
 				B51343101EF96BE800DE7CBC /* Products */,
 			);
@@ -136,7 +128,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B51343171EF96BF900DE7CBC /* rkstruct.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
