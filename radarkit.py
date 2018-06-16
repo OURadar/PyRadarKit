@@ -92,9 +92,12 @@ class Algorithm(object):
 
     # Every algorithm should have this function defined
     def process(self, sweep):
-        logger.info('Algorithm {}   {}   {}'.format(self,
-                                                    variableInString('rays', sweep.rayCount),
-                                                    variableInString('gates', sweep.gateCount)))
+        if self.verbose > 1:
+            logger.info('Algorithm {}   {}   {}'.format(self,
+                                                        variableInString('rays', sweep.rayCount),
+                                                        variableInString('gates', sweep.gateCount)))
+        else:
+            logger.info('Algorithm {}'.format(self))
 
 # A sweep encapsulation
 class Sweep(object):
@@ -211,6 +214,7 @@ class Radar(object):
             # 2nd component: 16-bit subtype (not used)
             # 3rd component: 32-bit size
             # 4th component: 32-bit decoded size (not used)
+            # 5th component: 32-bit padding
             self.latestPayloadType = delimiter[0]
             self.latestPayloadSize = delimiter[2]
 
@@ -256,9 +260,9 @@ class Radar(object):
             ii = int(ray['azimuth'])
             ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
             if self.verbose > 1:
-                print('   {} {} -> {2} / {3}'.format(colorize(' PyRadarKit ', COLOR.python),
-                                                     colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
-                                                     ii, ray['sweepEnd']))
+                print('   {} {} -> {} / {}'.format(colorize(' PyRadarKit ', COLOR.python),
+                                                   colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
+                                                   ii, ray['sweepEnd']))
                 N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                 for letter in self.sweep.products.keys():
                     if letter in ray['moments']:
@@ -314,9 +318,9 @@ class Radar(object):
                 self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
             # Show some sweep info
             logger.info('New sweep   {}   {}   {}   {}'.format(variableInString('configId', self.sweep.configId),
-                                                                         variableInString('rays', self.sweep.rayCount),
-                                                                         variableInString('gates', self.sweep.gateCount),
-                                                                         variableInString('symbols', self.sweep.validSymbols)))
+                                                               variableInString('rays', self.sweep.rayCount),
+                                                               variableInString('gates', self.sweep.gateCount),
+                                                               variableInString('symbols', self.sweep.validSymbols)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
 
@@ -337,29 +341,37 @@ class Radar(object):
             if self.sweep.receivedRayCount == self.sweep.rayCount:
                 # Call the collection of algorithms
                 for symbol, obj in self.algorithmObjects.items():
-                    userProduct = obj.process(self.sweep)
+                    userProductData = obj.process(self.sweep)
+                    userProductDesc = json.dumps({
+                                                 'productId': obj.productId,
+                                                 'configId': self.sweep.configId
+                                                 }).encode('utf-8')
                     if obj.active is True:
-                        if userProduct is None:
+                        if userProductData is None:
                             logger.exception('Expected a product from {}', obj)
                             continue
                         if self.verbose > 1:
                             logger.info('Sending product ...\n')
-                        # 1st component: 16-bit type
-                        # 2nd component: 16-bit subtype (not used)
-                        # 3rd component: 32-bit size
-                        # 4th component: 32-bit decoded size (not used)
-                        # 5th component: 32-bit padding
+                        # Network delimiter (see above)
+                        bytes = len(userProductDesc)
+                        values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
+                        packet = self.netDelimiterStruct.pack(*values)
+                        r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
+                        if r is not None:
+                            logger.exception('Error sending netDelimiter.')
+                        # User product description in a JSON string
+                        r = self.socket.sendall(userProductDesc)
+                        if r is not None:
+                            logger.exception('Error sending sweep description.')
+                        # Network delimiter (see above)
                         bytes = self.sweep.gateCount * self.sweep.rayCount * 4
                         values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
                         packet = self.netDelimiterStruct.pack(*values)
                         r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
                         if r is not None:
                             logger.exception('Error sending netDelimiter.')
-                        # Product header
-                        # sweepId ?
-
                         # Data array in plain float
-                        r = self.socket.sendall(userProduct.astype('f').tobytes())
+                        r = self.socket.sendall(userProductData.astype('f').tobytes())
                         if r is not None:
                             logger.exception('Error sending userProduct.')
                         logger.info('{}   User product {} sent'.format(obj.name, colorize(obj.symbol, COLOR.yellow)))
@@ -389,7 +401,7 @@ class Radar(object):
         for script in glob.glob('algorithms/*.py'):
             basename = os.path.basename(script)
             mod = __import__(basename[:-3])
-            obj = getattr(mod, 'main')()
+            obj = getattr(mod, 'main')(verbose=self.verbose)
             obj.basename = basename
             self.algorithmObjects.update({obj.symbol: obj})
             w = max(w, len(obj.basename))
@@ -405,8 +417,9 @@ class Radar(object):
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         # Prepend data stream request
-        greetCommand = 'sYU;' + self.registerString + '\r\n'
-        logger.info('First packet = {}'.format(colorize(greetCommand.encode('utf-8'), COLOR.salmon)))
+        greetCommand = 'sYCO;' + self.registerString + '\r\n'
+        greetCommand = greetCommand.encode('utf-8')
+        logger.info('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
 
         # Connect to the host and reconnect until it has been set not to wantActive
         self.wantActive = True
@@ -429,7 +442,7 @@ class Radar(object):
                 continue
 
             # Send the greeting packet
-            self.socket.sendall(greetCommand.encode())
+            self.socket.sendall(greetCommand)
 
             # Keep reading while wantActive
             while self.wantActive:
