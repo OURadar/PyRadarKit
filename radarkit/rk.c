@@ -391,7 +391,7 @@ static struct PyModuleDef PyRKModule = {
 
 PyMODINIT_FUNC
 
-PyInit_rkstruct(void) {
+PyInit_rk(void) {
     return PyModule_Create(&PyRKModule);
 }
 
@@ -401,8 +401,8 @@ PyInit_rkstruct(void) {
 
 PyMODINIT_FUNC
 
-initrkstruct(void) {
-    (void) Py_InitModule("rkstruct", PyRKMethods);
+initrk(void) {
+    (void) Py_InitModule("rk", PyRKMethods);
 }
 
 #endif

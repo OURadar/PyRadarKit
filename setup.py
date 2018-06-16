@@ -24,12 +24,12 @@ console_scripts = [
 ]
 gui_scripts = []
 
-rkstruct = Extension('radarkit.rkstruct',
-                     ['radarkit/rkstruct.c'],
-                     include_dirs=inc_dirs,
-                     library_dirs=lib_dirs,
-                     libraries=['radarkit', 'fftw3f', 'netcdf'],
-                     extra_compile_args=['-Wno-strict-prototypes', '-Wno-microsoft'])
+rk = Extension('radarkit.rk',
+               ['radarkit/rk.c'],
+               include_dirs=inc_dirs,
+               library_dirs=lib_dirs,
+               libraries=['radarkit', 'fftw3f', 'netcdf'],
+               extra_compile_args=['-Wno-strict-prototypes', '-Wno-microsoft'])
 
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
@@ -45,7 +45,7 @@ setup(
     url='https://github.com/ouradar/pyradarkit',
     package_dir={'radarkit': 'radarkit'},
     packages=['radarkit'],
-    ext_modules=[rkstruct],
+    ext_modules=[rk],
     install_requires=install_requires,
     zip_safe=False,
     license='MIT'

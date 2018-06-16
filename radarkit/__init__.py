@@ -17,7 +17,7 @@ import numpy as N
 import scipy as S
 import json
 
-from . import rkstruct as rk
+from . import rk
 from .misc import *
 
 # Some global variables / functions
