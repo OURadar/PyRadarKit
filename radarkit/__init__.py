@@ -2,6 +2,7 @@
     Python wrapper for C functions to interact with RadarKit
 """
 
+# Standard libraries
 import os
 import re
 import sys
@@ -13,19 +14,19 @@ import datetime
 import logging
 import socket
 import struct
-import numpy as N
-import scipy as S
 import json
 
+# Additional libraries
+import numpy as N
+import scipy as S
+
+# From the PyRadarKit framework
 from . import rk
 from .misc import *
 
-# Some global variables / functions
+# Some global objects / variables / functions
 logger = logging.getLogger(__name__)
 version_info = rk.version()
-
-# Each delimiter has 16-bit type, 16-bit subtype, 32-bit raw size, 32-bit decoded size and 32-bit padding
-RKNetDelimiterFormat = b'HHIII'
 
 # Constants
 class CONSTANTS:
@@ -141,28 +142,37 @@ class Radar(object):
         self.active = False
         self.wantActive = False
         self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
-        self.netDelimiterStruct = struct.Struct(RKNetDelimiterFormat)
+        # Each netlimiter has:
+        # 1st component: 16-bit type
+        # 2nd component: 16-bit subtype (not used)
+        # 3rd component: 32-bit size
+        # 4th component: 32-bit decoded size (not used)
+        # 5th component: 32-bit padding
+        self.netDelimiterStruct = struct.Struct(b'HHIII')
         self.netDelimiterValues = [0, 0, 0, 0, 0]
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
         self.latestPayloadSize = 0
         self.registerString = ''
 
+        # Initialize the C extension
         rk.init()
 
-        self._showName()
-        
-        # Initialize an empty list of algorithms
+        # Show some info
+        rows, columns = os.popen('stty size', 'r').read().split()
+        c = int(columns)
+        print('Version {}'.format(sys.version_info))
+        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'RadarKit'.center(c, ' '), ' ' * c), COLOR.radarkit))
+        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python) + '\n')
+
+        # Initialize a bunch to things
         self.algorithms = []
         self.sweep = Sweep()
-
         logFolder = 'log'
         if not os.path.exists(logFolder):
             os.makedirs(logFolder)
-
         logFile = logFolder + '/' + datetime.datetime.now().strftime('pyrk-%Y%m%d.log')
         logging.basicConfig(filename=logFile, level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%I:%M:%S')
-
         ch = logging.StreamHandler()
         if self.verbose > 0:
             ch.setLevel(logging.INFO)
@@ -170,16 +180,7 @@ class Radar(object):
             ch.setLevel(logging.WARNING)
         ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%I:%M:%S'))
         logger.addHandler(ch)
-
         logger.info('Started.')
-
-    def _showName(self):
-        print('Version {}'.format(sys.version_info))
-        # Size of the current terminal
-        rows, columns = os.popen('stty size', 'r').read().split()
-        c = int(columns)
-        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'RadarKit'.center(c, ' '), ' ' * c), COLOR.radarkit))
-        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python) + '\n')
 
     """
         Receives a frame: a network delimiter and the following payload described by the delimiter
