@@ -8,30 +8,36 @@
 static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
     Py_INCREF(Py_None);
-    import_array();
     return Py_None;
 }
 
 static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
     import_array();
-    PyByteArrayObject *input;
+    double input;
     PyArg_ParseTuple(args, "d", &input);
 
     //PyObject *ret = Py_BuildValue("d", 1.2);
+    
+    printf("Input as double = %f\n", input);
 
-    npy_intp dims[] = {10, 20};
-    PyObject *ret = PyDict_New();
-    if (ret == NULL) {
+    npy_intp dims[] = {2, 3};
+    PyObject *dict = PyDict_New();
+    if (dict == NULL) {
         RKLog("Error. Unable to create a new dictionary.\n");
         return NULL;
     }
-    PyObject *key = Py_BuildValue("s", "Z");
-    PyObject *value = PyArray_SimpleNew(2, dims, NPY_FLOAT32);
-    PyDict_SetItem(ret, key, value);
-
-    Py_DECREF(key);
+    float *data = (float *)malloc(9 * sizeof(float));
+    for (int k = 0; k < 9; k++) {
+        data[k] = (double)(k + 1);
+    }
+    PyObject *key = Py_BuildValue("s", "Key");
+    PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, data);
+    // Let Python free the data created by malloc() here
+    PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+    PyDict_SetItem(dict, key, value);
     Py_DECREF(value);
-    return ret;
+    Py_DECREF(key);
+    return dict;
 }
 
 static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords) {
@@ -54,61 +60,73 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
     if (ray->header.productList & RKProductListDisplayZ) {
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Zi"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListDisplayV) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Vi"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListDisplayW) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Wi"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListDisplayD) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Di"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListDisplayP) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Pi"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListDisplayR) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Ri"), dataObject);
+        Py_DECREF(dataObject);
     }
     float *fdata = (float *)data;
     if (ray->header.productList & RKProductListProductZ) {
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListProductV) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "V"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListProductW) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "W"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListProductD) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "D"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListProductP) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "P"), dataObject);
+        Py_DECREF(dataObject);
     }
     if (ray->header.productList & RKProductListProductR) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "R"), dataObject);
+        Py_DECREF(dataObject);
     }
 
     PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
@@ -118,6 +136,8 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
                                   "sweepBegin", ray->header.marker & RKMarkerSweepBegin ? Py_True : Py_False,
                                   "sweepEnd", ray->header.marker & RKMarkerSweepEnd ? Py_True : Py_False,
                                   "moments", dataArray);
+    
+    Py_DECREF(dataArray);
 
     if (verbose > 1) {
         fprintf(stderr, "   \033[38;5;15;48;5;124m  RadarKit  \033[0m \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
@@ -227,6 +247,8 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
                                   "longitude", sweepHeader->desc.longitude,
                                   "altitude", sweepHeader->desc.radarHeight,
                                   "moments", momentList);
+    
+    Py_DECREF(momentList);
     
     return ret;
 }
@@ -392,6 +414,7 @@ static struct PyModuleDef PyRKModule = {
 PyMODINIT_FUNC
 
 PyInit_rk(void) {
+    import_array();
     return PyModule_Create(&PyRKModule);
 }
 
@@ -402,6 +425,7 @@ PyInit_rk(void) {
 PyMODINIT_FUNC
 
 initrk(void) {
+    import_array();
     (void) Py_InitModule("rk", PyRKMethods);
 }
 
