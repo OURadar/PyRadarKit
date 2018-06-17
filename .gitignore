@@ -12,4 +12,7 @@ core.*
 *.pyc
 
 __pycache__
+build
 .ipynb_checkpoints
+files.txt
+

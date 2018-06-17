@@ -24,10 +24,14 @@ import scipy as S
 # From the PyRadarKit framework
 from . import rk
 from .misc import *
+from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
 version_info = rk.version()
+
+# All algorithms are located under the folder 'algorithms'
+sys.path.insert(0, 'algorithms')
 
 # Constants
 class CONSTANTS:
@@ -57,20 +61,11 @@ class NETWORK_PACKET_TYPE:
     USER_PRODUCT_DESCRIPTION = 116
 
 # Generic functions
-def test(payload, debug=False):
-    return rk.test(payload, debug=debug)
-
-def showColors():
-    rk.showColors()
-
 def read(filename, verbose=0):
     """
         Read a sweep from a netcdf file
     """
     return rk.read(filename, verbose=0)
-
-# All algorithms are located under the folder 'algorithms'
-sys.path.insert(0, 'algorithms')
 
 # An algorithm encapsulation
 class Algorithm(object):
@@ -163,12 +158,8 @@ class Radar(object):
         rk.init()
 
         # Show some info
-        rows, columns = os.popen('stty size', 'r').read().split()
-        c = int(columns)
-        print('Version {}'.format(sys.version_info))
-        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'RadarKit'.center(c, ' '), ' ' * c), COLOR.radarkit))
-        print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python) + '\n')
-
+        showName()
+        
         # Initialize a bunch to things
         self.algorithms = []
         self.sweep = Sweep()
@@ -478,6 +469,13 @@ class Radar(object):
             logger.info('Force exit.')
         logger.info('Done.')
 
+    """
+        Wait while the radar is active
+    """
+    def wait(self):
+        while (self.active):
+            time.sleep(0.1)
+    
     """
         Close the socket
     """

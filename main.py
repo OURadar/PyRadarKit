@@ -9,25 +9,20 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', default=10000, type=int, help='port number (default 10000)')
     parser.add_argument('-T', '--test', default=-1, type=int,
                         help='Various tests:\n'
-                        '11 - Generating an array.')
+                        ' 1 - Show color output from RadarKit.\n'
+                        '11 - Generating an array.\n'
+                        ' ')
     parser.add_argument('-v', '--verbose', default=0, action='count', help='increases verbosity level')
     args = parser.parse_args()
 
     if args.test >= 0:
-        tests = {
-            1: lambda x: radarkit.showColors(),
-            10: lambda x: print('hello {}'.format(x)),
-            11: lambda x: print(radarkit.test(3.14, debug=1))
-        }
-        if args.test in tests:
-            tests.get(args.test)(0)
-        else:
-            print('Error. Test {} does not exist.'.format(args.test))
+        radarkit.test(args.test)
         quit()
 
     try:
         radar = radarkit.Radar(ipAddress=args.host, verbose=args.verbose)
         radar.start()
+        radar.wait()
     except KeyboardInterrupt:
         print('')
         radar.stop()

@@ -1,3 +1,6 @@
+import os
+import sys
+
 class COLOR:
     reset = "\033[0m"
     red = "\033[38;5;196m"
@@ -42,3 +45,9 @@ def variableInString(name, value):
     else:
         return '{}{}{} = {}{}{}'.format(COLOR.orange, name, COLOR.reset, COLOR.yellow, value, COLOR.reset)
 
+def showName():
+    rows, columns = os.popen('stty size', 'r').read().split()
+    c = int(columns)
+    print('Version {}'.format(sys.version_info))
+    print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'RadarKit'.center(c, ' '), ' ' * c), COLOR.radarkit))
+    print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python) + '\n')
