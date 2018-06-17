@@ -10,6 +10,7 @@ import enum
 import glob
 import math
 import time
+import threading
 import datetime
 import logging
 import socket
@@ -67,6 +68,9 @@ def read(filename, verbose=0):
         Read a sweep from a netcdf file
     """
     return rk.read(filename, verbose=0)
+
+# All algorithms are located under the folder 'algorithms'
+sys.path.insert(0, 'algorithms')
 
 # An algorithm encapsulation
 class Algorithm(object):
@@ -391,6 +395,47 @@ class Radar(object):
                                                                         variableInString('productId', payloadDict['pid'])))
 
     """
+        The run loop
+    """
+    def _runLoop(self):
+        # Prepend data stream request
+        greetCommand = 'sYCO;' + self.registerString + '\r\n'
+        greetCommand = greetCommand.encode('utf-8')
+        logger.info('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
+        # Connect to the host and reconnect until it has been set not to wantActive
+        while self.wantActive:
+            self.active = False
+            self.connected = False
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.settimeout(self.timeout)
+            try:
+                logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
+                self.socket.connect((self.ipAddress, self.port))
+            except:
+                t = 30
+                while t > 0:
+                    if self.verbose > 1 and t % 10 == 0:
+                        print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
+                    time.sleep(0.1)
+                    t -= 1
+                self.socket.close()
+                continue
+            # Send the greeting packet
+            self.socket.sendall(greetCommand)
+            # Keep reading while wantActive
+            while self.wantActive:
+                if self._recv() == True:
+                    self._interpretPayload()
+                else:
+                    break;
+                if not self.active:
+                    self.active = True
+        # Outside of the busy loop
+        logger.info('Connection from {} terminated.'.format(self.ipAddress))
+        self.socket.close()
+        self.active = False
+
+    """
         Start the server
     """
     def start(self):
@@ -416,53 +461,15 @@ class Radar(object):
                                             COLOR.lime, obj.basename, COLOR.reset, obj.name))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
-        # Prepend data stream request
-        greetCommand = 'sYCO;' + self.registerString + '\r\n'
-        greetCommand = greetCommand.encode('utf-8')
-        logger.info('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
-
-        # Connect to the host and reconnect until it has been set not to wantActive
         self.wantActive = True
-        while self.wantActive:
-            self.active = False
-            self.connected = False
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.settimeout(self.timeout)
-            try:
-                logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
-                self.socket.connect((self.ipAddress, self.port))
-            except:
-                t = 30
-                while t > 0:
-                    if self.verbose > 1 and t % 10 == 0:
-                        print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
-                    time.sleep(0.1)
-                    t -= 1
-                self.socket.close()
-                continue
-
-            # Send the greeting packet
-            self.socket.sendall(greetCommand)
-
-            # Keep reading while wantActive
-            while self.wantActive:
-                if self._recv() == True:
-                    self._interpretPayload()
-                else:
-                    break;
-                if not self.active:
-                    self.active = True
-
-        logger.info('Connection from {} terminated.'.format(self.ipAddress))
-        self.socket.close()
-        self.active = False
+        threading.Thread(target=self._runLoop).start()
 
     """
         Stop the server
     """
     def stop(self):
         logger.info('Deactivating radar ...')
-        self.active = False
+        self.wantActive = False
         k = 0
         while self.active and k < 20:
             time.sleep(0.1)
@@ -476,7 +483,8 @@ class Radar(object):
     """
     def close(self):
         wantActive = False
-        self.socket.close()
+        if (self.socket):
+            self.socket.close()
         
     """
         Deallocate

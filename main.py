@@ -1,11 +1,7 @@
 #!/usr/local/bin/python
 
-import sys
 import argparse
 import radarkit
-
-# All algorithms are located under the folder 'algorithms'
-sys.path.insert(0, 'algorithms')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="main")
