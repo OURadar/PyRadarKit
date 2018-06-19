@@ -326,8 +326,10 @@ class Radar(object):
             self.sweep.elevation[k] = ray['elevation']
             for symbol in self.sweep.validSymbols:
                 self.sweep.products[symbol][k, 0:self.sweep.gateCount] = ray['moments'][symbol][0:self.sweep.gateCount]
-            if self.verbose > 1:
-                print('   \033[38;5;226;48;5;24m PyRadarKit \033[0m \033[38;5;226mEL {0:0.2f} deg   AZ {1:0.2f} deg\033[0m -> {2} / {3}'.format(self.sweep.elevation[k], self.sweep.azimuth[k], k, self.sweep.rayCount))
+            if self.verbose > 2:
+                print('   {} {} -> {} / {}'.format(colorize(' PyRadarKit ', COLOR.python),
+                                                   colorize('EL {0:0.2f} deg   AZ {1:0.2f} deg'.format(self.sweep.elevation[k], self.sweep.azimuth[k]), COLOR.yellow),
+                                                   k, self.sweep.rayCount))
                 N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                 for symbol in self.sweep.products.keys():
                     print('                {} = {}'.format(symbol, self.sweep.products[symbol][k, 0:10]))
@@ -346,7 +348,7 @@ class Radar(object):
                             logger.exception('Expected a product from {}', obj)
                             continue
                         if self.verbose > 1:
-                            logger.info('Sending product ...\n')
+                            logger.info('Sending product ...')
                         # Network delimiter (see above)
                         bytes = len(userProductDesc)
                         values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
