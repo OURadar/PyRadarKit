@@ -254,7 +254,7 @@ class Radar(object):
             # Gather the ray into a sweep
             ii = int(ray['azimuth'])
             ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
-            if self.verbose > 1:
+            if self.verbose > 2:
                 print('   {} {} -> {} / {}'.format(colorize(' PyRadarKit ', COLOR.python),
                                                    colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
                                                    ii, ray['sweepEnd']))

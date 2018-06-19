@@ -57,72 +57,72 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
     PyObject *dataObject = NULL;
 
     uint8_t *data = (uint8_t *)ray->data;
-    if (ray->header.productList & RKProductListDisplayZ) {
+    if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Zi"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListDisplayV) {
+    if (ray->header.baseMomentList & RKBaseMomentListDisplayV) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Vi"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListDisplayW) {
+    if (ray->header.baseMomentList & RKBaseMomentListDisplayW) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Wi"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListDisplayD) {
+    if (ray->header.baseMomentList & RKBaseMomentListDisplayD) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Di"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListDisplayP) {
+    if (ray->header.baseMomentList & RKBaseMomentListDisplayP) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Pi"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListDisplayR) {
+    if (ray->header.baseMomentList & RKBaseMomentListDisplayR) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Ri"), dataObject);
         Py_DECREF(dataObject);
     }
     float *fdata = (float *)data;
-    if (ray->header.productList & RKProductListProductZ) {
+    if (ray->header.baseMomentList & RKBaseMomentListProductZ) {
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListProductV) {
+    if (ray->header.baseMomentList & RKBaseMomentListProductV) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "V"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListProductW) {
+    if (ray->header.baseMomentList & RKBaseMomentListProductW) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "W"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListProductD) {
+    if (ray->header.baseMomentList & RKBaseMomentListProductD) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "D"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListProductP) {
+    if (ray->header.baseMomentList & RKBaseMomentListProductP) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "P"), dataObject);
         Py_DECREF(dataObject);
     }
-    if (ray->header.productList & RKProductListProductR) {
+    if (ray->header.baseMomentList & RKBaseMomentListProductR) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "R"), dataObject);
@@ -139,65 +139,65 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
     
     Py_DECREF(dataArray);
 
-    if (verbose > 1) {
+    if (verbose > 2) {
         fprintf(stderr, "   \033[38;5;15;48;5;124m  RadarKit  \033[0m \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
                 ray->header.startElevation, ray->header.startAzimuth, (int)ray->header.startAzimuth);
         fdata = (float *)ray->data;
-        if (ray->header.productList & RKProductListProductZ) {
+        if (ray->header.baseMomentList & RKBaseMomentListProductZ) {
             fprintf(stderr, "                Z = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
         }
-        if (ray->header.productList & RKProductListProductV) {
+        if (ray->header.baseMomentList & RKBaseMomentListProductV) {
             fdata += ray->header.gateCount;
             fprintf(stderr, "                V = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
         }
-        if (ray->header.productList & RKProductListProductW) {
+        if (ray->header.baseMomentList & RKBaseMomentListProductW) {
             fdata += ray->header.gateCount;
             fprintf(stderr, "                W = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
         }
-        if (ray->header.productList & RKProductListProductD) {
+        if (ray->header.baseMomentList & RKBaseMomentListProductD) {
             fdata += ray->header.gateCount;
             fprintf(stderr, "                D = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
         }
-        if (ray->header.productList & RKProductListProductP) {
+        if (ray->header.baseMomentList & RKBaseMomentListProductP) {
             fdata += ray->header.gateCount;
             fprintf(stderr, "                P = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
         }
-        if (ray->header.productList & RKProductListProductR) {
+        if (ray->header.baseMomentList & RKBaseMomentListProductR) {
             fdata += ray->header.gateCount;
             fprintf(stderr, "                R = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
         }
         data = (uint8_t *)fdata;
-        if (ray->header.productList & RKProductListDisplayZ) {
+        if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
             fprintf(stderr, "                Zi = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
-        if (ray->header.productList & RKProductListDisplayV) {
+        if (ray->header.baseMomentList & RKBaseMomentListDisplayV) {
             data += ray->header.gateCount;
             fprintf(stderr, "                Vi = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
-        if (ray->header.productList & RKProductListDisplayW) {
+        if (ray->header.baseMomentList & RKBaseMomentListDisplayW) {
             data += ray->header.gateCount;
             fprintf(stderr, "                Wi = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
-        if (ray->header.productList & RKProductListDisplayD) {
+        if (ray->header.baseMomentList & RKBaseMomentListDisplayD) {
             data += ray->header.gateCount;
             fprintf(stderr, "                Di = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
-        if (ray->header.productList & RKProductListDisplayP) {
+        if (ray->header.baseMomentList & RKBaseMomentListDisplayP) {
             data += ray->header.gateCount;
             fprintf(stderr, "                Pi = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
         }
-        if (ray->header.productList & RKProductListDisplayR) {
+        if (ray->header.baseMomentList & RKBaseMomentListDisplayR) {
             data += ray->header.gateCount;
             fprintf(stderr, "                Ri = [%d %d %d %d %d %d %d %d %d %d ...\n",
                     data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
@@ -220,15 +220,15 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
 
     RKName name;
     RKName symbol;
-    uint32_t productList = sweepHeader->productList;
-    uint32_t productCount = __builtin_popcount(productList);
-    uint32_t productIndex;
+    RKBaseMomentIndex index;
+    RKBaseMomentList list = sweepHeader->baseMomentList;
+    int count = __builtin_popcount(list);
 
-    PyObject *momentList = PyList_New(productCount);
+    PyObject *momentList = PyList_New(count);
 
-    for (uint32_t k = 0; k < productCount; k++) {
+    for (int k = 0; k < count; k++) {
         // Get the symbol, name, unit, colormap, etc. from the product list
-        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &productIndex, &productList);
+        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
         if (r != RKResultSuccess) {
             fprintf(stderr, "Early return.\n");
             break;
@@ -321,15 +321,15 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     // Some product description
     RKName name;
     RKName symbol;
-    uint32_t productIndex;
 
     // A shadow copy of productList so we can manipulate it without affecting the original ray
-    uint32_t productList = sweep->header.productList;
-    int productCount = __builtin_popcount(productList);
+    RKBaseMomentIndex index;
+    RKBaseMomentList list = sweep->header.baseMomentList;
+    int count = __builtin_popcount(list);
 
-    for (p = 0; p < productCount; p++) {
+    for (p = 0; p < count; p++) {
         // Get the symbol, name, unit, colormap, etc. from the product list
-        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &productIndex, &productList);
+        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
         if (r != RKResultSuccess) {
             fprintf(stderr, "Early return.\n");
             break;
@@ -344,7 +344,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
         // Arrange the data in an array
         for (k = 0; k < (int)sweep->header.rayCount; k++) {
-            memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], productIndex), sweep->header.gateCount * sizeof(float));
+            memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], index), sweep->header.gateCount * sizeof(float));
         }
         PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
         PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
