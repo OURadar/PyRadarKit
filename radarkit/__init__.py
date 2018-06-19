@@ -328,7 +328,7 @@ class Radar(object):
                 self.sweep.products[symbol][k, 0:self.sweep.gateCount] = ray['moments'][symbol][0:self.sweep.gateCount]
             if self.verbose > 2:
                 print('   {} {} -> {} / {}'.format(colorize(' PyRadarKit ', COLOR.python),
-                                                   colorize('EL {0:0.2f} deg   AZ {1:0.2f} deg'.format(self.sweep.elevation[k], self.sweep.azimuth[k]), COLOR.yellow),
+                                                   colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(self.sweep.elevation[k], self.sweep.azimuth[k]), COLOR.yellow),
                                                    k, self.sweep.rayCount))
                 N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                 for symbol in self.sweep.products.keys():
@@ -375,6 +375,7 @@ class Radar(object):
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
+            # Command response is a string
             responseString = self.payload[0:self.latestPayloadSize].decode('utf-8').rstrip('\r\n\x00')
             logger.info('Response = {}'.format(colorize(responseString, COLOR.skyblue)))
             curlyBracketPosition = responseString.find('{')

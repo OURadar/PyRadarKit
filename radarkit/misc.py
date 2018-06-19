@@ -1,5 +1,7 @@
 import os
 import sys
+import time
+import threading
 
 class COLOR:
     reset = "\033[0m"
@@ -51,3 +53,33 @@ def showName():
     print('Version {}'.format(sys.version_info))
     print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'RadarKit'.center(c, ' '), ' ' * c), COLOR.radarkit))
     print(colorize('\n{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python) + '\n')
+
+class algorithmRunner(threading.Thread):
+    def __init__(self, algorithmQueue, resultQueue, stopper):
+        super().__init__(self)
+        self.algorithmQueue = algorithmQueue
+        self.resultQueue = resultQueue
+
+    def run(self):
+        while not self.stopper.is_set():
+            try:
+                algorithm = self.algorithmQueue.get_nowait()
+            except queue.Empty:
+                break
+            else:
+                #result =
+                self.resultQueue.put((0, ))
+        # Pop a method, then run it
+
+
+class SignalHandler:
+    stopper = None
+    workers = None
+    def __init__(self, stopper, workers):
+        self.stopper = stopper
+        self.workers = workers
+    def __call__(self, signum, frame):
+        self.stopper.set()
+        for worker in self.workers:
+            worker.join()
+        sys.exit(0)
