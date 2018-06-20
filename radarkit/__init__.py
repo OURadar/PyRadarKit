@@ -72,6 +72,8 @@ class Algorithm(object):
     def __init__(self, verbose=0):
         self.name = 'Algorithm'
         self.symbol = 'U'
+        self.unit = ''
+        self.colormap = 'Default'
         self.active = False
         self.b = 1.0
         self.w = 0.0
@@ -86,7 +88,7 @@ class Algorithm(object):
                                       variableInString('active', self.active))
 
     def description(self):
-        dic = {'name': self.name, 'symbol': self.symbol, 'b': self.b, 'w': self.w}
+        dic = {'name': self.name, 'symbol': self.symbol, 'unit': self.unit, 'colormap': self.colormap, 'b': self.b, 'w': self.w}
         return json.dumps(dic)
 
     # Every algorithm should have this function defined

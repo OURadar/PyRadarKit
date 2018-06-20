@@ -7,6 +7,7 @@ class main(radarkit.Algorithm):
         super().__init__(verbose=verbose)
         self.name = 'Z-Shift'
         self.symbol = 'Y'
+        self.unit = 'dBZ'
         self.active = True
         self.b = -32
         self.w = 0.5
