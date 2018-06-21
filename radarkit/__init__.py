@@ -354,23 +354,13 @@ class Radar(object):
                         # Network delimiter (see above)
                         bytes = len(userProductDesc)
                         values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
-                        packet = self.netDelimiterStruct.pack(*values)
-                        r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
-                        if r is not None:
-                            logger.exception('Error sending netDelimiter.')
-                        # User product description in a JSON string
-                        r = self.socket.sendall(userProductDesc)
-                        if r is not None:
-                            logger.exception('Error sending sweep description.')
+                        delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
                         # Network delimiter (see above)
                         bytes = self.sweep.gateCount * self.sweep.rayCount * 4
                         values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
-                        packet = self.netDelimiterStruct.pack(*values)
-                        r = self.socket.sendall(packet, CONSTANTS.PACKET_DELIM_SIZE);
-                        if r is not None:
-                            logger.exception('Error sending netDelimiter.')
-                        # Data array in plain float
-                        r = self.socket.sendall(userProductData.astype('f').tobytes())
+                        delimiterForData = self.netDelimiterStruct.pack(*values)
+                        # Data array in plain float array
+                        r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
                         if r is not None:
                             logger.exception('Error sending userProduct.')
                         logger.info('{}   User product {} sent'.format(obj.name, colorize(obj.symbol, COLOR.yellow)))
