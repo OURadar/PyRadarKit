@@ -391,31 +391,16 @@ class Radar(object):
         greetCommand = greetCommand.encode('utf-8')
         logger.info('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
-        while self.wantActive:
-            self.active = False
-            self.connected = False
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.settimeout(self.timeout)
-            try:
-                logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
-                self.socket.connect((self.ipAddress, self.port))
-            except:
-                t = 30
-                while t > 0:
-                    if self.verbose > 1 and t % 10 == 0:
-                        print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
-                    time.sleep(0.1)
-                    t -= 1
-                self.socket.close()
-                continue
-            # Send the greeting packet
-            self.socket.sendall(greetCommand)
-            # Keep reading while wantActive
+        try:
             while self.wantActive:
-                if self._recv() == True:
-                    self._interpretPayload()
-                else:
-                    logger.info('Server disconnected.')
+                self.active = False
+                self.connected = False
+                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.socket.settimeout(self.timeout)
+                try:
+                    logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
+                    self.socket.connect((self.ipAddress, self.port))
+                except:
                     t = 30
                     while t > 0:
                         if self.verbose > 1 and t % 10 == 0:
@@ -423,9 +408,27 @@ class Radar(object):
                         time.sleep(0.1)
                         t -= 1
                     self.socket.close()
-                    break;
-                if not self.active:
-                    self.active = True
+                    continue
+                # Send the greeting packet
+                self.socket.sendall(greetCommand)
+                # Keep reading while wantActive
+                while self.wantActive:
+                    if self._recv() == True:
+                        self._interpretPayload()
+                    else:
+                        logger.info('Server disconnected.')
+                        t = 30
+                        while t > 0:
+                            if self.verbose > 1 and t % 10 == 0:
+                                print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
+                            time.sleep(0.1)
+                            t -= 1
+                        self.socket.close()
+                        break;
+                    if not self.active:
+                        self.active = True
+        except:
+            print('Outside runloop')
         # Outside of the busy loop
         logger.info('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()

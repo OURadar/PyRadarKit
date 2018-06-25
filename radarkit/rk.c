@@ -226,8 +226,8 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
         fprintf(stderr, "PyRKSweepHeaderParse() -> Nothing provided.\n");
         return NULL;
     }
-    printf("object @ %p\n", object->ob_bytes);
 
+    // Type cast it to RadarKit's sweep header
     RKSweepHeader *sweepHeader = (RKSweepHeader *)object->ob_bytes;
 
     RKName name;
@@ -236,9 +236,8 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
     RKBaseMomentList list = sweepHeader->baseMomentList;
     int count = __builtin_popcount(list);
 
+    // A list of base moment symbols from the sweep header
     PyObject *momentList = PyList_New(count);
-
-    printf("count = %d\n", count);
 
     for (k = 0; k < count; k++) {
         // Get the symbol, name, unit, colormap, etc. from the product list
@@ -413,7 +412,7 @@ static PyMethodDef PyRKMethods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-#if defined(PyModule_Create)
+#if PY_MAJOR_VERSION >= 3
 
 // Python 3 way
 
@@ -428,7 +427,7 @@ static struct PyModuleDef PyRKModule = {
 PyMODINIT_FUNC
 
 PyInit_rk(void) {
-    import_array();
+    init_numpy();
     return PyModule_Create(&PyRKModule);
 }
 
@@ -439,7 +438,7 @@ PyInit_rk(void) {
 PyMODINIT_FUNC
 
 initrk(void) {
-    import_array();
+    init_numpy();
     (void) Py_InitModule("rk", PyRKMethods);
 }
 

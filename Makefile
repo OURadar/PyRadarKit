@@ -17,4 +17,3 @@ install :
 clean :
 	rm -rf build dist *.egg-info .ipynb_checkpoints
 	rm -f radarkit/*.so
-
