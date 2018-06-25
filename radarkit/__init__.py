@@ -2,6 +2,8 @@
     Python wrapper for C functions to interact with RadarKit
 """
 
+from __future__ import print_function
+
 # Standard libraries
 import os
 import re

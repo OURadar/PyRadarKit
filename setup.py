@@ -1,6 +1,46 @@
-from setuptools import setup, Extension
+from __future__ import print_function
 
 import os
+import sys
+import textwrap
+import pkg_resources
+
+def is_installed(requirement):
+    try:
+        pkg_resources.require(requirement)
+    except pkg_resources.ResolutionError:
+        return False
+    else:
+        return True
+
+if not is_installed('numpy>=1.11.0'):
+    print(textwrap.dedent("""
+            Error: numpy needs to be installed first. You can install it via:
+
+            $ pip install numpy
+            $ pip3 install numpy
+            """), file=sys.stderr)
+    exit(1)
+
+if not is_installed('scipy>=1.1.0'):
+    print(textwrap.dedent("""
+        Error: numpy needs to be installed first. You can install it via:
+
+        $ pip install scipy
+        $ pip3 install scipy
+        """), file=sys.stderr)
+    exit(1)
+
+# if not is_installed('python-devel'):
+#     print(textwrap.dedent("""
+#             Error: python-devel needs to be installed first. You can install it via:
+
+#             $ yum install python-devel
+#             $ yum install python3-devel
+#             """), file=sys.stderr)
+#     exit(1)
+
+from setuptools import setup, Extension
 import numpy.distutils.misc_util
 
 # Define the extension module
@@ -11,6 +51,7 @@ print('\033[34m===>\033[0m inc_dirs = {}'.format(inc_dirs))
 print('\033[34m===>\033[0m lib_dirs = {}'.format(lib_dirs))
 
 install_requires = [
+    'enum',
     'numpy',
     'scipy',
     'matplotlib'
@@ -29,7 +70,7 @@ rk = Extension('radarkit.rk',
                include_dirs=inc_dirs,
                library_dirs=lib_dirs,
                libraries=['radarkit', 'fftw3f', 'netcdf'],
-               extra_compile_args=['-Wno-strict-prototypes', '-Wno-microsoft'])
+               extra_compile_args=['-std=gnu99', '-Wno-strict-prototypes', '-Wno-microsoft'])
 
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
