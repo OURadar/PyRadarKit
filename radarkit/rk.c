@@ -4,6 +4,16 @@
 #include <numpy/arrayobject.h>
 #include <RadarKit.h>
 
+#if PY_MAJOR_VERSION >= 3
+int
+#else
+void
+#endif
+init_numpy()
+{
+    import_array();
+}
+
 // Wrappers
 static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
@@ -12,8 +22,8 @@ static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
 }
 
 static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
-    import_array();
     double input;
+    init_numpy();
     PyArg_ParseTuple(args, "d", &input);
 
     //PyObject *ret = Py_BuildValue("d", 1.2);
@@ -44,8 +54,8 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
     int verbose = 0;
     PyByteArrayObject *object;
     static char *keywordList[] = {"input", "verbose", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywords, "Y|i", keywordList, &object, &verbose)) {
-        fprintf(stderr, "Nothing provided.\n");
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O|i", keywordList, &object, &verbose)) {
+        fprintf(stderr, "PyRKRayParse() -> Nothing provided.\n");
         return NULL;
     }
 
@@ -208,14 +218,16 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
 }
 
 static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *keywords) {
-    int r;
+    int k, r;
     int verbose = 0;
     PyByteArrayObject *object;
     static char *keywordList[] = {"input", "verbose", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywords, "Y|i", keywordList, &object, &verbose)) {
-        fprintf(stderr, "Nothing provided.\n");
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O|i", keywordList, &object, &verbose)) {
+        fprintf(stderr, "PyRKSweepHeaderParse() -> Nothing provided.\n");
         return NULL;
     }
+    printf("object @ %p\n", object->ob_bytes);
+
     RKSweepHeader *sweepHeader = (RKSweepHeader *)object->ob_bytes;
 
     RKName name;
@@ -226,7 +238,9 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
 
     PyObject *momentList = PyList_New(count);
 
-    for (int k = 0; k < count; k++) {
+    printf("count = %d\n", count);
+
+    for (k = 0; k < count; k++) {
         // Get the symbol, name, unit, colormap, etc. from the product list
         r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
         if (r != RKResultSuccess) {
@@ -267,15 +281,15 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
     static char *keywordList[] = {"filename", "verbose", NULL};
     if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &filename, &verbose)) {
-        fprintf(stderr, "Nothing provided.\n");
+        fprintf(stderr, "PyRKRead() -> Nothing provided.\n");
         return Py_None;
     }
 
     RKSetWantScreenOutput(true);
 
-    // Do this before we use any Python array creation
-    import_array();
-    
+    // Do this before we use any numpy array creation
+    init_numpy();
+
     // Read the sweep using RadarKit
     RKSweep *sweep = RKSweepRead(filename);
     if (sweep == NULL) {

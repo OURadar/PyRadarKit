@@ -14,7 +14,7 @@ class main(radarkit.Algorithm):
     # Every algorithm should have this function implemented
     def process(self, sweep):
         # Call the ancestor method, which shows the sweep summary info
-        super().process(sweep)
+        super(main, self).process(sweep)
 
         N.set_printoptions(formatter={'float': '{: 6.2f}'.format})
 

@@ -16,7 +16,7 @@ class main(radarkit.Algorithm):
         self.shiftFactor = 5.0
 
     def process(self, sweep):
-        super().process(sweep)
+        super(main, self).process(sweep)
 
         N.set_printoptions(formatter={'float': '{: 6.2f}'.format})
 
