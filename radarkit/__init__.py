@@ -311,8 +311,6 @@ class Radar(object):
             self.sweep.elevation = N.zeros(self.sweep.gateCount, dtype=N.float)
             self.sweep.receivedRayCount = 0;
             self.sweep.products = {}
-            if self.verbose > 1:
-                print('validSymbols = {}'.format(self.sweep.validSymbols))
             for symbol in self.sweep.validSymbols:
                 self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
             # Show some sweep info
@@ -365,7 +363,7 @@ class Radar(object):
                         r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
                         if r is not None:
                             logger.exception('Error sending userProduct.')
-                        logger.info('{}   User product {} sent'.format(obj.name, colorize(obj.symbol, COLOR.yellow)))
+                        logger.info('User product {} sent'.format(colorize(obj.symbol, COLOR.yellow)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
@@ -389,7 +387,7 @@ class Radar(object):
         # Prepend data stream request
         greetCommand = 'sYCO;' + self.registerString + '\r\n'
         greetCommand = greetCommand.encode('utf-8')
-        logger.info('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
+        logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
         try:
             while self.wantActive:
