@@ -309,9 +309,6 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
             return Py_None;
         }
 
-        // A new dictionary for output
-        PyObject *momentDic = PyDict_New();
-
         // Some constants
         npy_intp dims[] = {sweep->header.rayCount, sweep->header.gateCount};
 
@@ -320,6 +317,10 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
         // Range
         scratch = (float *)malloc(sweep->header.gateCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
         for (k = 0; k < (int)sweep->header.gateCount; k++) {
             scratch[k] = (float)k * ray->header.gateSizeMeters;
         }
@@ -328,6 +329,10 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
         // Azimuth
         scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
         for (k = 0; k < (int)sweep->header.rayCount; k++) {
             RKRay *ray = RKGetRay(sweep->rayBuffer, k);
             scratch[k] = ray->header.startAzimuth;
@@ -337,6 +342,10 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
         // Elevation
         scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
         for (k = 0; k < (int)sweep->header.rayCount; k++) {
             RKRay *ray = RKGetRay(sweep->rayBuffer, k);
             scratch[k] = ray->header.startElevation;
@@ -349,6 +358,10 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         RKBaseMomentList list = sweep->header.baseMomentList;
         int count = __builtin_popcount(list);
 
+        // A new dictionary for output
+        PyObject *momentDic = PyDict_New();
+
+        // Gather the base moments
         for (p = 0; p < count; p++) {
             // Get the symbol, name, unit, colormap, etc. from the product list
             r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
@@ -357,7 +370,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                 break;
             }
 
-            // A scratch space for data arragement
+            // A scratch space for data
             scratch = (float *)malloc(sweep->header.rayCount * sweep->header.gateCount * sizeof(float));
             if (scratch == NULL) {
                 RKLog("Error. Unable to allocate memory.\n");
@@ -411,7 +424,93 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
             return Py_None;
         }
 
+        // Some constants
+        npy_intp dims[] = {product->header.rayCount, product->header.gateCount};
 
+    printf("Gathering product ...\n");
+    
+        // Range
+        scratch = (float *)malloc(product->header.gateCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        for (k = 0; k < (int)product->header.gateCount; k++) {
+            scratch[k] = (float)k * product->header.gateSizeMeters;
+        }
+        PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
+
+        // Azimuth (RKFloat --> float)
+        scratch = (float *)malloc(product->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        for (k = 0; k < (int)product->header.rayCount; k++) {
+            scratch[k] = (float)product->startAzimuth[k];
+        }
+        PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
+
+        // Elevation (RKFloat --> float)
+        scratch = (float *)malloc(product->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        for (k = 0; k < (int)product->header.rayCount; k++) {
+            scratch[k] = (float)product->startElevation[k];
+        }
+        PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
+
+        // A new dictionary for output
+        PyObject *momentDic = PyDict_New();
+
+        // A scratch space for data
+        scratch = (float *)malloc(product->header.rayCount * product->header.gateCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        float *y = scratch;
+        RKFloat *x = product->data;
+        for (k = 0; k < (int)(product->header.rayCount * product->header.gateCount); k++) {
+            *y++ = *x++;
+        }
+        PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+        PyObject *key = Py_BuildValue("s", symbol);
+        PyDict_SetItem(momentDic, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
+        
+        // Return dictionary
+        ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+                            "name", product->header.radarName,
+                            "configId", product->i,
+                            "rayCount", product->header.rayCount,
+                            "gateCount", product->header.gateCount,
+                            "sweepAzimuth", product->header.sweepAzimuth,
+                            "sweepElevation", product->header.sweepElevation,
+                            "gateSizeMeters", product->header.gateSizeMeters,
+                            "latitude", product->header.latitude,
+                            "longitude", product->header.longitude,
+                            "altitude", product->header.radarHeight,
+                            "sweepBegin", Py_True,
+                            "sweepEnd", Py_False,
+                            "elevation", elevation,
+                            "azimuth", azimuth,
+                            "range", range,
+                            "moments", momentDic);
+
+        Py_DECREF(elevation);
+        Py_DECREF(azimuth);
+        Py_DECREF(range);
+        Py_DECREF(momentDic);
+
+        RKProductFree(product);
     }
 
 
