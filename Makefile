@@ -5,6 +5,7 @@ all : inplace
 .FORCE :
 
 inplace : .FORCE
+	rm -rf build
 	find . -name '*.o' -name '*.so' -delete
 	python setup.py build build_ext -f -i
 
