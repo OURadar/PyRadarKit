@@ -26,29 +26,70 @@ static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
     double input;
     init_numpy();
     PyArg_ParseTuple(args, "d", &input);
-
-    //PyObject *ret = Py_BuildValue("d", 1.2);
-    
     printf("Input as double = %f\n", input);
 
+    PyObject *obj;
+
+    //obj = Py_BuildValue("d", 1.234);
+
+    // npy_intp dims[] = {2, 3};
+    //  = PyDict_New();
+    // if (obj == NULL) {
+    //     RKLog("Error. Unable to create a new dictionary.\n");
+    //     return NULL;
+    // }
+    // float *data = (float *)malloc(9 * sizeof(float));
+    // for (int k = 0; k < 9; k++) {
+    //     data[k] = (double)(k + 1);
+    // }
+    // PyObject *key = Py_BuildValue("s", "Key");
+    // PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, data);
+    // // Let Python free the data created by malloc() here
+    // PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+    // PyDict_SetItem(obj, key, value);
+    // Py_DECREF(value);
+    // Py_DECREF(key);
+
+    // PyTypeObject type = PyTupleObject;
+    // PyArray_Descr desc = {
+    //     .typeobj = ;
+    // };
+
+    int k;
+    float *rawData;
+    PyObject *dict;
+    PyObject *data;
+
+    obj = PyTuple_New(2);
+    
     npy_intp dims[] = {2, 3};
-    PyObject *dict = PyDict_New();
-    if (dict == NULL) {
-        RKLog("Error. Unable to create a new dictionary.\n");
-        return NULL;
+  
+    dict = PyDict_New();
+    PyDict_SetItem(dict, Py_BuildValue("s", "name"), Py_BuildValue("s", "Reflectivity"));
+    rawData = (float *)malloc(6 * sizeof(float));
+    for (k = 0; k < 6; k++) {
+        rawData[k] = (float)k;
     }
-    float *data = (float *)malloc(9 * sizeof(float));
-    for (int k = 0; k < 9; k++) {
-        data[k] = (double)(k + 1);
+    data = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, rawData);
+    PyArray_ENABLEFLAGS((PyArrayObject *)data, NPY_ARRAY_OWNDATA);
+    PyDict_SetItem(dict, Py_BuildValue("s", "data"), data);
+    Py_DECREF(data);
+    PyTuple_SetItem(obj, 0, dict);
+
+    dict = PyDict_New();
+    PyDict_SetItem(dict, Py_BuildValue("s", "name"), Py_BuildValue("s", "Velocity"));
+    rawData = (float *)malloc(6 * sizeof(float));
+    for (k = 0; k < 6; k++) {
+        rawData[k] = (float)k;
     }
-    PyObject *key = Py_BuildValue("s", "Key");
-    PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, data);
-    // Let Python free the data created by malloc() here
-    PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
-    PyDict_SetItem(dict, key, value);
-    Py_DECREF(value);
-    Py_DECREF(key);
-    return dict;
+
+    data = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, rawData);
+    PyArray_ENABLEFLAGS((PyArrayObject *)data, NPY_ARRAY_OWNDATA);
+    PyDict_SetItem(dict, Py_BuildValue("s", "data"), data);
+    Py_DECREF(data);
+    PyTuple_SetItem(obj, 1, dict);
+
+    return obj;
 }
 
 static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords) {
@@ -70,72 +111,84 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
     uint8_t *data = (uint8_t *)ray->data;
     if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Zi"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayV) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Vi"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayW) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Wi"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayD) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Di"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayP) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Pi"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayR) {
         data += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Ri"), dataObject);
         Py_DECREF(dataObject);
     }
     float *fdata = (float *)data;
     if (ray->header.baseMomentList & RKBaseMomentListProductZ) {
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductV) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "V"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductW) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "W"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductD) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "D"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductP) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "P"), dataObject);
         Py_DECREF(dataObject);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductR) {
         fdata += ray->header.gateCount;
         dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
+        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
         PyDict_SetItem(dataArray, Py_BuildValue("s", "R"), dataObject);
         Py_DECREF(dataObject);
     }
@@ -291,111 +344,237 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     RKName name;
     RKName symbol;
     if (RKGetSymbolFromFilename(filename, symbol)) {
-        printf("symbol = %s\n", RKVariableInString("symbol", symbol, RKValueTypeString));
+        printf("symbol = %s%s%s\n", RKYellowColor, symbol, RKNoColor);
     }
 
     // Do this before we use any numpy array creation
     init_numpy();
 
-    // Read the sweep using RadarKit
-    RKSweep *sweep = RKSweepRead(filename);
-    if (sweep == NULL) {
-        fprintf(stderr, "No sweep.\n");
-        return Py_None;
-    }
+    PyObject *ret = Py_None;
 
-    // A new dictionary for output
-    PyObject *momentDic = PyDict_New();
+    if (!strcmp(symbol, "Z") || !strcmp(symbol, "V") || !strcmp(symbol, "W") ||
+        !strcmp(symbol, "D") || !strcmp(symbol, "P") || !strcmp(symbol, "R") || !strcmp(symbol, "K")) {
 
-    // Some constants
-    npy_intp dims[] = {sweep->header.rayCount, sweep->header.gateCount};
-
-    // The first ray
-    RKRay *ray = RKGetRay(sweep->rayBuffer, 0);
-
-    // Range
-    scratch = (float *)malloc(sweep->header.gateCount * sizeof(float));
-    for (k = 0; k < (int)sweep->header.gateCount; k++) {
-        scratch[k] = (float)k * ray->header.gateSizeMeters;
-    }
-    PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
-    PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
-
-    // Azimuth
-    scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
-    for (k = 0; k < (int)sweep->header.rayCount; k++) {
-        RKRay *ray = RKGetRay(sweep->rayBuffer, k);
-        scratch[k] = ray->header.startAzimuth;
-    }
-    PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
-    PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
-
-    // Elevation
-    scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
-    for (k = 0; k < (int)sweep->header.rayCount; k++) {
-        RKRay *ray = RKGetRay(sweep->rayBuffer, k);
-        scratch[k] = ray->header.startElevation;
-    }
-    PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
-    PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
-
-    // A shadow copy of productList so we can manipulate it without affecting the original ray
-    RKBaseMomentIndex index;
-    RKBaseMomentList list = sweep->header.baseMomentList;
-    int count = __builtin_popcount(list);
-
-    for (p = 0; p < count; p++) {
-        // Get the symbol, name, unit, colormap, etc. from the product list
-        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
-        if (r != RKResultSuccess) {
-            fprintf(stderr, "Early return.\n");
-            break;
+        // Read the sweep using RKSweepRead() of RadarKit
+        RKSweep *sweep = RKSweepRead(filename);
+        if (sweep == NULL) {
+            fprintf(stderr, "No sweep.\n");
+            return Py_None;
         }
 
-        // A scratch space for data arragement
-        scratch = (float *)malloc(sweep->header.rayCount * sweep->header.gateCount * sizeof(float));
+        // Some constants
+        npy_intp dims[] = {sweep->header.rayCount, sweep->header.gateCount};
+
+        // The first ray
+        RKRay *ray = RKGetRay(sweep->rayBuffer, 0);
+
+        // Range
+        scratch = (float *)malloc(sweep->header.gateCount * sizeof(float));
         if (scratch == NULL) {
             RKLog("Error. Unable to allocate memory.\n");
             return Py_None;
         }
+        for (k = 0; k < (int)sweep->header.gateCount; k++) {
+            scratch[k] = (float)k * ray->header.gateSizeMeters;
+        }
+        PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
 
-        // Arrange the data in an array
+        // Azimuth
+        scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
         for (k = 0; k < (int)sweep->header.rayCount; k++) {
-            memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], index), sweep->header.gateCount * sizeof(float));
+            RKRay *ray = RKGetRay(sweep->rayBuffer, k);
+            scratch[k] = ray->header.startAzimuth;
+        }
+        PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
+
+        // Elevation
+        scratch = (float *)malloc(sweep->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        for (k = 0; k < (int)sweep->header.rayCount; k++) {
+            RKRay *ray = RKGetRay(sweep->rayBuffer, k);
+            scratch[k] = ray->header.startElevation;
+        }
+        PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
+
+        // A shadow copy of productList so we can manipulate it without affecting the original ray
+        RKBaseMomentIndex index;
+        RKBaseMomentList list = sweep->header.baseMomentList;
+        int count = __builtin_popcount(list);
+
+        // A new dictionary for output
+        PyObject *dict;
+        PyObject *tuple = PyTuple_New(count);
+
+        // Gather the base moments
+        for (p = 0; p < count; p++) {
+            // Get the symbol, name, unit, colormap, etc. from the product list
+            r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
+            if (r != RKResultSuccess) {
+                fprintf(stderr, "Early return.\n");
+                break;
+            }
+
+            // A scratch space for data
+            scratch = (float *)malloc(sweep->header.rayCount * sweep->header.gateCount * sizeof(float));
+            if (scratch == NULL) {
+                RKLog("Error. Unable to allocate memory.\n");
+                return Py_None;
+            }
+
+            // Arrange the data in an array
+            for (k = 0; k < (int)sweep->header.rayCount; k++) {
+                memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], index), sweep->header.gateCount * sizeof(float));
+            }
+
+            // Create a dictionary of this sweep
+            PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
+            PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+            dict = Py_BuildValue("{s:s,s:s,s:O}",
+                "name", name,
+                "symbol", symbol,
+                "data", value);
+            Py_DECREF(value);
+            PyTuple_SetItem(tuple, p, dict);
+        }
+
+        // Return dictionary
+        ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+                            "name", sweep->header.desc.name,
+                            "configId", sweep->header.config.i,
+                            "rayCount", sweep->header.rayCount,
+                            "gateCount", sweep->header.gateCount,
+                            "sweepAzimuth", sweep->header.config.sweepAzimuth,
+                            "sweepElevation", sweep->header.config.sweepElevation,
+                            "gateSizeMeters", sweep->header.gateSizeMeters,
+                            "latitude", sweep->header.desc.latitude,
+                            "longitude", sweep->header.desc.longitude,
+                            "altitude", sweep->header.desc.radarHeight,
+                            "sweepBegin", Py_True,
+                            "sweepEnd", Py_False,
+                            "elevation", elevation,
+                            "azimuth", azimuth,
+                            "range", range,
+                            "moments", tuple);
+
+        Py_DECREF(elevation);
+        Py_DECREF(azimuth);
+        Py_DECREF(range);
+        Py_DECREF(tuple);
+
+        RKSweepFree(sweep);
+
+    } else {
+
+        // Read the sweep using RKProductRead() of RadarKit
+        RKProduct *product = RKProductFileReaderNC(filename);
+        if (product == NULL) {
+            fprintf(stderr, "No product.\n");
+            return Py_None;
+        }
+
+        // Some constants
+        npy_intp dims[] = {product->header.rayCount, product->header.gateCount};
+
+        // Range
+        scratch = (float *)malloc(product->header.gateCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        for (k = 0; k < (int)product->header.gateCount; k++) {
+            scratch[k] = (float)k * product->header.gateSizeMeters;
+        }
+        PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
+
+        // Azimuth (RKFloat --> float)
+        scratch = (float *)malloc(product->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        for (k = 0; k < (int)product->header.rayCount; k++) {
+            scratch[k] = (float)product->startAzimuth[k];
+        }
+        PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
+
+        // Elevation (RKFloat --> float)
+        scratch = (float *)malloc(product->header.rayCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        for (k = 0; k < (int)product->header.rayCount; k++) {
+            scratch[k] = (float)product->startElevation[k];
+        }
+        PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
+
+        // A scratch space for data
+        scratch = (float *)malloc(product->header.rayCount * product->header.gateCount * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory.\n");
+            return Py_None;
+        }
+        float *y = scratch;
+        RKFloat *x = product->data;
+        for (k = 0; k < (int)(product->header.rayCount * product->header.gateCount); k++) {
+            *y++ = *x++;
         }
         PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
         PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
-        PyObject *key = Py_BuildValue("s", symbol);
-        PyDict_SetItem(momentDic, key, value);
+
+        // A new dictionary for output      
+        PyObject *dict = Py_BuildValue("{s:s,s:s,s:O}",
+            "name", product->desc.name,
+            "unit", product->desc.unit,
+            "symbol", product->desc.symbol,
+            "data", value);
         Py_DECREF(value);
-        Py_DECREF(key);
+
+        // Tuple of dictionary
+        PyObject *tuple = PyTuple_New(1);
+        PyTuple_SetItem(tuple, 0, dict);
+        //Py_DECREF(dict);
+
+        // Return dictionary
+        ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+                            "name", product->header.radarName,
+                            "configId", product->i,
+                            "rayCount", product->header.rayCount,
+                            "gateCount", product->header.gateCount,
+                            "sweepAzimuth", product->header.sweepAzimuth,
+                            "sweepElevation", product->header.sweepElevation,
+                            "gateSizeMeters", product->header.gateSizeMeters,
+                            "latitude", product->header.latitude,
+                            "longitude", product->header.longitude,
+                            "altitude", product->header.radarHeight,
+                            "sweepBegin", Py_True,
+                            "sweepEnd", Py_False,
+                            "elevation", elevation,
+                            "azimuth", azimuth,
+                            "range", range,
+                            "moments", tuple);
+
+        Py_DECREF(elevation);
+        Py_DECREF(azimuth);
+        Py_DECREF(range);
+        Py_DECREF(tuple);
+
+        RKProductFree(product);
     }
-    
-    // Return dictionary
-    PyObject *ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
-                                  "name", sweep->header.desc.name,
-                                  "configId", sweep->header.config.i,
-                                  "rayCount", sweep->header.rayCount,
-                                  "gateCount", sweep->header.gateCount,
-                                  "sweepAzimuth", sweep->header.config.sweepAzimuth,
-                                  "sweepElevation", sweep->header.config.sweepElevation,
-                                  "gateSizeMeters", sweep->header.gateSizeMeters,
-                                  "latitude", sweep->header.desc.latitude,
-                                  "longitude", sweep->header.desc.longitude,
-                                  "altitude", sweep->header.desc.radarHeight,
-                                  "sweepBegin", Py_True,
-                                  "sweepEnd", Py_False,
-                                  "elevation", elevation,
-                                  "azimuth", azimuth,
-                                  "range", range,
-                                  "moments", momentDic);
 
-    Py_DECREF(elevation);
-    Py_DECREF(azimuth);
-    Py_DECREF(range);
-    Py_DECREF(momentDic);
-
-    RKSweepFree(sweep);
 
     return ret;
 }
