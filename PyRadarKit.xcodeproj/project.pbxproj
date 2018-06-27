@@ -6,6 +6,10 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B5B2058620E3CB3F007D48E0 /* rk.c in Sources */ = {isa = PBXBuildFile; fileRef = B5B2058520E3CB3F007D48E0 /* rk.c */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		B513430D1EF96BE800DE7CBC /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -19,7 +23,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		B513430F1EF96BE800DE7CBC /* rkstruct */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rkstruct; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5559EE52055816700E5B34F /* chart.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = chart.py; sourceTree = "<group>"; };
 		B57391401EE59B9200ACF25E /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
 		B57391411EE59B9200ACF25E /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
@@ -27,6 +30,8 @@
 		B57391441EE59B9200ACF25E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B57391461EE59B9200ACF25E /* setup.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setup.py; sourceTree = "<group>"; };
 		B5902EF01F5F027B00C7CC7A /* ppi_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = ppi_demo.py; sourceTree = "<group>"; };
+		B5B2058520E3CB3F007D48E0 /* rk.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = rk.c; path = radarkit/rk.c; sourceTree = "<group>"; };
+		B5B2058720E3CCF6007D48E0 /* rkstruct */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rkstruct; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5FAD8D020D5582100E0A767 /* radarkit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = radarkit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -41,14 +46,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		B51343101EF96BE800DE7CBC /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				B513430F1EF96BE800DE7CBC /* rkstruct */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		B51BE8EF20D4272600A774ED /* Main */ = {
 			isa = PBXGroup;
 			children = (
@@ -60,6 +57,7 @@
 		B57391381EE5987900ACF25E = {
 			isa = PBXGroup;
 			children = (
+				B5B2058520E3CB3F007D48E0 /* rk.c */,
 				B57391441EE59B9200ACF25E /* README.md */,
 				B57391421EE59B9200ACF25E /* Makefile */,
 				B57391461EE59B9200ACF25E /* setup.py */,
@@ -68,7 +66,7 @@
 				B5FAD8D020D5582100E0A767 /* radarkit */,
 				B57391401EE59B9200ACF25E /* algorithms */,
 				B51BE8EF20D4272600A774ED /* Main */,
-				B51343101EF96BE800DE7CBC /* Products */,
+				B5B2058720E3CCF6007D48E0 /* rkstruct */,
 			);
 			sourceTree = "<group>";
 		};
@@ -89,7 +87,7 @@
 			);
 			name = rkstruct;
 			productName = rkstruct;
-			productReference = B513430F1EF96BE800DE7CBC /* rkstruct */;
+			productReference = B5B2058720E3CCF6007D48E0 /* rkstruct */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -106,7 +104,7 @@
 					};
 				};
 			};
-			buildConfigurationList = B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "PyRadarKit" */;
+			buildConfigurationList = B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "__PyRadarKit" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -114,7 +112,7 @@
 				en,
 			);
 			mainGroup = B57391381EE5987900ACF25E;
-			productRefGroup = B51343101EF96BE800DE7CBC /* Products */;
+			productRefGroup = B57391381EE5987900ACF25E;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -128,6 +126,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B5B2058620E3CB3F007D48E0 /* rk.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,6 +174,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -218,6 +219,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -255,9 +258,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
+					../radarkit/headers,
 					/usr/local/include,
 					"/usr/local/lib/python3.6/site-packages/numpy/core/include",
-					/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/include/python3.6m,
+					/usr/local/Cellar/python3/3.6.4_3/Frameworks/Python.framework/Versions/Current/include/python3.6m,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				ONLY_ACTIVE_ARCH = YES;
@@ -293,9 +297,10 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
+					../radarkit/headers,
 					/usr/local/include,
 					"/usr/local/lib/python3.6/site-packages/numpy/core/include",
-					/usr/local/Cellar/python3/3.6.1/Frameworks/Python.framework/Versions/3.6/include/python3.6m,
+					/usr/local/Cellar/python3/3.6.4_3/Frameworks/Python.framework/Versions/Current/include/python3.6m,
 				);
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 			};
@@ -313,7 +318,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "PyRadarKit" */ = {
+		B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "__PyRadarKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B573913D1EE5987900ACF25E /* Debug */,

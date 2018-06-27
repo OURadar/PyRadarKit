@@ -5,7 +5,30 @@ import sys
 import textwrap
 import pkg_resources
 
-print('Using version {} ...'.format(sys.version_info))
+class COLOR:
+    reset = "\033[0m"
+    red = "\033[38;5;196m"
+    orange = "\033[38;5;214m"
+    yellow = "\033[38;5;226m"
+    lime = "\033[38;5;118m"
+    green = "\033[38;5;46m"
+    teal = "\033[38;5;49m"
+    iceblue = "\033[38;5;51m"
+    skyblue = "\033[38;5;45m"
+    blue = "\033[38;5;27m"
+    purple = "\033[38;5;99m"
+    indigo = "\033[38;5;201m"
+    hotpink = "\033[38;5;199m"
+    pink = "\033[38;5;213m"
+    deeppink = "\033[38;5;198m"
+    salmon = "\033[38;5;210m"
+    python = "\033[38;5;226;48;5;24m"
+    radarkit = "\033[38;5;15;48;5;124m"
+
+def colorize(string, color):
+    return '{}{}{}'.format(color, string, COLOR.reset)
+
+print('Using version {} ...'.format(colorize(sys.version_info, COLOR.lime)))
 
 def is_installed(requirement):
     try:
@@ -60,8 +83,8 @@ import numpy.distutils.misc_util
 inc_dirs = ['/usr/local/include'] + numpy.distutils.misc_util.get_numpy_include_dirs()
 lib_dirs = ['/usr/local/lib']
 
-print('\033[34m===>\033[0m inc_dirs = {}'.format(inc_dirs))
-print('\033[34m===>\033[0m lib_dirs = {}'.format(lib_dirs))
+print('{} inc_dirs = {}'.format(colorize('\033[34m===>\033[0m', COLOR.orange), inc_dirs))
+print('{} inc_libs = {}'.format(colorize('\033[34m===>\033[0m', COLOR.purple), lib_dirs))
 
 install_requires = [
     'enum',
@@ -83,7 +106,7 @@ rk = Extension('radarkit.rk',
                include_dirs=inc_dirs,
                library_dirs=lib_dirs,
                libraries=['radarkit', 'fftw3f', 'netcdf'],
-               extra_compile_args=['-std=gnu99', '-Wno-strict-prototypes', '-Wno-microsoft'])
+               extra_compile_args=['-std=gnu99', '-Wno-strict-prototypes'])
 
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))

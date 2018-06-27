@@ -5,14 +5,15 @@
 #include <RadarKit.h>
 
 #if PY_MAJOR_VERSION >= 3
-int
+void *init_numpy() {
+    import_array();
+    return NULL;
+}
 #else
-void
-#endif
-init_numpy()
-{
+void init_numpy() {
     import_array();
 }
+#endif
 
 // Wrappers
 static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
@@ -286,6 +287,13 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
     RKSetWantScreenOutput(true);
 
+    // Some product description
+    RKName name;
+    RKName symbol;
+    if (RKGetSymbolFromFilename(filename, symbol)) {
+        printf("symbol = %s\n", RKVariableInString("symbol", symbol, RKValueTypeString));
+    }
+
     // Do this before we use any numpy array creation
     init_numpy();
 
@@ -330,10 +338,6 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     }
     PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
     PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
-
-    // Some product description
-    RKName name;
-    RKName symbol;
 
     // A shadow copy of productList so we can manipulate it without affecting the original ray
     RKBaseMomentIndex index;
