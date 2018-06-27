@@ -536,7 +536,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
 
         // A new dictionary for output      
-        PyObject *dict = Py_BuildValue("{s:s,s:s,s:O}",
+        PyObject *dict = Py_BuildValue("{s:s,s:s,s:s,s:O}",
             "name", product->desc.name,
             "unit", product->desc.unit,
             "symbol", product->desc.symbol,
