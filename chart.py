@@ -109,7 +109,7 @@ def showPPI(x, y, z, cmap=None, vmin=0.0, vmax=80.0, title=None, maxrange=40):
     xx = np.append(x, x[0:1, :], axis=0)
     yy = np.append(y, y[0:1, :], axis=0)
     zz = np.append(z, z[0:1, :], axis=0)
-    zz = np.ma.masked_array(zz, zz < -9000.0)
+    zz = np.ma.masked_invalid(zz)
     # Now we setup the figure
     fig = matplotlib.pyplot.figure(figsize=(w, h), dpi=144, facecolor=None)
     if w > h:
