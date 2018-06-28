@@ -92,105 +92,121 @@ static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
     return obj;
 }
 
-static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords) {
     int verbose = 0;
-    PyByteArrayObject *object;
+    PyByteArrayObject *input;
     static char *keywordList[] = {"input", "verbose", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O|i", keywordList, &object, &verbose)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O|i", keywordList, &input, &verbose)) {
         fprintf(stderr, "PyRKRayParse() -> Nothing provided.\n");
         return NULL;
     }
 
-    RKRay *ray = (RKRay *)object->ob_bytes;
-
+    RKRay *ray = (RKRay *)input->ob_bytes;
     npy_intp dims[] = {ray->header.gateCount};
+    PyObject *dataDict = PyDict_New();
+    PyObject *value = NULL;
+    PyObject *key = NULL;
+    uint8_t *u8data;
+    float *f32data;
 
-    PyObject *dataArray = PyDict_New();
-    PyObject *dataObject = NULL;
-
-    uint8_t *data = (uint8_t *)ray->data;
+    // Display data
+    u8data = (uint8_t *)ray->data;
     if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Zi"), dataObject);
-        Py_DECREF(dataObject);
+        key = Py_BuildValue("s", "Zi");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayV) {
-        data += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Vi"), dataObject);
-        Py_DECREF(dataObject);
+        u8data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Vi");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayW) {
-        data += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Wi"), dataObject);
-        Py_DECREF(dataObject);
+        u8data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Wi");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayD) {
-        data += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Di"), dataObject);
-        Py_DECREF(dataObject);
+        u8data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Di");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayP) {
-        data += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Pi"), dataObject);
-        Py_DECREF(dataObject);
+        u8data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Pi");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListDisplayR) {
-        data += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, data);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Ri"), dataObject);
-        Py_DECREF(dataObject);
+        u8data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Ri");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
-    float *fdata = (float *)data;
+
+    // Float data
+    f32data = (float *)u8data;
     if (ray->header.baseMomentList & RKBaseMomentListProductZ) {
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "Z"), dataObject);
-        Py_DECREF(dataObject);
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        key = Py_BuildValue("s", "Z");
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductV) {
-        fdata += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "V"), dataObject);
-        Py_DECREF(dataObject);
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "V");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductW) {
-        fdata += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "W"), dataObject);
-        Py_DECREF(dataObject);
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "W");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductD) {
-        fdata += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "D"), dataObject);
-        Py_DECREF(dataObject);
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "D");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductP) {
-        fdata += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "P"), dataObject);
-        Py_DECREF(dataObject);
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "P");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
     if (ray->header.baseMomentList & RKBaseMomentListProductR) {
-        fdata += ray->header.gateCount;
-        dataObject = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, fdata);
-        PyArray_ENABLEFLAGS((PyArrayObject *)dataObject, NPY_ARRAY_OWNDATA);
-        PyDict_SetItem(dataArray, Py_BuildValue("s", "R"), dataObject);
-        Py_DECREF(dataObject);
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "R");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
     }
 
     PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
@@ -199,79 +215,79 @@ static PyObject *PyRKRayParse(PyObject *self, PyObject *args, PyObject *keywords
                                   "gateCount", ray->header.gateCount,
                                   "sweepBegin", ray->header.marker & RKMarkerSweepBegin ? Py_True : Py_False,
                                   "sweepEnd", ray->header.marker & RKMarkerSweepEnd ? Py_True : Py_False,
-                                  "moments", dataArray);
+                                  "moments", dataDict);
     
-    Py_DECREF(dataArray);
+    Py_DECREF(dataDict);
 
     if (verbose > 2) {
         fprintf(stderr, "   \033[38;5;15;48;5;124m  RadarKit  \033[0m \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
                 ray->header.startElevation, ray->header.startAzimuth, (int)ray->header.startAzimuth);
-        fdata = (float *)ray->data;
+        f32data = (float *)ray->data;
         if (ray->header.baseMomentList & RKBaseMomentListProductZ) {
             fprintf(stderr, "                Z = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductV) {
-            fdata += ray->header.gateCount;
+            f32data += ray->header.gateCount;
             fprintf(stderr, "                V = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductW) {
-            fdata += ray->header.gateCount;
+            f32data += ray->header.gateCount;
             fprintf(stderr, "                W = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductD) {
-            fdata += ray->header.gateCount;
+            f32data += ray->header.gateCount;
             fprintf(stderr, "                D = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductP) {
-            fdata += ray->header.gateCount;
+            f32data += ray->header.gateCount;
             fprintf(stderr, "                P = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductR) {
-            fdata += ray->header.gateCount;
+            f32data += ray->header.gateCount;
             fprintf(stderr, "                R = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    fdata[0], fdata[1], fdata[2], fdata[3], fdata[4], fdata[5], fdata[6], fdata[7], fdata[8], fdata[9]);
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
-        data = (uint8_t *)fdata;
+        u8data = (uint8_t *)f32data;
         if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
             fprintf(stderr, "                Zi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListDisplayV) {
-            data += ray->header.gateCount;
+            u8data += ray->header.gateCount;
             fprintf(stderr, "                Vi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListDisplayW) {
-            data += ray->header.gateCount;
+            u8data += ray->header.gateCount;
             fprintf(stderr, "                Wi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListDisplayD) {
-            data += ray->header.gateCount;
+            u8data += ray->header.gateCount;
             fprintf(stderr, "                Di = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListDisplayP) {
-            data += ray->header.gateCount;
+            u8data += ray->header.gateCount;
             fprintf(stderr, "                Pi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListDisplayR) {
-            data += ray->header.gateCount;
+            u8data += ray->header.gateCount;
             fprintf(stderr, "                Ri = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9]);
+                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
         }
     }
 
     return ret;
 }
 
-static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *keywords) {
     int k, r;
     int verbose = 0;
     PyByteArrayObject *object;
@@ -291,7 +307,8 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
     int count = __builtin_popcount(list);
 
     // A list of base moment symbols from the sweep header
-    PyObject *momentList = PyList_New(count);
+    //PyObject *moments = PyList_New(count);
+    PyObject *moments = PyTuple_New(count);
 
     for (k = 0; k < count; k++) {
         // Get the symbol, name, unit, colormap, etc. from the product list
@@ -300,7 +317,9 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
             fprintf(stderr, "Early return.\n");
             break;
         }
-        PyList_SetItem(momentList, k, Py_BuildValue("s", symbol));
+        // List does not increase the reference count
+        //PyList_SetItem(symbols, k, Py_BuildValue("s", symbol));
+        PyTuple_SetItem(moments, k, Py_BuildValue("s", symbol));
     }
     PyObject *ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O}",
                                   "name", sweepHeader->desc.name,
@@ -313,9 +332,8 @@ static PyObject *PyRKSweepHeaderParse(PyObject *self, PyObject *args, PyObject *
                                   "latitude", sweepHeader->desc.latitude,
                                   "longitude", sweepHeader->desc.longitude,
                                   "altitude", sweepHeader->desc.radarHeight,
-                                  "moments", momentList);
-    
-    Py_DECREF(momentList);
+                                  "moments", moments);
+    Py_DECREF(moments);
     
     return ret;
 }
@@ -355,8 +373,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     if (!strcmp(symbol, "Z") || !strcmp(symbol, "V") || !strcmp(symbol, "W") ||
         !strcmp(symbol, "D") || !strcmp(symbol, "P") || !strcmp(symbol, "R") || !strcmp(symbol, "K")) {
 
-        // Read the sweep using RKSweepRead() of RadarKit
-        RKSweep *sweep = RKSweepRead(filename);
+        // Read the sweep using the RKSweepFileRead() function in RadarKit
+        RKSweep *sweep = RKSweepFileRead(filename);
         if (sweep == NULL) {
             fprintf(stderr, "No sweep.\n");
             return Py_None;
@@ -413,7 +431,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
         // A new dictionary for output
         PyObject *dict;
-        PyObject *tuple = PyTuple_New(count);
+        PyObject *moments = PyTuple_New(count);
 
         // Gather the base moments
         for (p = 0; p < count; p++) {
@@ -444,7 +462,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                 "symbol", symbol,
                 "data", value);
             Py_DECREF(value);
-            PyTuple_SetItem(tuple, p, dict);
+            PyTuple_SetItem(moments, p, dict);
         }
 
         // Return dictionary
@@ -464,13 +482,13 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                             "elevation", elevation,
                             "azimuth", azimuth,
                             "range", range,
-                            "moments", tuple);
-
+                            "moments", moments);
         Py_DECREF(elevation);
         Py_DECREF(azimuth);
         Py_DECREF(range);
-        Py_DECREF(tuple);
+        Py_DECREF(moments);
 
+        // We are done with sweep
         RKSweepFree(sweep);
 
     } else {
@@ -544,9 +562,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         Py_DECREF(value);
 
         // Tuple of dictionary
-        PyObject *tuple = PyTuple_New(1);
-        PyTuple_SetItem(tuple, 0, dict);
-        //Py_DECREF(dict);
+        PyObject *moments = PyTuple_New(1);
+        PyTuple_SetItem(moments, 0, dict);
 
         // Return dictionary
         ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
@@ -565,17 +582,15 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                             "elevation", elevation,
                             "azimuth", azimuth,
                             "range", range,
-                            "moments", tuple);
-
+                            "moments", moments);
         Py_DECREF(elevation);
         Py_DECREF(azimuth);
         Py_DECREF(range);
-        Py_DECREF(tuple);
+        Py_DECREF(moments);
 
+        // We are done with product
         RKProductFree(product);
     }
-
-
     return ret;
 }
 
@@ -587,8 +602,8 @@ static PyObject *PyRKVersion(PyObject *self) {
 static PyMethodDef PyRKMethods[] = {
     {"init",             (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
     {"test",             (PyCFunction)PyRKTest,               METH_VARARGS | METH_KEYWORDS, "Test module"},
-    {"parseRay",         (PyCFunction)PyRKRayParse,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
-    {"parseSweepHeader", (PyCFunction)PyRKSweepHeaderParse,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
+    {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
+    {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
     {"showColors",       (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
     {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
     {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},

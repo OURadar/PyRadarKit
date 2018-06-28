@@ -386,6 +386,8 @@ class Radar(object):
     def _runLoop(self):
         # Prepend data stream request
         greetCommand = 'sYCO;' + self.registerString + '\r\n'
+#        greetCommand = 'sz;\r\n'
+
         greetCommand = greetCommand.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
