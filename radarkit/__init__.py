@@ -71,7 +71,7 @@ def read(filename, verbose=0):
 class Algorithm(object):
     def __init__(self, verbose=0):
         self.name = 'Algorithm'
-        self.symbol = 'U'
+        self.symbol = 'X'
         self.unit = ''
         self.colormap = 'Default'
         self.active = False
@@ -344,9 +344,9 @@ class Radar(object):
                                                  'productId': obj.productId,
                                                  'configId': self.sweep.configId
                                                  }).encode('utf-8')
-                    if obj.active is True:
+                    if obj.active:
                         if userProductData is None:
-                            logger.exception('Expected a product from {}', obj)
+                            logger.exception('Expected a product from {}'.format(obj))
                             continue
                         if self.verbose > 1:
                             logger.info('Sending product ...')
@@ -385,7 +385,7 @@ class Radar(object):
     def _runLoop(self):
         if not self.streams:
             # Prepend data stream request
-            greetCommand = 'sYCO;' + self.registerString + '\r\n'
+            greetCommand = 'sYUCO;' + self.registerString + '\r\n'
         else:
             greetCommand = 's' + self.streams + '\r\n'
 
