@@ -4,7 +4,7 @@ import radarkit
 
 class main(radarkit.Algorithm):
     def __init__(self, verbose=0):
-        super(main, self).__init__(verbose=verbose)
+        super().__init__(verbose=verbose)
         self.name = 'Summary'
         self.symbol = 'G'
 
@@ -14,7 +14,7 @@ class main(radarkit.Algorithm):
     # Every algorithm should have this function implemented
     def process(self, sweep):
         # (Optional) Call the ancestor method, which shows the sweep summary info
-        super(main, self).process(sweep)
+        super().process(sweep)
 
         if self.verbose < 2:
             return

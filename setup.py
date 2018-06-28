@@ -1,9 +1,11 @@
-from __future__ import print_function
-
 import os
 import sys
 import textwrap
 import pkg_resources
+
+MIN_PYTHON = (3, 4)
+if sys.version_info < MIN_PYTHON:
+    sys.exit('Python %s or later is required.\n' % '.'.join("%s" % n for n in MIN_PYTHON))
 
 class COLOR:
     reset = "\033[0m"

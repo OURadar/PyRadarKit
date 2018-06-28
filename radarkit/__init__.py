@@ -2,8 +2,6 @@
     Python wrapper for C functions to interact with RadarKit
 """
 
-from __future__ import print_function
-
 # Standard libraries
 import os
 import re
@@ -137,10 +135,11 @@ class Radar(object):
         Handles the connection to the radar (created by RadarKit)
         This class allows to retrieval of base data from the radar
     """
-    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, verbose=0):
+    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, streams=None, verbose=0):
         self.ipAddress = ipAddress
         self.port = port
         self.timeout = timeout
+        self.streams = streams
         self.verbose = verbose
         self.active = False
         self.wantActive = False
@@ -259,14 +258,14 @@ class Radar(object):
             ii = int(ray['azimuth'])
             ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
             if self.verbose > 2:
-                print('   {} {} -> {} / {}'.format(colorize(' PyRadarKit ', COLOR.python),
+                print('   {} {} -> {} / sweepEnd = {}'.format(colorize(' PyRadarKit ', COLOR.python),
                                                    colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
                                                    ii, ray['sweepEnd']))
                 N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                 for letter in self.sweep.products.keys():
                     if letter in ray['moments']:
                         print('                {} = {}'.format(letter, ray['moments'][letter][0:10]))
-                    print('>>')
+                print('>>')
                 if ray['sweepEnd']:
                     # Use this end ray only if it is not a begin ray and accumulated count < 360
                     if ray['sweepBegin'] == False and k < 360:
@@ -384,9 +383,11 @@ class Radar(object):
         The run loop
     """
     def _runLoop(self):
-        # Prepend data stream request
-        greetCommand = 'sYCO;' + self.registerString + '\r\n'
-#        greetCommand = 'sz;\r\n'
+        if not self.streams:
+            # Prepend data stream request
+            greetCommand = 'sYCO;' + self.registerString + '\r\n'
+        else:
+            greetCommand = 's' + self.streams + '\r\n'
 
         greetCommand = greetCommand.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))

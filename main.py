@@ -1,6 +1,10 @@
 #!/usr/local/bin/python
 
-from __future__ import print_function
+import sys
+
+MIN_PYTHON = (3, 4)
+if sys.version_info < MIN_PYTHON:
+    sys.exit('Python %s or later is required.\n' % '.'.join("%s" % n for n in MIN_PYTHON))
 
 import argparse
 import radarkit
@@ -14,6 +18,19 @@ if __name__ == "__main__":
                         ' 1 - Show color output from RadarKit.\n'
                         '11 - Generating an array.\n'
                         ' ')
+    parser.add_argument('-s', '--streams', default=None, type=str, 
+                        help='Overrides the initial streams. In this mode, the algorithms do not get executed.\n'
+                        'This mode is primarily used for debugging.\n'
+                        'The available streams are:\n'
+                        ' z - Reflectivity\n'
+                        ' v - Velocity\n'
+                        ' w - Width\n'
+                        ' d - Differential Reflectivity (ZDR)\n'
+                        ' p - Differential Phase (PhiDP)\n'
+                        ' r - Cross-correlation Coefficient (RhoHV)\n'
+                        ' \n'
+                        ' e.g., -sZV sets the radar to receive reflectivity and velocity.\n'
+                        ' ')
     parser.add_argument('-v', '--verbose', default=0, action='count', help='increases verbosity level')
     args = parser.parse_args()
 
@@ -22,7 +39,7 @@ if __name__ == "__main__":
         quit()
 
     try:
-        radar = radarkit.Radar(ipAddress=args.host, verbose=args.verbose)
+        radar = radarkit.Radar(ipAddress=args.host, streams=args.streams, verbose=args.verbose)
         radar.start()
         radar.wait()
     except KeyboardInterrupt:

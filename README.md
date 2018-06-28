@@ -10,9 +10,9 @@ More coming soon ...
 
 ## Requirements
 
-- [RadarKit] and its dependencies
-- [Python]
-- [NumPy]
+- [RadarKit] 1.2.10 or later
+- [Python] 3.3 or later
+- [NumPy] 1.11.0 or later
 - [SciPy]
 
 On macOS, if you use brew, the dependencies can be installed via
