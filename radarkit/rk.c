@@ -76,30 +76,33 @@ static PyObject *PyRKTestBuildingTupleOfDictionaries(void) {
 
 static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
 
+    int number = -1;
+    char *string = NULL;
+
     init_numpy();
 
     printf("Input type = %s (tuple expected)\n", args->ob_type->tp_name);
 
     PyObject *obj = PyTuple_GetItem(args, 0);
-
-    printf("---> Type = %s (list expected)\n", obj->ob_type->tp_name);
-
-    if (strcmp(obj->ob_type->tp_name, "list")) {
-        return NULL;
+    if (obj == NULL || strcmp(obj->ob_type->tp_name, "list")) {
+        return Py_None;
+    }
+    printf("---> Type = %s (list expected) [%d elements]\n", obj->ob_type->tp_name, (int)PyTuple_GET_SIZE(obj));
+    if (PyTuple_GET_SIZE(obj)) {
+        obj = PyList_GetItem(obj, 0);
+        if (obj == NULL || strcmp(obj->ob_type->tp_name, "str")) {
+            return Py_None;
+        }
+        printf("---> Type = %s (str expected) [%d elements]\n", obj->ob_type->tp_name, (int)PyList_GET_SIZE(obj));
+        PyObject *strRepr = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+        string = PyBytes_AsString(strRepr);
+    } else {
+        printf("Sub-module test not specified.\n");
     }
 
-    obj = PyList_GetItem(obj, 0);
-
-    printf("---> Type = %s (str expected)\n", obj->ob_type->tp_name);
-
-    if (strcmp(obj->ob_type->tp_name, "str")) {
-        return NULL;
+    if (string) {
+        number = atoi(string);
     }
-
-    PyObject *strRepr = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
-    const char *string = PyBytes_AsString(strRepr);
-    const int number = atoi(string);
-
     obj = Py_None;
 
     switch (number) {

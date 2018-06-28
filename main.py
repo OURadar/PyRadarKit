@@ -37,11 +37,11 @@ if __name__ == "__main__":
                         ' e.g., -sZV sets the radar to receive reflectivity and velocity.\n'
                         ' ')
     parser.add_argument('-v', '--verbose', default=0, action='count', help='increases verbosity level')
-    parser.add_argument('rem', nargs=argparse.REMAINDER)
+    parser.add_argument('values', nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
     if args.test >= 0:
-        ret = radarkit.test(args.test, args.rem)
+        ret = radarkit.test(args.test, args.values)
         if not ret is None:
             print(ret)
         quit()
