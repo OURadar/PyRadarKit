@@ -22,72 +22,111 @@ static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     return Py_None;
 }
 
-static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
-    double input;
-    init_numpy();
-    PyArg_ParseTuple(args, "d", &input);
-    printf("Input as double = %f\n", input);
-
-    PyObject *obj;
-
-    //obj = Py_BuildValue("d", 1.234);
-
-    // npy_intp dims[] = {2, 3};
-    //  = PyDict_New();
-    // if (obj == NULL) {
-    //     RKLog("Error. Unable to create a new dictionary.\n");
-    //     return NULL;
-    // }
-    // float *data = (float *)malloc(9 * sizeof(float));
-    // for (int k = 0; k < 9; k++) {
-    //     data[k] = (double)(k + 1);
-    // }
-    // PyObject *key = Py_BuildValue("s", "Key");
-    // PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, data);
-    // // Let Python free the data created by malloc() here
-    // PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
-    // PyDict_SetItem(obj, key, value);
-    // Py_DECREF(value);
-    // Py_DECREF(key);
-
-    // PyTypeObject type = PyTupleObject;
-    // PyArray_Descr desc = {
-    //     .typeobj = ;
-    // };
-
+static PyObject *PyRKTestBuildingTupleOfDictionaries(void) {
     int k;
     float *rawData;
     PyObject *dict;
-    PyObject *data;
+    PyObject *key;
+    PyObject *value;
 
-    obj = PyTuple_New(2);
-    
+    PyObject *obj = PyTuple_New(2);
+
     npy_intp dims[] = {2, 3};
-  
+
+    // First dictionary {'name': 'Reflectivity', 'data': [0, 1, 2, 3, 4, 5]}
     dict = PyDict_New();
-    PyDict_SetItem(dict, Py_BuildValue("s", "name"), Py_BuildValue("s", "Reflectivity"));
+    key = Py_BuildValue("s", "name");
+    value = Py_BuildValue("s", "Reflectivity");
+    PyDict_SetItem(dict, key, value);
+    Py_DECREF(value);
+    Py_DECREF(key);
     rawData = (float *)malloc(6 * sizeof(float));
     for (k = 0; k < 6; k++) {
         rawData[k] = (float)k;
     }
-    data = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, rawData);
-    PyArray_ENABLEFLAGS((PyArrayObject *)data, NPY_ARRAY_OWNDATA);
-    PyDict_SetItem(dict, Py_BuildValue("s", "data"), data);
-    Py_DECREF(data);
+    key = Py_BuildValue("s", "data");
+    value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, rawData);
+    PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+    PyDict_SetItem(dict, key, value);
+    Py_DECREF(value);
+    Py_DECREF(key);
     PyTuple_SetItem(obj, 0, dict);
 
+    // Second dictionary {'name': 'Velocity', 'data': [0, 1, 2, 3, 4, 5]}
     dict = PyDict_New();
-    PyDict_SetItem(dict, Py_BuildValue("s", "name"), Py_BuildValue("s", "Velocity"));
+    key = Py_BuildValue("s", "name");
+    value = Py_BuildValue("s", "Velocity");
+    PyDict_SetItem(dict, key, value);
+    Py_DECREF(value);
+    Py_DECREF(key);
     rawData = (float *)malloc(6 * sizeof(float));
     for (k = 0; k < 6; k++) {
         rawData[k] = (float)k;
     }
-
-    data = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, rawData);
-    PyArray_ENABLEFLAGS((PyArrayObject *)data, NPY_ARRAY_OWNDATA);
-    PyDict_SetItem(dict, Py_BuildValue("s", "data"), data);
-    Py_DECREF(data);
+    key = Py_BuildValue("s", "data");
+    value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT, rawData);
+    PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+    PyDict_SetItem(dict, key, value);
+    Py_DECREF(value);
+    Py_DECREF(key);
     PyTuple_SetItem(obj, 1, dict);
+
+    return obj;
+}
+
+static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
+
+    init_numpy();
+
+    printf("Input type = %s (tuple expected)\n", args->ob_type->tp_name);
+
+    PyObject *obj = PyTuple_GetItem(args, 0);
+
+    printf("---> Type = %s (list expected)\n", obj->ob_type->tp_name);
+
+    if (strcmp(obj->ob_type->tp_name, "list")) {
+        return NULL;
+    }
+
+    obj = PyList_GetItem(obj, 0);
+
+    printf("---> Type = %s (str expected)\n", obj->ob_type->tp_name);
+
+    if (strcmp(obj->ob_type->tp_name, "str")) {
+        return NULL;
+    }
+
+    PyObject *strRepr = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+    const char *string = PyBytes_AsString(strRepr);
+    const int number = atoi(string);
+
+    obj = Py_None;
+
+    switch (number) {
+        case 0:
+            RKShowTypeSizes();
+            break;
+        case 1:
+            RKTestTerminalColors();
+            break;
+        case 2:
+            RKTestPrettyStrings();
+            break;
+        case 3:
+            RKTestModuloMath();
+            break;
+        case 4:
+            RKTestParseCommaDelimitedValues();
+            break;
+        case 100:
+            obj = Py_BuildValue("d", 1.234);
+            break;
+        case 101:
+            obj = PyRKTestBuildingTupleOfDictionaries();
+            break;
+        default:
+            break;
+    }
 
     return obj;
 }

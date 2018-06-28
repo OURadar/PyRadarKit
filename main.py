@@ -15,8 +15,13 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--port', default=10000, type=int, help='port number (default 10000)')
     parser.add_argument('-T', '--test', default=-1, type=int,
                         help='Various tests:\n'
+                        ' 0 - Extension module sub-tests:\n'
+                        '      - 100 - Building a simple value.\n'
+                        '      - 101 - Building a tuple of two dictionaries.\n'
                         ' 1 - Show color output from RadarKit.\n'
                         '11 - Generating an array.\n'
+                        ' \n'
+                        ' e.g., -T0 101 runs the test to build a tuple of dictionaries.\n'
                         ' ')
     parser.add_argument('-s', '--streams', default=None, type=str, 
                         help='Overrides the initial streams. In this mode, the algorithms do not get executed.\n'
@@ -32,10 +37,13 @@ if __name__ == "__main__":
                         ' e.g., -sZV sets the radar to receive reflectivity and velocity.\n'
                         ' ')
     parser.add_argument('-v', '--verbose', default=0, action='count', help='increases verbosity level')
+    parser.add_argument('rem', nargs=argparse.REMAINDER)
     args = parser.parse_args()
 
     if args.test >= 0:
-        radarkit.test(args.test)
+        ret = radarkit.test(args.test, args.rem)
+        if not ret is None:
+            print(ret)
         quit()
 
     try:

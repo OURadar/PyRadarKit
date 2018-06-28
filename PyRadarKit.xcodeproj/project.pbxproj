@@ -6,10 +6,6 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		B5B2058620E3CB3F007D48E0 /* rk.c in Sources */ = {isa = PBXBuildFile; fileRef = B5B2058520E3CB3F007D48E0 /* rk.c */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		B513430D1EF96BE800DE7CBC /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -30,7 +26,6 @@
 		B57391441EE59B9200ACF25E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B57391461EE59B9200ACF25E /* setup.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setup.py; sourceTree = "<group>"; };
 		B5902EF01F5F027B00C7CC7A /* ppi_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = ppi_demo.py; sourceTree = "<group>"; };
-		B5B2058520E3CB3F007D48E0 /* rk.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = rk.c; path = radarkit/rk.c; sourceTree = "<group>"; };
 		B5B2058720E3CCF6007D48E0 /* rkstruct */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rkstruct; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5FAD8D020D5582100E0A767 /* radarkit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = radarkit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -57,7 +52,6 @@
 		B57391381EE5987900ACF25E = {
 			isa = PBXGroup;
 			children = (
-				B5B2058520E3CB3F007D48E0 /* rk.c */,
 				B57391441EE59B9200ACF25E /* README.md */,
 				B57391421EE59B9200ACF25E /* Makefile */,
 				B57391461EE59B9200ACF25E /* setup.py */,
@@ -104,7 +98,7 @@
 					};
 				};
 			};
-			buildConfigurationList = B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "__PyRadarKit" */;
+			buildConfigurationList = B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "PyRadarKit" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -126,7 +120,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5B2058620E3CB3F007D48E0 /* rk.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,7 +311,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "__PyRadarKit" */ = {
+		B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "PyRadarKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B573913D1EE5987900ACF25E /* Debug */,
