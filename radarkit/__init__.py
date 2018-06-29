@@ -77,8 +77,8 @@ class Algorithm(object):
         self.active = False
         self.b = 1.0
         self.w = 0.0
-        self.minValue = 0.0
-        self.maxValue = 100.0
+        self.minValue = None
+        self.maxValue = None
         self.productId = 0
         self.verbose = verbose
 
@@ -385,6 +385,7 @@ class Radar(object):
     def _runLoop(self):
         if not self.streams:
             # Prepend data stream request
+            #greetCommand = 'sYUXCOQ;' + self.registerString + '\r\n'
             greetCommand = 'sYUCO;' + self.registerString + '\r\n'
         else:
             greetCommand = 's' + self.streams + '\r\n'

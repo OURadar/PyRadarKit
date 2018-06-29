@@ -1,13 +1,11 @@
-import numpy as N
-import scipy as S
 import radarkit
 
 class main(radarkit.Algorithm):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
         self.name = 'V-Unfold'
-        self.symbol = 'U'
         self.unit = 'MetersPerSecond'
+        self.symbol = 'U'
         self.active = True
         self.b = 0.117647
         self.w = 4.25
@@ -17,8 +15,7 @@ class main(radarkit.Algorithm):
     def process(self, sweep):
         super().process(sweep)
 
-        N.set_printoptions(formatter={'float': '{: 6.2f}'.format})
-
+        # Generate a warning and return early if V does not exist
         if 'V' not in sweep.products:
             radarkit.logger.warning('Product V does not exist.')
             return None
