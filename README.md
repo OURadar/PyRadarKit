@@ -72,6 +72,47 @@ optional arguments:
                          
   -v, --verbose         increases verbosity level
 ```
+
+## Developing Your Algorithms
+
+Each algorithm must be its own Python script under the folder algorithms. Here are the requirements:
+- The algorithm must be a class of itself, which is derived as a subclass from `radarkit.Algorithm`.
+- Each algorithm is allowed to return one product only, which must be the same size as Z.
+- The method `process()` must be overriden to generate and return the product.
+
+A trivial algorithm is provided as a `zShift.py`, which can be found under the algorithms folder. Here's an excerpt of the example to illustrate the fundamental concepts. This algorithm uses the base moment 'Z' and add an offset value to it to produce a new product 'Y'.
+
+```python
+class main(radarkit.Algorithm):
+    def __init__(self, verbose=0):
+        super().__init__(verbose=verbose)
+        self.name = 'Z-Shift'
+        self.unit = 'dBZ'
+        self.symbol = 'Y'
+        self.active = True
+        self.b = -32
+        self.w = 0.5
+        self.shiftFactor = 5.0
+
+    def process(self, sweep):
+        super().process(sweep)
+
+        # Generate a warning and return early if Z does not exist
+        if 'Z' not in sweep.products:
+            radarkit.logger.warning('Product Z does not exist.')
+            return None
+
+        # Just a simple shift
+        d = sweep.products['Z'] + self.shiftFactor
+
+        # Print something on the screen
+        if self.verbose > 0:
+            radarkit.showArray(d, letter=self.symbol)
+
+        return d
+```
+
+
 ## Other Open Source Projects
 
 - [Baltrad]
