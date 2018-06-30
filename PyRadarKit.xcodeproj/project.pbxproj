@@ -21,7 +21,7 @@
 /* Begin PBXFileReference section */
 		B5559EE52055816700E5B34F /* chart.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = chart.py; sourceTree = "<group>"; };
 		B57391401EE59B9200ACF25E /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
-		B57391411EE59B9200ACF25E /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
+		B57391411EE59B9200ACF25E /* rktest.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = rktest.py; sourceTree = "<group>"; };
 		B57391421EE59B9200ACF25E /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		B57391441EE59B9200ACF25E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B57391461EE59B9200ACF25E /* setup.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setup.py; sourceTree = "<group>"; };
@@ -44,7 +44,7 @@
 		B51BE8EF20D4272600A774ED /* Main */ = {
 			isa = PBXGroup;
 			children = (
-				B57391411EE59B9200ACF25E /* main.py */,
+				B57391411EE59B9200ACF25E /* rktest.py */,
 			);
 			name = Main;
 			sourceTree = "<group>";
