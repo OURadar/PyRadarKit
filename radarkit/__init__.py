@@ -135,7 +135,7 @@ class Radar(object):
         Handles the connection to the radar (created by RadarKit)
         This class allows to retrieval of base data from the radar
     """
-    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, streams=None, verbose=0):
+    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, streams=None, algorithmFolder='algorithms', verbose=0):
         self.ipAddress = ipAddress
         self.port = port
         self.timeout = timeout
@@ -143,6 +143,8 @@ class Radar(object):
         self.verbose = verbose
         self.active = False
         self.wantActive = False
+        self.algorithmFolder = algorithmFolder[:-1] if algorithmFolder.endswith('/') else algorithmFolder
+        print('{}'.format(variableInString('algorithmFolder', self.algorithmFolder)))
         self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
         # Each netlimiter has:
         # 1st component: 16-bit type
@@ -444,7 +446,7 @@ class Radar(object):
         logger.info('Loading algorithms ...')
         w = 1
         self.algorithmObjects = {}
-        for script in glob.glob('algorithms/*.py'):
+        for script in glob.glob('{}/*.py'.format(self.algorithmFolder)):
             basename = os.path.basename(script)
             mod = __import__(basename[:-3])
             obj = getattr(mod, 'main')(verbose=self.verbose)

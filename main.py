@@ -23,6 +23,8 @@ if __name__ == "__main__":
                         ' \n'
                         ' e.g., -T0 101 runs the test to build a tuple of dictionaries.\n'
                         ' ')
+    parser.add_argument('-a', '--algorithm-folder', default='algorithms', type=str,
+                        help='Use a different folder for the collection of algorithms (default "algorithms")')
     parser.add_argument('-s', '--streams', default=None, type=str, 
                         help='Overrides the initial streams. In this mode, the algorithms do not get executed.\n'
                         'This mode is primarily used for debugging.\n'
@@ -47,7 +49,7 @@ if __name__ == "__main__":
         quit()
 
     try:
-        radar = radarkit.Radar(ipAddress=args.host, streams=args.streams, verbose=args.verbose)
+        radar = radarkit.Radar(ipAddress=args.host, streams=args.streams, algorithmFolder=args.algorithm_folder, verbose=args.verbose)
         radar.start()
         radar.wait()
     except KeyboardInterrupt:
