@@ -13,12 +13,12 @@ It also contains extensions that utilizes [RadarKit] to perform some low-level t
 - [NumPy] 1.11.0 or later
 - [SciPy]
 
-On macOS, if you use brew, the dependencies can be installed via
+On macOS, I recommend [Homebrew] package manager, numpy and scipy can be installed via
 ```shell
 brew install numpy scipy
 ``````
 
-To build the extension:
+To build the extension, use the included Makefile:
 ```shell
 make
 ```
@@ -119,6 +119,7 @@ class main(radarkit.Algorithm):
 - [PyART]
 - [wradlib]
 
+[Homebrew]: https://brew.sh
 [RadarKit]: https://git.arrc.ou.edu/cheo4524/radarkit.git
 [Python]: https://www.python.org
 [NumPy]: http://www.numpy.org
