@@ -16,12 +16,12 @@ if __name__ == "__main__":
     parser.add_argument('-T', '--test', default=-1, type=int,
                         help='Various tests:\n'
                         ' 0 - Extension module sub-tests:\n'
-                        '      - 100 - Building a simple value.\n'
-                        '      - 101 - Building a tuple of two dictionaries.\n'
                         '{}'
+                        '        100 - Building a simple value.\n'
+                        '        101 - Building a tuple of two dictionaries.\n'
                         ' \n'
                         ' e.g., -T0 101 runs the test to build a tuple of dictionaries.\n'
-                        ' '.format('additional help text ...'))
+                        ' '.format(radarkit.testByNumberHelp()))
     parser.add_argument('-a', '--algorithm-folder', default='algorithms', type=str,
                         help='Use a different folder for the collection of algorithms (default "algorithms")')
     parser.add_argument('-s', '--streams', default=None, type=str, 

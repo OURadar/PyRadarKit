@@ -22,7 +22,6 @@ import numpy as N
 import scipy as S
 
 # From the PyRadarKit framework
-#from . import rk
 from .rk import *
 from .misc import *
 from .test import *
@@ -60,13 +59,6 @@ class NETWORK_PACKET_TYPE:
     SWEEP_RAY = 114
     USER_SWEEP_DATA = 115
     USER_PRODUCT_DESCRIPTION = 116
-
-# Generic functions
-#def read(filename, verbose=0):
-#    """
-#        Read a sweep from a netcdf file
-#    """
-#    return rk.read(filename, verbose=0)
 
 # An algorithm encapsulation
 class Algorithm(object):
