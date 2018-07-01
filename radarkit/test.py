@@ -6,12 +6,15 @@ from .misc import *
 
 def test(number, args=None, debug=False):
     tests = {
-        0: lambda x: rk.test(args, debug=1),
-        1: lambda x: print(args),
-        10: lambda x: showName()
+        200: lambda x: showName(),
+        201: lambda x: print('x = {}   args = {}'.format(x, args))
     }
-    if number in tests:
+    if number < 200:
+        print('args for testByNumber = {}'.format((number, *args)))
+        return rk.testByNumber((number, *args))
+    elif number in tests:
         print('args for sub-module = {}'.format(args))
         return tests.get(number)(args)
     else:
         print('Error. Test {} does not exist.'.format(number))
+        return None

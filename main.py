@@ -44,7 +44,7 @@ if __name__ == "__main__":
     if args.test >= 0:
         ret = radarkit.test(args.test, args.values)
         if not ret is None:
-            print(ret)
+            print('Test produces a return = {}'.format(ret))
         quit()
 
     try:

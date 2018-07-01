@@ -74,35 +74,39 @@ static PyObject *PyRKTestBuildingTupleOfDictionaries(void) {
     return obj;
 }
 
-static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
+static PyObject *PyRKTestByNumber(PyObject *self, PyObject *args, PyObject *keywords) {
 
+    PyObject *argsTuple, *obj;
     int number = -1;
     char *string = NULL;
-
+    
     init_numpy();
 
-    printf("Input type = %s (tuple expected)\n", args->ob_type->tp_name);
+    // Item 0 is repeated in tuple in arg 1. Don't know why
+    argsTuple = PyTuple_GetItem(args, 0);
+    printf("PyRKTestByNumber() input type = %s (tuple expected) [%d elements]\n", argsTuple->ob_type->tp_name, (int)PyTuple_GET_SIZE(argsTuple));
 
-    PyObject *obj = PyTuple_GetItem(args, 0);
-    if (obj == NULL || strcmp(obj->ob_type->tp_name, "list")) {
+    // First element as integer
+    obj = PyTuple_GetItem(argsTuple, 0);
+    printf("PyRKTestByNumber() ---> Type = %s (int expected)\n", obj->ob_type->tp_name);
+    if (obj == NULL || strcmp(obj->ob_type->tp_name, "int")) {
         return Py_None;
     }
-    printf("---> Type = %s (list expected) [%d elements]\n", obj->ob_type->tp_name, (int)PyTuple_GET_SIZE(obj));
-    if (PyTuple_GET_SIZE(obj)) {
-        obj = PyList_GetItem(obj, 0);
-        if (obj == NULL || strcmp(obj->ob_type->tp_name, "str")) {
-            return Py_None;
-        }
-        printf("---> Type = %s (str expected) [%d elements]\n", obj->ob_type->tp_name, (int)PyList_GET_SIZE(obj));
-        PyObject *strRepr = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
-        string = PyBytes_AsString(strRepr);
-    } else {
-        printf("Sub-module test not specified.\n");
-    }
+    number = (int)PyLong_AsLong(obj);
+    printf("PyRKTestByNumber() ---> number = %d\n", number);
 
-    if (string) {
-        number = atoi(string);
+    // Second element as string, if exists
+    if (PyTuple_GET_SIZE(argsTuple) > 1) {
+        obj = PyTuple_GetItem(argsTuple, 1);
+        printf("PyRKTestByNumber() ---> Type = %s (str expected) [%d elements]\n", obj->ob_type->tp_name, (int)PyTuple_GET_SIZE(obj));
+        if (obj) {
+            PyObject *strRepr = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+            string = PyBytes_AsString(strRepr);
+        }
     }
+    printf("PyRKTestByNumber() ---> string = %s\n", string == NULL ? "(null)" : string);
+
+    // Default return is a None object
     obj = Py_None;
 
     switch (number) {
@@ -633,12 +637,12 @@ static PyObject *PyRKTestByNumberHelp(PyObject *self) {
 // Standard boiler plates
 static PyMethodDef PyRKMethods[] = {
     {"init",             (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
-    {"test",             (PyCFunction)PyRKTest,               METH_VARARGS | METH_KEYWORDS, "Test module"},
+    {"testByNumber",     (PyCFunction)PyRKTestByNumber,       METH_VARARGS | METH_KEYWORDS, "Test by number"},
+    {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_VARARGS | METH_KEYWORDS, "Test by number help text"},
     {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
     {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
     {"showColors",       (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
     {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
-    {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_VARARGS | METH_KEYWORDS, "Test by number help text"},
     {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
     {NULL, NULL, 0, NULL}
 };
