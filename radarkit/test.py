@@ -18,3 +18,12 @@ def test(number, args=None, debug=False):
     else:
         print('Error. Test {} does not exist.'.format(number))
         return None
+
+def testHelpText():
+    text = '''{}
+        100 - Building a simple value.
+        101 - Building a tuple of two dictionaries.
+        
+        200 - Show framework header
+        '''.format(rk.testByNumberHelp())
+    return text
