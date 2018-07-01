@@ -15,16 +15,18 @@ from .misc import *
     Level 2 - Tests 200 - 299
             - From Python space of PyRadarKit
 '''
-def test(number, args=None, debug=False):
+def test(number, args=None, debug=False, verbose=0):
     tests = {
         200: lambda x: showName(),
         201: lambda x: print('x = {}   args = {}'.format(x, args))
     }
     if number >= 0 and number < 200:
-        print('args for testByNumber = {}'.format((number, *args)))
-        return rk.testByNumber((number, *args))
+        if verbose > 0:
+            print('args for testByNumber = {}'.format(args))
+        return rk.testByNumber(number, args=args, verbose=verbose)
     elif number in tests:
-        print('args for sub-module = {}'.format(args))
+        if verbose > 0:
+            print('args for sub-module = {}'.format(args))
         return tests.get(number)(args)
     else:
         print('Error. Test {} does not exist.'.format(number))

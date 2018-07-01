@@ -83,35 +83,36 @@ static PyObject *PyRKTestBuildingTupleOfDictionaries(void) {
 // Wrapper to test modules in RadarKit or PyRadarKit
 static PyObject *PyRKTestByNumber(PyObject *self, PyObject *args, PyObject *keywords) {
 
-    PyObject *argsTuple, *obj;
-    int number = -1;
+    PyObject *argsList, *obj;
+    int number = 0;
+    int verbose = 0;
     char *string = NULL;
     
     import_array();
 
-    // Item 0 is repeated in tuple in arg 1. Don't know why
-    argsTuple = PyTuple_GetItem(args, 0);
-    printf("PyRKTestByNumber() input type = %s (tuple expected) [%d elements]\n", argsTuple->ob_type->tp_name, (int)PyTuple_GET_SIZE(argsTuple));
-
-    // First element as integer
-    obj = PyTuple_GetItem(argsTuple, 0);
-    printf("PyRKTestByNumber() ---> Type = %s (int expected)\n", obj->ob_type->tp_name);
-    if (obj == NULL || strcmp(obj->ob_type->tp_name, "int")) {
-        return Py_None;
+    static char *keywordList[] = {"number", "args", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "i|Oi", keywordList, &number, &argsList, &verbose)) {
+        fprintf(stderr, "PyRKTestByNumber() -> Nothing provided.\n");
+        return NULL;
     }
-    number = (int)PyLong_AsLong(obj);
-    printf("PyRKTestByNumber() ---> number = %d\n", number);
+    if (verbose) {
+        printf("PyRKTestByNumber() input type = %s (list expected) [%d elements]\n", argsList->ob_type->tp_name, (int)PyTuple_GET_SIZE(argsList));
+    }
 
-    // Second element as string, if exists
-    if (PyTuple_GET_SIZE(argsTuple) > 1) {
-        obj = PyTuple_GetItem(argsTuple, 1);
-        printf("PyRKTestByNumber() ---> Type = %s (str expected) [%d elements]\n", obj->ob_type->tp_name, (int)PyTuple_GET_SIZE(obj));
+    // Input argument is treated as string for RadarKit
+    if (PyList_GET_SIZE(argsList) > 0) {
+        obj = PyList_GetItem(argsList, 0);
+        if (verbose) {
+            printf("PyRKTestByNumber() ---> Type = %s (str expected)\n", obj->ob_type->tp_name);
+        }
         if (obj) {
             PyObject *strRepr = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
             string = PyBytes_AsString(strRepr);
         }
     }
-    printf("PyRKTestByNumber() ---> string = %s\n", string == NULL ? "(null)" : string);
+    if (verbose) {
+        printf("PyRKTestByNumber() ---> string = %s\n", string == NULL ? "(null)" : string);
+    }
 
     // Default return is a None object
     obj = Py_None;
@@ -644,7 +645,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 static PyMethodDef PyRKMethods[] = {
     {"init",             (PyCFunction)PyRKInit,               METH_NOARGS                 , "Init module"},
     {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
-    {"testByNumber",     (PyCFunction)PyRKTestByNumber,       METH_VARARGS                , "Test by number"},
+    {"testByNumber",     (PyCFunction)PyRKTestByNumber,       METH_VARARGS | METH_KEYWORDS, "Test by number"},
     {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_NOARGS                 , "Test by number help text"},
     {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
     {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},

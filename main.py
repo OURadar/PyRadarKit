@@ -39,7 +39,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.test >= 0:
-        ret = radarkit.test(args.test, args.values)
+        ret = radarkit.test(args.test, args.values, verbose=args.verbose)
         if not ret is None:
             print('Test produces a return = {}'.format(ret))
         quit()
