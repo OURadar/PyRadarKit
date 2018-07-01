@@ -4,6 +4,17 @@ import sys
 from . import rk
 from .misc import *
 
+'''
+    Tests are divided into several levels:
+    Level 0 - Tests 0 - 99
+            - Straigh from RadarKit
+   
+    Level 1 - Tests 100 - 199
+            - From C extension module of PyRadarKit
+   
+    Level 2 - Tests 200 - 299
+            - From Python space of PyRadarKit
+'''
 def test(number, args=None, debug=False):
     tests = {
         200: lambda x: showName(),
@@ -25,5 +36,6 @@ def testHelpText():
         101 - Building a tuple of two dictionaries.
         
         200 - Show framework header
+        201 - Show input arguments
         '''.format(rk.testByNumberHelp())
     return text

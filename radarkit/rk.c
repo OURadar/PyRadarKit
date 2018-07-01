@@ -641,7 +641,6 @@ static PyMethodDef PyRKMethods[] = {
     {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_VARARGS | METH_KEYWORDS, "Test by number help text"},
     {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
     {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
-    {"showColors",       (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
     {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
     {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
     {NULL, NULL, 0, NULL}
