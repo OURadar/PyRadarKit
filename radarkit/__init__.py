@@ -22,13 +22,14 @@ import numpy as N
 import scipy as S
 
 # From the PyRadarKit framework
-from . import rk
+#from . import rk
+from .rk import *
 from .misc import *
 from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-version_info = rk.version()
+version_info = version()
 
 # All algorithms are located under the folder 'algorithms'
 sys.path.insert(0, 'algorithms')
@@ -61,11 +62,11 @@ class NETWORK_PACKET_TYPE:
     USER_PRODUCT_DESCRIPTION = 116
 
 # Generic functions
-def read(filename, verbose=0):
-    """
-        Read a sweep from a netcdf file
-    """
-    return rk.read(filename, verbose=0)
+#def read(filename, verbose=0):
+#    """
+#        Read a sweep from a netcdf file
+#    """
+#    return rk.read(filename, verbose=0)
 
 # An algorithm encapsulation
 class Algorithm(object):
@@ -160,7 +161,7 @@ class Radar(object):
         self.registerString = ''
 
         # Initialize the C extension
-        rk.init()
+        init()
 
         # Show some info
         showName()
@@ -255,7 +256,7 @@ class Radar(object):
     def _interpretPayload(self):
         if self.latestPayloadType == NETWORK_PACKET_TYPE.MOMENT_DATA:
             # Parse the ray
-            ray = rk.parseRay(self.payload, verbose=self.verbose)
+            ray = parseRay(self.payload, verbose=self.verbose)
             # Gather the ray into a sweep
             ii = int(ray['azimuth'])
             ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
@@ -295,7 +296,7 @@ class Radar(object):
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_HEADER:
 
             # Parse the sweep
-            sweepHeader = rk.parseSweepHeader(self.payload, verbose=self.verbose)
+            sweepHeader = parseSweepHeader(self.payload, verbose=self.verbose)
             #print(sweepHeader)
             self.sweep.name = sweepHeader['name']
             self.sweep.configId = sweepHeader['configId']
@@ -323,7 +324,7 @@ class Radar(object):
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
 
             # Parse the individual ray of a sweep
-            ray = rk.parseRay(self.payload, verbose=self.verbose)
+            ray = parseRay(self.payload, verbose=self.verbose)
             k = self.sweep.receivedRayCount;
             self.sweep.azimuth[k] = ray['azimuth']
             self.sweep.elevation[k] = ray['elevation']

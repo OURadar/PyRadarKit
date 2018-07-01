@@ -18,11 +18,10 @@ if __name__ == "__main__":
                         ' 0 - Extension module sub-tests:\n'
                         '      - 100 - Building a simple value.\n'
                         '      - 101 - Building a tuple of two dictionaries.\n'
-                        ' 1 - Show color output from RadarKit.\n'
-                        '11 - Generating an array.\n'
+                        '{}'
                         ' \n'
                         ' e.g., -T0 101 runs the test to build a tuple of dictionaries.\n'
-                        ' ')
+                        ' '.format('additional help text ...'))
     parser.add_argument('-a', '--algorithm-folder', default='algorithms', type=str,
                         help='Use a different folder for the collection of algorithms (default "algorithms")')
     parser.add_argument('-s', '--streams', default=None, type=str, 

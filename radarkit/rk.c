@@ -106,21 +106,6 @@ static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
     obj = Py_None;
 
     switch (number) {
-        case 0:
-            RKShowTypeSizes();
-            break;
-        case 1:
-            RKTestTerminalColors();
-            break;
-        case 2:
-            RKTestPrettyStrings();
-            break;
-        case 3:
-            RKTestModuloMath();
-            break;
-        case 4:
-            RKTestParseCommaDelimitedValues();
-            break;
         case 100:
             obj = Py_BuildValue("d", 1.234);
             break;
@@ -128,6 +113,7 @@ static PyObject *PyRKTest(PyObject *self, PyObject *args, PyObject *keywords) {
             obj = PyRKTestBuildingTupleOfDictionaries();
             break;
         default:
+            RKTestByNumber(number, string);
             break;
     }
 
@@ -640,6 +626,10 @@ static PyObject *PyRKVersion(PyObject *self) {
     return Py_BuildValue("s", RKVersionString);
 }
 
+static PyObject *PyRKTestByNumberHelp(PyObject *self) {
+    return Py_BuildValue("s", RKTestByNumberDescription());
+}
+
 // Standard boiler plates
 static PyMethodDef PyRKMethods[] = {
     {"init",             (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
@@ -648,6 +638,7 @@ static PyMethodDef PyRKMethods[] = {
     {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
     {"showColors",       (PyCFunction)PyRKTestTerminalColors, METH_VARARGS | METH_KEYWORDS, "Color module"},
     {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
+    {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_VARARGS | METH_KEYWORDS, "Test by number help text"},
     {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
     {NULL, NULL, 0, NULL}
 };
