@@ -16,8 +16,6 @@ if __name__ == "__main__":
     parser.add_argument('-T', '--test', default=-1, type=int,
                         help='Various tests:\n'
                         '{}'
-                        ' \n'
-                        ' e.g., -T0 101 runs the test to build a tuple of dictionaries.\n'
                         ' '.format(radarkit.testHelpText()))
     parser.add_argument('-a', '--algorithm-folder', default='algorithms', type=str,
                         help='Use a different folder for the collection of algorithms (default "algorithms")')

@@ -40,14 +40,16 @@ def testHelpText():
         
         C-Ext Module of PyRadarKit
         --------------------------
-        100 - Show the RadarKit framework version through PyRadarKit
+        100 - Test retrieving the RadarKit framework version through PyRadarKit
         101 - Building an integer PyObject with only one integer value.
         102 - Building a tuple PyObject that contains two dictionaries.
         
         
         Python Space of PyRadarKit
         --------------------------
-        201 - Show framework header
-        202 - Show input arguments
+        200 - Test showing framework header
+        201 - Test receiving additional input arguments as a list
+        
+e.g., -T102 runs the test to build a tuple of dictionaries
         '''.format(rk.testByNumberHelp())
     return text
