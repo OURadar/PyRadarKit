@@ -20,7 +20,7 @@ def test(number, args=None, debug=False):
         200: lambda x: showName(),
         201: lambda x: print('x = {}   args = {}'.format(x, args))
     }
-    if number < 200:
+    if number >= 0 and number < 200:
         print('args for testByNumber = {}'.format((number, *args)))
         return rk.testByNumber((number, *args))
     elif number in tests:
@@ -31,11 +31,21 @@ def test(number, args=None, debug=False):
         return None
 
 def testHelpText():
-    text = '''{}
-        100 - Building a simple value.
-        101 - Building a tuple of two dictionaries.
+    text = '''
+        RadarKit
+        --------
+{}
         
-        200 - Show framework header
-        201 - Show input arguments
+        C-Ext Module of PyRadarKit
+        --------------------------
+        100 - Show the RadarKit framework version through PyRadarKit
+        101 - Building an integer PyObject with only one integer value.
+        102 - Building a tuple PyObject that contains two dictionaries.
+        
+        
+        Python Space of PyRadarKit
+        --------------------------
+        201 - Show framework header
+        202 - Show input arguments
         '''.format(rk.testByNumberHelp())
     return text

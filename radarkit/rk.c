@@ -4,25 +4,31 @@
 #include <numpy/arrayobject.h>
 #include <RadarKit.h>
 
-#if PY_MAJOR_VERSION >= 3
-void *init_numpy() {
-    import_array();
-    return NULL;
-}
-#else
-void init_numpy() {
-    import_array();
-}
-#endif
+#pragma mark - Life Cycle
 
-// Wrappers
+// Some global settings
 static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
     Py_INCREF(Py_None);
     return Py_None;
 }
 
+#pragma mark - Variables from RadarKit
+
+// RadarKit version
+static PyObject *PyRKVersion(void) {
+    return Py_BuildValue("s", RKVersionString);
+}
+
+#pragma mark - Tests
+
+static PyObject *PyRKTestBuildingSingleValue(void) {
+    SHOW_FUNCTION_NAME
+    return Py_BuildValue("d", 1.234);
+}
+
 static PyObject *PyRKTestBuildingTupleOfDictionaries(void) {
+    SHOW_FUNCTION_NAME
     int k;
     float *rawData;
     PyObject *dict;
@@ -74,13 +80,14 @@ static PyObject *PyRKTestBuildingTupleOfDictionaries(void) {
     return obj;
 }
 
+// Wrapper to test modules in RadarKit or PyRadarKit
 static PyObject *PyRKTestByNumber(PyObject *self, PyObject *args, PyObject *keywords) {
 
     PyObject *argsTuple, *obj;
     int number = -1;
     char *string = NULL;
     
-    init_numpy();
+    import_array();
 
     // Item 0 is repeated in tuple in arg 1. Don't know why
     argsTuple = PyTuple_GetItem(args, 0);
@@ -111,9 +118,12 @@ static PyObject *PyRKTestByNumber(PyObject *self, PyObject *args, PyObject *keyw
 
     switch (number) {
         case 100:
-            obj = Py_BuildValue("d", 1.234);
+            obj = PyRKVersion();
             break;
         case 101:
+            obj = PyRKTestBuildingSingleValue();
+            break;
+        case 102:
             obj = PyRKTestBuildingTupleOfDictionaries();
             break;
         default:
@@ -123,6 +133,12 @@ static PyObject *PyRKTestByNumber(PyObject *self, PyObject *args, PyObject *keyw
 
     return obj;
 }
+
+static PyObject *PyRKTestByNumberHelp(PyObject *self) {
+    return Py_BuildValue("s", RKTestByNumberDescription());
+}
+
+#pragma mark - Parsers
 
 static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords) {
     int verbose = 0;
@@ -370,11 +386,7 @@ static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *
     return ret;
 }
 
-static PyObject *PyRKTestTerminalColors(PyObject *self, PyObject *args, PyObject *keywords) {
-    RKTestTerminalColors();
-    Py_INCREF(Py_None);
-    return Py_None;
-}
+#pragma mark - Product Reader
 
 static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     int p, r, k;
@@ -398,7 +410,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     }
 
     // Do this before we use any numpy array creation
-    init_numpy();
+    import_array();
 
     PyObject *ret = Py_None;
 
@@ -626,29 +638,19 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     return ret;
 }
 
-static PyObject *PyRKVersion(PyObject *self) {
-    return Py_BuildValue("s", RKVersionString);
-}
-
-static PyObject *PyRKTestByNumberHelp(PyObject *self) {
-    return Py_BuildValue("s", RKTestByNumberDescription());
-}
+#pragma mark - C Extension Setup
 
 // Standard boiler plates
 static PyMethodDef PyRKMethods[] = {
-    {"init",             (PyCFunction)PyRKInit,               METH_VARARGS | METH_KEYWORDS, "Init module"},
-    {"testByNumber",     (PyCFunction)PyRKTestByNumber,       METH_VARARGS | METH_KEYWORDS, "Test by number"},
-    {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_VARARGS | METH_KEYWORDS, "Test by number help text"},
+    {"init",             (PyCFunction)PyRKInit,               METH_NOARGS                 , "Init module"},
+    {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
+    {"testByNumber",     (PyCFunction)PyRKTestByNumber,       METH_VARARGS                , "Test by number"},
+    {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_NOARGS                 , "Test by number help text"},
     {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
     {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
     {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
-    {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
     {NULL, NULL, 0, NULL}
 };
-
-#if PY_MAJOR_VERSION >= 3
-
-// Python 3 way
 
 static struct PyModuleDef PyRKModule = {
     PyModuleDef_HEAD_INIT,
@@ -661,19 +663,6 @@ static struct PyModuleDef PyRKModule = {
 PyMODINIT_FUNC
 
 PyInit_rk(void) {
-    init_numpy();
+    import_array();
     return PyModule_Create(&PyRKModule);
 }
-
-#else
-
-// Python 2 way
-
-PyMODINIT_FUNC
-
-initrk(void) {
-    init_numpy();
-    (void) Py_InitModule("rk", PyRKMethods);
-}
-
-#endif
