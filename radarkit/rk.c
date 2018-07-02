@@ -136,7 +136,7 @@ static PyObject *PyRKTestByNumber(PyObject *self, PyObject *args, PyObject *keyw
 }
 
 static PyObject *PyRKTestByNumberHelp(PyObject *self) {
-    return Py_BuildValue("s", RKTestByNumberDescription());
+    return Py_BuildValue("s", RKTestByNumberDescription(0));
 }
 
 #pragma mark - Parsers
