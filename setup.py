@@ -56,7 +56,7 @@ if not is_installed('numpy>=1.11.0'):
         """), file=sys.stderr)
     exit(1)
 
-if not is_installed('scipy>=1.0.0'):
+if not is_installed('scipy>=0.19.0'):
     print(textwrap.dedent("""
         Error: scipy needs to be installed first. You can install it via:
 

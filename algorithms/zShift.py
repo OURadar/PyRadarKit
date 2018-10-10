@@ -1,4 +1,5 @@
 import radarkit
+import time
 
 class main(radarkit.Algorithm):
     def __init__(self, verbose=0):
@@ -21,6 +22,8 @@ class main(radarkit.Algorithm):
 
         # Just a simple shift
         d = sweep.products['Z'] + self.shiftFactor
+
+        time.sleep(1)
 
         # Print something on the screen
         if self.verbose > 0:
