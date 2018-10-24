@@ -73,7 +73,7 @@ optional arguments:
   -v, --verbose         increases verbosity level
 ```
 
-## Developing Your Algorithms
+## Developing Your Own Algorithms
 
 Each algorithm must be its own Python script under the folder algorithms. Here are the requirements:
 - The algorithm must be a class of itself, which is derived as a subclass from `radarkit.Algorithm`.

@@ -48,7 +48,7 @@ if not is_installed('numpy>=1.11.0'):
     print(textwrap.dedent("""
         Error: numpy needs to be installed first. You can install it via:
 
-        $ yum install scipy
+        $ yum install numpy
 
         or
         $ pip install numpy
