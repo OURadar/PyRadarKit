@@ -34,6 +34,14 @@ version_info = version()
 # All algorithms are located under the folder 'algorithms'
 sys.path.insert(0, 'algorithms')
 
+def showName():
+    rows, columns = os.popen('stty size', 'r').read().split()
+    c = int(columns)
+    print('Version {}\n'.format(sys.version_info))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), "\033[38;5;15;48;5;28m"))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(version_info).center(c, ' '), ' ' * c), COLOR.radarkit))
+
 # Constants
 class CONSTANTS:
     IP = '127.0.0.1'
@@ -255,8 +263,8 @@ class Radar(object):
             ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
             if self.verbose > 2:
                 print('   {} {} -> {} / sweepEnd = {}'.format(colorize(' PyRadarKit ', COLOR.python),
-                                                   colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
-                                                   ii, ray['sweepEnd']))
+                                                              colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
+                                                              ii, ray['sweepEnd']))
                 N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                 for letter in self.sweep.products.keys():
                     if letter in ray['moments']:
