@@ -29,18 +29,10 @@ from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-version_info = version()
+version_info = '1.0'
 
 # All algorithms are located under the folder 'algorithms'
 sys.path.insert(0, 'algorithms')
-
-def showName():
-    rows, columns = os.popen('stty size', 'r').read().split()
-    c = int(columns)
-    print('Version {}\n'.format(sys.version_info))
-    print(colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), "\033[38;5;15;48;5;28m"))
-    print(colorize('{}\n{}\n{}'.format(' ' * c, 'PyRadarKit'.center(c, ' '), ' ' * c), COLOR.python))
-    print(colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(version_info).center(c, ' '), ' ' * c), COLOR.radarkit))
 
 # Constants
 class CONSTANTS:
@@ -164,9 +156,6 @@ class Radar(object):
         # Initialize the C extension
         init()
 
-        # Show some info
-        showName()
-        
         # Initialize a bunch to things
         self.algorithms = []
         self.sweep = Sweep()

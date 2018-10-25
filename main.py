@@ -1,5 +1,6 @@
 #!/usr/local/bin/python
 
+import os
 import sys
 
 MIN_PYTHON = (3, 4)
@@ -8,6 +9,15 @@ if sys.version_info < MIN_PYTHON:
 
 import argparse
 import radarkit
+
+def showName():
+    rows, columns = os.popen('stty size', 'r').read().split()
+    c = int(columns)
+    print('Version {}\n'.format(sys.version_info))
+    print(radarkit.colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), "\033[38;5;15;48;5;28m"))
+    print(radarkit.colorize('{}\n{}\n{}'.format(' ' * c, 'PyRadarKit {}'.format(radarkit.version_info).center(c, ' '), ' ' * c), radarkit.COLOR.python))
+    print(radarkit.colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(radarkit.rk.version()).center(c, ' '), ' ' * c), radarkit.COLOR.radarkit))
+    print('')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='main', formatter_class=argparse.RawTextHelpFormatter)
@@ -43,6 +53,7 @@ if __name__ == "__main__":
         quit()
 
     try:
+        showName()
         radar = radarkit.Radar(ipAddress=args.host, streams=args.streams, algorithmFolder=args.algorithm_folder, verbose=args.verbose)
         radar.start()
         radar.wait()
