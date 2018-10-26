@@ -397,7 +397,7 @@ class Radar(object):
                     self.socket.connect((self.ipAddress, self.port))
                 except:
                     t = 30
-                    while t > 0:
+                    while t > 0 and self.wantActive:
                         if self.verbose > 1 and t % 10 == 0:
                             print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
                         time.sleep(0.1)
@@ -422,6 +422,8 @@ class Radar(object):
                         break;
                     if not self.active:
                         self.active = True
+        except KeyboardInterrupt:
+            print('Outside runloop KeyboardInterrupt')
         except:
             print('Outside runloop')
         # Outside of the busy loop
