@@ -29,7 +29,7 @@ from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-version_info = version()
+version_info = '1.0'
 
 # All algorithms are located under the folder 'algorithms'
 sys.path.insert(0, 'algorithms')
@@ -156,9 +156,6 @@ class Radar(object):
         # Initialize the C extension
         init()
 
-        # Show some info
-        showName()
-        
         # Initialize a bunch to things
         self.algorithms = []
         self.sweep = Sweep()
@@ -255,8 +252,8 @@ class Radar(object):
             ng = min(ray['gateCount'], CONSTANTS.MAX_GATES)
             if self.verbose > 2:
                 print('   {} {} -> {} / sweepEnd = {}'.format(colorize(' PyRadarKit ', COLOR.python),
-                                                   colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
-                                                   ii, ray['sweepEnd']))
+                                                              colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(ray['elevation'], ray['azimuth']), COLOR.yellow),
+                                                              ii, ray['sweepEnd']))
                 N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
                 for letter in self.sweep.products.keys():
                     if letter in ray['moments']:
@@ -400,7 +397,7 @@ class Radar(object):
                     self.socket.connect((self.ipAddress, self.port))
                 except:
                     t = 30
-                    while t > 0:
+                    while t > 0 and self.wantActive:
                         if self.verbose > 1 and t % 10 == 0:
                             print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
                         time.sleep(0.1)
@@ -425,6 +422,8 @@ class Radar(object):
                         break;
                     if not self.active:
                         self.active = True
+        except KeyboardInterrupt:
+            print('Outside runloop KeyboardInterrupt')
         except:
             print('Outside runloop')
         # Outside of the busy loop
