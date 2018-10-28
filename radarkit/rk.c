@@ -429,7 +429,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         npy_intp dims[] = {sweep->header.rayCount, sweep->header.gateCount};
 
         // The first ray
-        RKRay *ray = RKGetRay(sweep->rayBuffer, 0);
+        RKRay *ray = RKGetRayFromBuffer(sweep->rayBuffer, 0);
 
         // Range
         scratch = (float *)malloc(sweep->header.gateCount * sizeof(float));
@@ -450,7 +450,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
             return Py_None;
         }
         for (k = 0; k < (int)sweep->header.rayCount; k++) {
-            RKRay *ray = RKGetRay(sweep->rayBuffer, k);
+            RKRay *ray = RKGetRayFromBuffer(sweep->rayBuffer, k);
             scratch[k] = ray->header.startAzimuth;
         }
         PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
@@ -463,7 +463,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
             return Py_None;
         }
         for (k = 0; k < (int)sweep->header.rayCount; k++) {
-            RKRay *ray = RKGetRay(sweep->rayBuffer, k);
+            RKRay *ray = RKGetRayFromBuffer(sweep->rayBuffer, k);
             scratch[k] = ray->header.startElevation;
         }
         PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);

@@ -48,7 +48,7 @@ if not is_installed('numpy>=1.11.0'):
     print(textwrap.dedent("""
         Error: numpy needs to be installed first. You can install it via:
 
-        $ yum install scipy
+        $ yum install numpy
 
         or
         $ pip install numpy
@@ -117,7 +117,7 @@ with open(os.path.join(here, 'README.md')) as f:
 
 setup(
     name='PyRadarKit',
-    version='0.5',
+    version='1.0.1',
     description='The Python Extension of RadarKit.',
     author='Boonleng Cheong',
     author_email='boonleng@ou.edu',
