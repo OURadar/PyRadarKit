@@ -3,13 +3,12 @@ import radarkit
 class main(radarkit.Algorithm):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
-        self.name = 'Z-Shift'
+        self.name = 'SCWC'
         self.unit = 'dBZ'
         self.symbol = 'Y'
         self.active = True
         self.b = -32
         self.w = 0.5
-        self.shiftFactor = 5.0
 
     def process(self, sweep):
         super().process(sweep)
@@ -20,7 +19,7 @@ class main(radarkit.Algorithm):
             return None
 
         # Just a simple shift
-        d = sweep.products['Z'] + self.shiftFactor
+        d = sweep.products['Z']
 
         # Print something on the screen
         if self.verbose > 0:
