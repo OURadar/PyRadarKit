@@ -5,7 +5,7 @@ import scipy.signal
 
 def scwc(s, z, p, r, gate_spacing=0.03,
     b=1.02, w=20, g=20, st=3.0, rt=0.85, vt=20.0,
-    alpha=np.arange(0.10, 0.51, 0.01), verb=0):
+    alpha=np.arange(0.20, 0.51, 0.01), verb=0):
 
     # Index of azimuth
     ia = np.arange(p.shape[0])
