@@ -3,22 +3,39 @@ import numpy as np
 import scipy as sp
 import scipy.signal
 
-def scwc(s, z, p, r, gate_spacing=0.03,
-    b=1.02, w=20, g=20, st=3.0, rt=0.85, vt=20.0,
-    alpha=np.arange(0.20, 0.51, 0.01), verb=0):
-
-    # Index of azimuth
-    ia = np.arange(p.shape[0])
-
-    # Reflectivity in linear unit
-    zl = 10.0 ** (0.1 * z)
-    zl = np.nan_to_num(zl)
+#
+#    scwc - Self Consistent With Constraints
+#
+#    s - SNR (rays x gates)
+#    z - Z_h (rays x gates)
+#    p - PhiDP (rays x gates)
+#    r - RhoHV (rays x gates)
+#    b - Constant b, 1.02 for X-band
+#    w - Window length for smoothing PhiDP
+#    dr - Gate size in km
+#    go - Gate origin to process (recommend 20)
+#    st - SNR threshold for data selection
+#    rt - RhoHV threshold for data selection
+#    vt - Variance threshold for PhiDP qualification (recommend < 100.0)
+#    ct - Count threshold to consider the range (r0, rm) to be valid
+#    alpha - Search range of alpha values
+#
+def scwc(s, z, p, r,
+         b=1.02, w=20, dr=0.03, go=20,
+         st=3.0, rt=0.85, vt=20.0, ct=50,
+         alpha=np.arange(0.20, 0.51, 0.01), verb=0):
 
     # Some constants for convenient coding later
     ray_count = s.shape[0]
     gate_count = s.shape[1]
     alpha_count = len(alpha)
-    gate_spacing = gate_spacing
+    
+    # Index of azimuth
+    ia = np.arange(ray_count)
+
+    # Reflectivity in linear unit
+    zl = 10.0 ** (0.1 * z)
+    zl = np.nan_to_num(zl)
 
     # Quality mask
     mq = np.logical_and(np.nan_to_num(s) > st, np.nan_to_num(r) > rt)
@@ -30,9 +47,9 @@ def scwc(s, z, p, r, gate_spacing=0.03,
     ww = np.ones(w) / w;
     ps = sp.signal.lfilter(ww, 1.0, pz)
 
-    # Compute local variance: VAR(X) = E{X ** 2} + E{x} ** 2
+    # Compute local variance: VAR(X) = E{X ** 2} + E{x} ** 2; set outside mq to some large value
     p_var = sp.signal.lfilter(ww, 1.0, pz ** 2) - ps ** 2
-    p_var[~mq] = 100.0
+    p_var[~mq] = 1000.0
 
     # Compute local slope
     p_slope = sp.signal.lfilter(ww, 1.0, np.diff(p))
@@ -43,19 +60,17 @@ def scwc(s, z, p, r, gate_spacing=0.03,
     ms_count = np.sum(ms, axis=1)
 
     # Data bounds
-    r0 = np.argmax(ms[:, g:], axis=1) + g
-    rm = p.shape[1] - np.argmax(ms[:, :g:-1], axis=1) - 1
+    r0 = np.argmax(ms[:, go:], axis=1) + go
+    rm = p.shape[1] - np.argmax(ms[:, :go:-1], axis=1) - 1
 
-    # Construct the index path to use PhiDP
-    paths = []
+    # Construct edge bound - the index path to use PhiDP
     ah = np.zeros((*ps.shape, alpha_count))
     edge = np.zeros(ms.shape, dtype=bool)
-    deltaPhi = np.zeros(ps.shape[0])
+    deltaPhi = np.zeros(ray_count)
     for i, s, e, c in zip(ia, r0, rm, ms_count):
-        if c > 50:
+        if c > ct:
             # Only use the path index if the length > 50 cells
             edge[i, s:e] = True;
-            paths.append((i, s, e))
             deltaPhi[i] = ps[i, e] - ps[i, s]
 
     # Mask out the Z and smoothed PhiDP values outside (r0, rm)
@@ -65,7 +80,7 @@ def scwc(s, z, p, r, gate_spacing=0.03,
     zb = zl ** b;
 
     # I(r; rm) is a function of r, integrate Z from r to rm
-    ir = 0.46 * b * np.cumsum(zb[:, ::-1], axis=1)[:, ::-1] * gate_spacing
+    ir = 0.46 * b * np.cumsum(zb[:, ::-1], axis=1)[:, ::-1] * dr
     ir0 = np.array([x[i] for x, i in zip(ir, r0)])
 
     # The common term in size of (360, 1, alpha_count)
@@ -82,25 +97,21 @@ def scwc(s, z, p, r, gate_spacing=0.03,
     # Eq (15) for all (r; rm) so that ir[x] = 0.46 b int_x^rm (z ** b) dr
     num = zb_big * tenPowerSomethingMinusOne
     den = (ir0_big + tenPowerSomethingMinusOne * ir_big)
-    mv = den == 0.0
-    num[mv] = 0.0
-    den[mv] = 1.0
+    den[den == 0.0] = 1.0
     ah_big = num / den
 
     # Construct PhiDP for all alpha values
     alpha_big = np.outer(np.ones(ps.shape), alpha).reshape((*ps.shape, alpha_count))
-    pc_big = 2.0 * np.cumsum(ah_big, axis=1) / alpha_big * gate_spacing
+    pc_big = 2.0 * np.cumsum(ah_big, axis=1) / alpha_big * dr
 
     # Pick the best alpha
     err = np.sum(np.abs(ps_big - pc_big), axis=(0, 1))
     alpha_idx = np.argmin(err)
 
-    pc = pc_big[:, :, alpha_idx]
-    pc[~edge] = np.nan
-
     if (verb):
         print('Best alpha @ {} / {} -> {:.2f}'.format(alpha_idx, alpha_count, alpha[alpha_idx]))
 
+    # Use the original PhiDP values
     pp = np.copy(p)
     mp = np.nan_to_num(pp) <= 0.0
     pp[mp] = 0.0
