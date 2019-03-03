@@ -1,3 +1,4 @@
+import array
 import numpy as np
 import matplotlib
 from scipy.interpolate import griddata
@@ -46,6 +47,14 @@ def vmap():
     colors = np.array(colors) / 255
     return matplotlib.colors.LinearSegmentedColormap.from_list('vmap', colors, N=len(colors))
 
+def dmap():
+    data = array.array('B')
+    with open('blob/d1.0.map', 'rb') as f:
+        data.fromfile(f, 1024)
+    c = np.array(data).reshape(-1, 4)
+    colors = c[:, :3] / 255.0
+    return matplotlib.colors.LinearSegmentedColormap.from_list('dmap', colors, N=len(colors))
+    
 class Chart:
     """
         A Chart Class
@@ -102,7 +111,7 @@ class Chart:
         return
 
 
-def showPPI(x, y, z, cmap=None, vmin=0.0, vmax=80.0, title=None, maxrange=40):
+def showPPI(x, y, z, cmap=None, vmin=0.0, vmax=80.0, title=None, maxrange=50.0):
     w = 5
     h = 5.5
     # Duplicate the first azimuth and append it to the end
