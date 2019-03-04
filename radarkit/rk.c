@@ -389,6 +389,131 @@ static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *
 
 #pragma mark - Product Reader
 
+static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keywords) {
+    int p, k;
+    int verbose = 0;
+    char *filename;
+    float *scratch;
+
+    static char *keywordList[] = {"filename", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &filename, &verbose)) {
+        fprintf(stderr, "PyRKRead() -> Nothing provided.\n");
+        return Py_None;
+    }
+
+    RKSetWantScreenOutput(true);
+
+    // Some product description
+    RKName symbol;
+    if (RKGetSymbolFromFilename(filename, symbol)) {
+        printf("symbol = %s%s%s\n", RKYellowColor, symbol, RKNoColor);
+    }
+
+    // Do this before we use any numpy array creation
+    import_array();
+
+    PyObject *ret = Py_None;
+    
+    RKProductCollection *collection = RKProductCollectionInitWithFilename(filename);
+    
+    // Some constants
+    npy_intp dims[] = {collection->products[0].header.rayCount, collection->products[0].header.gateCount};
+
+    // Range
+    scratch = (float *)malloc(dims[1] * sizeof(float));
+    if (scratch == NULL) {
+        RKLog("Error. Unable to allocate memory for range.\n");
+        return Py_None;
+    }
+    float dr = collection->products[0].header.gateSizeMeters;
+    for (k = 0; k < (int)dims[1]; k++) {
+        scratch[k] = (float)k * dr;
+    }
+    PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
+
+    // Azimuth
+    scratch = (float *)malloc(dims[0] * sizeof(float));
+    if (scratch == NULL) {
+        RKLog("Error. Unable to allocate memory for azimuth.\n");
+        return Py_None;
+    }
+    for (k = 0; k < dims[0]; k++) {
+        scratch[k] = collection->products[0].startAzimuth[k];
+    }
+    PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
+    
+    // Elevation
+    scratch = (float *)malloc(dims[0] * sizeof(float));
+    if (scratch == NULL) {
+        RKLog("Error. Unable to allocate memory for elevation.\n");
+        return Py_None;
+    }
+    for (k = 0; k < dims[0]; k++) {
+        scratch[k] = collection->products[0].startElevation[k];
+    }
+    PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
+
+    // A new dictionary for output
+    PyObject *products = PyTuple_New(collection->count);
+
+    // Gather the products
+    for (p = 0; p < (int)collection->count; p++) {
+        // A scratch space for data
+        scratch = (float *)malloc(dims[0] * dims[1] * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory for moment data.\n");
+            return Py_None;
+        }
+        float *y = scratch;
+        RKFloat *x = collection->products[p].data;
+        for (k = 0; k < (int)(dims[0] * dims[1]); k++) {
+            *y++ = (float)*x++;
+        }
+        PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+
+        // A new dictionary for output
+        PyObject *dict = Py_BuildValue("{s:s,s:s,s:s,s:O}",
+                                       "name", collection->products[p].desc.name,
+                                       "unit", collection->products[p].desc.unit,
+                                       "symbol", collection->products[p].desc.symbol,
+                                       "data", value);
+        Py_DECREF(value);
+        PyTuple_SetItem(products, p, dict);
+    }
+
+    // Return dictionary
+    ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+                        "name", collection->products[0].header.radarName,
+                        "configId", collection->products[0].i,
+                        "rayCount", dims[0],
+                        "gateCount", dims[1],
+                        "sweepAzimuth", collection->products[0].header.sweepAzimuth,
+                        "sweepElevation", collection->products[0].header.sweepElevation,
+                        "gateSizeMeters", collection->products[0].header.gateSizeMeters,
+                        "latitude", collection->products[0].header.latitude,
+                        "longitude", collection->products[0].header.longitude,
+                        "altitude", collection->products[0].header.radarHeight,
+                        "sweepBegin", Py_True,
+                        "sweepEnd", Py_False,
+                        "elevation", elevation,
+                        "azimuth", azimuth,
+                        "range", range,
+                        "products", products);
+    Py_DECREF(elevation);
+    Py_DECREF(azimuth);
+    Py_DECREF(range);
+    Py_DECREF(products);
+
+    // We are done with the product collection
+    RKProductCollectionFree(collection);
+
+    return ret;
+}
+
 static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     int p, r, k;
     int verbose = 0;
@@ -539,7 +664,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     } else {
 
         // Read the sweep using RKProductRead() of RadarKit
-        RKProduct *product = RKProductFileReaderNC(filename);
+        RKProduct *product = RKProductFileReaderNC(filename, true);
         if (product == NULL) {
             fprintf(stderr, "No product.\n");
             return Py_None;
@@ -598,7 +723,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
         PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
 
-        // A new dictionary for output      
+        // A new dictionary for output
         PyObject *dict = Py_BuildValue("{s:s,s:s,s:s,s:O}",
             "name", product->desc.name,
             "unit", product->desc.unit,
@@ -649,7 +774,8 @@ static PyMethodDef PyRKMethods[] = {
     {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_NOARGS                 , "Test by number help text"},
     {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
     {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
-    {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
+    {"readOne",          (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep / product"},
+    {"read",             (PyCFunction)PyRKReadProducts,       METH_VARARGS | METH_KEYWORDS, "Read a collection products"},
     {NULL, NULL, 0, NULL}
 };
 
