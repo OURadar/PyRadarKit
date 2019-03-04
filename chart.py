@@ -140,7 +140,7 @@ class Chart:
         return
 
 
-def showPPI(x, y, z, symbol='z', title=None, maxrange=50.0):
+def showPPI(x, y, z, symbol='S', title=None, maxrange=50.0):
     w = 5
     h = 5.5
     # Duplicate the first azimuth and append it to the end
@@ -155,33 +155,33 @@ def showPPI(x, y, z, symbol='z', title=None, maxrange=50.0):
     else:
         rect = [0.14, 0.1, 0.8, 0.8 * w / h]
     rect = [round(x * 72.0) / 72.0 + 0.5 / 72.0 for x in rect]
-    if symbol is 'k':
+    if symbol is 'K':
         # Not finalized yet
         colors = blib.kmap()
         vmin = 0.0
         vmax = 0.1 * np.pi
-    elif symbol is 'r':
+    elif symbol is 'R':
         # Special, does not really matter here
         colors = blib.rmap()
         vmin = 0.0
         vmax = 1.0
-    elif symbol is 'p':
+    elif symbol is 'P':
         colors = blib.pmap()
-        vmin = -np.pi
-        vmax = np.pi
-    elif symbol is 'd':
+        vmin = -180.0
+        vmax = 180.0
+    elif symbol is 'D':
         colors = blib.dmap()
         vmin = -10.0
         vmax = 15.5 + 0.1
-    elif symbol is 'w':
+    elif symbol is 'W':
         colors = blib.wmap()
-        vmin = 0.0
+        vmin = -0.05
         vmax = 12.7 + 0.05
-    elif symbol is 'v':
+    elif symbol is 'V':
         colors = blib.rgmap()
         vmin = -16.0
         vmax = 15.875 + 0.125
-    elif symbol is 'z':
+    elif symbol is 'Z':
         colors = blib.zmap()
         d = 0.5
         vmin = -32.0
@@ -201,31 +201,31 @@ def showPPI(x, y, z, symbol='z', title=None, maxrange=50.0):
     # pos = fig.add_axes((0.88, 0.3, 0.03, 0.5))
     cax = fig.add_axes((rect[0], rect[1] + rect[3] + 0.06, rect[2], 0.03))
     cb = matplotlib.pyplot.colorbar(ax=ax2, cax=cax, orientation='horizontal')
-    if symbol is 'k':
+    if symbol is 'K':
         cb.set_ticks(np.arange(-10, 10, 2))
         if title is None:
             title = 'KDP (degres / km)'
-    elif symbol is 'r':
+    elif symbol is 'R':
         cb.set_ticks([0.0, 0.5, 0.7, 0.93, 1.0])
         if title is None:
             title = 'RhoHV (unitless)'
-    elif symbol is 'p':
-        cb.set_ticks(np.arange(-180, 180, 30))
+    elif symbol is 'P':
+        cb.set_ticks(np.arange(-180, 181, 60))
         if title is None:
             title = 'PhiDP (degrees)'
-    elif symbol is 'd':
+    elif symbol is 'D':
         cb.set_ticks(np.arange(-9, 15, 3))
         if title is None:
             title = 'ZDR (dB)'
-    elif symbol is 'w':
-        cb.set_ticks(np.arange(0, 5, 0.5))
+    elif symbol is 'W':
+        cb.set_ticks(np.arange(0, 15, 2))
         if title is None:
             title = 'Width (m/s)'
-    elif symbol is 'v':
-        cb.set_ticks(np.arange(-15, 15, 3))
+    elif symbol is 'V':
+        cb.set_ticks(np.arange(-15, 16, 3))
         if title is None:
             title = 'Velocity (m/s)'
-    elif symbol is 'z':
+    elif symbol is 'Z':
         cb.set_ticks(np.arange(-25, 85, 15))
         if title is None:
             title = 'Reflectivity (dBZ)'
