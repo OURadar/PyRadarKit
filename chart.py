@@ -174,9 +174,10 @@ def showPPI(x, y, z, symbol='S', title=None, maxrange=50.0):
         vmin = -10.0
         vmax = 15.5 + 0.1
     elif symbol is 'W':
+        # There is an offset of 1 but okay
         colors = blib.wmap()
-        vmin = -0.05
-        vmax = 12.7 + 0.05
+        vmin = 0.0
+        vmax = 12.75 + 0.05
     elif symbol is 'V':
         colors = blib.rgmap()
         vmin = -16.0
