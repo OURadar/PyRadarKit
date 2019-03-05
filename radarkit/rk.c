@@ -414,7 +414,13 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
 
     PyObject *ret = Py_None;
     
+    RKLog("Using %s ...\n", filename);
+    
     RKProductCollection *collection = RKProductCollectionInitWithFilename(filename);
+    if (collection == NULL) {
+        RKLog("Error. RKProductCollectionInitWithFilename() returned NULL.\n");
+        return Py_None;
+    }
     
     // Some constants
     npy_intp dims[] = {collection->products[0].header.rayCount, collection->products[0].header.gateCount};
@@ -457,12 +463,12 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
     PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
 
     // A new dictionary for output
-    //PyObject *products = PyTuple_New(collection->count);
     PyObject *products = PyDict_New();
 
     // Gather the products
+    RKProduct *product;
     for (p = 0; p < (int)collection->count; p++) {
-        RKProduct *product = &collection->products[p];
+        product = &collection->products[p];
         
         // A scratch space for data
         scratch = (float *)malloc(dims[0] * dims[1] * sizeof(float));
@@ -488,7 +494,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
                                        "symbol", product->desc.symbol,
                                        "data", value);
         Py_DECREF(value);
-        
+
         // Add to the dictionary
         PyDict_SetItem(products, key, dict);
     }
@@ -499,12 +505,12 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
                         "configId", collection->products[0].i,
                         "rayCount", dims[0],
                         "gateCount", dims[1],
-                        "sweepAzimuth", collection->products[0].header.sweepAzimuth,
-                        "sweepElevation", collection->products[0].header.sweepElevation,
-                        "gateSizeMeters", collection->products[0].header.gateSizeMeters,
-                        "latitude", collection->products[0].header.latitude,
-                        "longitude", collection->products[0].header.longitude,
-                        "altitude", collection->products[0].header.radarHeight,
+                        "sweepAzimuth", product->header.sweepAzimuth,
+                        "sweepElevation", product->header.sweepElevation,
+                        "gateSizeMeters", product->header.gateSizeMeters,
+                        "latitude", product->header.latitude,
+                        "longitude", product->header.longitude,
+                        "altitude", product->header.radarHeight,
                         "sweepBegin", Py_True,
                         "sweepEnd", Py_False,
                         "elevation", elevation,
