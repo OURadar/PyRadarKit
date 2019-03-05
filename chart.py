@@ -323,7 +323,7 @@ class Chart:
 #
 #
 
-def showPPI(x, y, z, style='S', title=None, maxrange=50.0):
+def showPPI(x, y, z, style='S', title=None, maxrange=50.0, dpi=144):
     w = 5
     h = 5.5
     # Duplicate the first azimuth and append it to the end
@@ -333,7 +333,7 @@ def showPPI(x, y, z, style='S', title=None, maxrange=50.0):
     mm = ~np.isfinite(zz)
     zz[mm] = 0.0
     # Now we setup the figure
-    fig = matplotlib.pyplot.figure(figsize=(w, h), dpi=144, facecolor=None)
+    fig = matplotlib.pyplot.figure(figsize=(w, h), dpi=dpi, facecolor=None)
     if w > h:
         rect = [0.14, 0.1, 0.8 * h / w, 0.8]
     else:

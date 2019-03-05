@@ -8,6 +8,7 @@ import scipy.signal
 #
 #    s - SNR (rays x gates)
 #    z - Z_h (rays x gates)
+#    d - ZDR (rays x gates)
 #    p - PhiDP (rays x gates)
 #    r - RhoHV (rays x gates)
 #    b - Constant b, 1.02 for X-band
@@ -20,7 +21,7 @@ import scipy.signal
 #    ct - Count threshold to consider the range (r0, rm) to be valid
 #    alpha - Search range of alpha values
 #
-def scwc(s, z, p, r,
+def scwc(s, z, d, p, r,
          b=1.02, w=20, dr=0.03, go=20,
          st=3.0, rt=0.85, vt=20.0, ct=50,
          alpha=np.arange(0.20, 0.51, 0.01), verb=0):
@@ -107,15 +108,29 @@ def scwc(s, z, p, r,
     # Pick the best alpha
     err = np.sum(np.abs(ps_big - pc_big), axis=(0, 1))
     alpha_idx = np.argmin(err)
-
+    alpha_opt = alpha[alpha_idx]
+    
     if (verb):
-        print('Best alpha @ {} / {} -> {:.2f}'.format(alpha_idx, alpha_count, alpha[alpha_idx]))
+        print('Best alpha @ {} / {} -> {:.2f}'.format(alpha_idx, alpha_count, alpha_opt))
 
     # Use the original PhiDP values
     pp = np.copy(p)
     mp = np.nan_to_num(pp) <= 0.0
     pp[mp] = 0.0
 
-    at = alpha[alpha_idx] * pp ** b
+    az = alpha_opt * pp ** b
+    zc = z + az
 
-    return z + at;
+    # beta = d / deltaPhi (only at rm)
+    dm = d[range(ray_count), rm];
+    mp = deltaPhi < 1.0
+    deltaPhi[mp] = 1.0
+    beta = dm / deltaPhi
+    beta[mp] = np.nan
+    
+    beta_opt = np.nanmean(beta)
+    
+    ad = beta_opt / alpha_opt * az
+    dc = d + ad
+
+    return zc, dc;
