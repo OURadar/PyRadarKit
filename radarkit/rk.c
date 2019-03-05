@@ -457,10 +457,13 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
     PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
 
     // A new dictionary for output
-    PyObject *products = PyTuple_New(collection->count);
+    //PyObject *products = PyTuple_New(collection->count);
+    PyObject *products = PyDict_New();
 
     // Gather the products
     for (p = 0; p < (int)collection->count; p++) {
+        RKProduct *product = &collection->products[p];
+        
         // A scratch space for data
         scratch = (float *)malloc(dims[0] * dims[1] * sizeof(float));
         if (scratch == NULL) {
@@ -468,21 +471,26 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
             return Py_None;
         }
         float *y = scratch;
-        RKFloat *x = collection->products[p].data;
+        RKFloat *x = product->data;
         for (k = 0; k < (int)(dims[0] * dims[1]); k++) {
             *y++ = (float)*x++;
         }
         PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
         PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
 
+        // A new key for the output
+        PyObject *key = Py_BuildValue("s", collection->products[p].desc.symbol);
+        
         // A new dictionary for output
         PyObject *dict = Py_BuildValue("{s:s,s:s,s:s,s:O}",
-                                       "name", collection->products[p].desc.name,
-                                       "unit", collection->products[p].desc.unit,
-                                       "symbol", collection->products[p].desc.symbol,
+                                       "name", product->desc.name,
+                                       "unit", product->desc.unit,
+                                       "symbol", product->desc.symbol,
                                        "data", value);
         Py_DECREF(value);
-        PyTuple_SetItem(products, p, dict);
+        
+        // Add to the dictionary
+        PyDict_SetItem(products, key, dict);
     }
 
     // Return dictionary
