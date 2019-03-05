@@ -1,4 +1,5 @@
 import radarkit
+import algorithms
 
 class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
@@ -17,6 +18,8 @@ class main(radarkit.ProductRoutine):
         if 'Z' not in sweep.products:
             radarkit.logger.warning('Product Z does not exist.')
             return None
+
+        print(sweep.products)
 
         # Just a simple shift
         d = sweep.products['Z']

@@ -112,12 +112,14 @@ class Sweep(object):
         self.receivedRayCount = 0
         self.validSymbols = []
         self.products = {
+            'S': N.zeros((rays, gates), dtype=N.float),
             'Z': N.zeros((rays, gates), dtype=N.float),
             'V': N.zeros((rays, gates), dtype=N.float),
             'W': N.zeros((rays, gates), dtype=N.float),
             'D': N.zeros((rays, gates), dtype=N.float),
             'P': N.zeros((rays, gates), dtype=N.float),
-            'R': N.zeros((rays, gates), dtype=N.float)
+            'R': N.zeros((rays, gates), dtype=N.float),
+            'Q': N.zeros((rays, gates), dtype=N.float)
         }
 
 # Radar class
@@ -373,13 +375,18 @@ class Radar(object):
         The run loop
     """
     def _runLoop(self):
-        if not self.streams:
+        if self.streams is None:
             # Prepend data stream request
+            greetCommand = 'sYUXCOQA;' + self.registerString + '\r\n'
             #greetCommand = 'sYUXCOQ;' + self.registerString + '\r\n'
-            greetCommand = 'sYUCO;' + self.registerString + '\r\n'
+            #greetCommand = 'sYUCO;' + self.registerString + '\r\n'
         else:
             greetCommand = 's' + self.streams + '\r\n'
 
+        print('')
+        print(greetCommand)
+        print('')
+        
         greetCommand = greetCommand.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
