@@ -257,6 +257,38 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         Py_DECREF(value);
         Py_DECREF(key);
     }
+    if (ray->header.baseMomentList & RKBaseMomentListProductQ) {
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "K");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
+    }
+    if (ray->header.baseMomentList & RKBaseMomentListProductSh) {
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Sh");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
+    }
+    if (ray->header.baseMomentList & RKBaseMomentListProductSv) {
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Sv");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
+    }
+    if (ray->header.baseMomentList & RKBaseMomentListProductQ) {
+        f32data += ray->header.gateCount;
+        key = Py_BuildValue("s", "Q");
+        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+        PyDict_SetItem(dataDict, key, value);
+        Py_DECREF(value);
+        Py_DECREF(key);
+    }
 
     PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
                                   "elevation", ray->header.startElevation,
@@ -299,6 +331,26 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         if (ray->header.baseMomentList & RKBaseMomentListProductR) {
             f32data += ray->header.gateCount;
             fprintf(stderr, "                R = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
+        }
+        if (ray->header.baseMomentList & RKBaseMomentListProductK) {
+            f32data += ray->header.gateCount;
+            fprintf(stderr, "                K = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
+        }
+        if (ray->header.baseMomentList & RKBaseMomentListProductSh) {
+            f32data += ray->header.gateCount;
+            fprintf(stderr, "                Sh = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
+        }
+        if (ray->header.baseMomentList & RKBaseMomentListProductSv) {
+            f32data += ray->header.gateCount;
+            fprintf(stderr, "                Sv = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
+        }
+        if (ray->header.baseMomentList & RKBaseMomentListProductQ) {
+            f32data += ray->header.gateCount;
+            fprintf(stderr, "                Q = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         u8data = (uint8_t *)f32data;

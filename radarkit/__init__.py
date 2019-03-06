@@ -286,6 +286,7 @@ class Radar(object):
 
             # Parse the sweep
             sweepHeader = parseSweepHeader(self.payload, verbose=self.verbose)
+            print(sweepHeader['moments'])
             #print(sweepHeader)
             self.sweep.name = sweepHeader['name']
             self.sweep.configId = sweepHeader['configId']
