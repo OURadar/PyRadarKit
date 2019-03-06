@@ -61,15 +61,16 @@ class NETWORK_PACKET_TYPE:
 # An algorithm encapsulation
 class ProductRoutine(object):
     def __init__(self, verbose=0):
+        self.key = 0
         self.name = 'Algorithm Name'
         self.productCount = 1
-        self.productNames = ['ExpIPi']
-        self.productIds = [0]
-        self.symbols = ['X']
-        self.units = ['unitless']
-        self.cmaps = ['Default']
-        self.bs = [1.0]
-        self.ws = [0.0]
+        self.productNames = 'ExpIPi'
+        self.productIds = None
+        self.symbols = 'X'
+        self.units = 'unitless'
+        self.cmaps = 'Default'
+        self.bs = 1.0
+        self.ws = 0.0
         self.minValue = None
         self.maxValue = None
         self.verbose = verbose
@@ -90,10 +91,10 @@ class ProductRoutine(object):
             #print(self.bs)
             strings = []
             for name, symbol, unit, cmap, w, b in zip(self.productNames, self.symbols, self.units, self.cmaps, self.ws, self.bs):
-                dic = {'name': name, 'symbol': symbol, 'unit': unit, 'colormap': cmap, 'w': w, 'b': b}
+                dic = {'key': self.key, 'name': name, 'symbol': symbol, 'unit': unit, 'colormap': cmap, 'w': w, 'b': b}
                 strings.append(json.dumps(dic))
             return strings
-        dic = {'name': self.productNames, 'symbol': self.symbols, 'unit': self.units, 'colormap': self.cmaps, 'w': self.ws, 'b': self.bs}
+        dic = {'key': self.key, 'name': self.productNames, 'symbol': self.symbols, 'unit': self.units, 'colormap': self.cmaps, 'w': self.ws, 'b': self.bs}
         return json.dumps(dic)
 
     # Every algorithm should have this function defined
@@ -280,7 +281,7 @@ class Radar(object):
                             if letter in ray['moments']:
                                 self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
                     # Call the collection of algorithms (deprecating... updated 6/13/2018: how?)
-                    for obj in self.algorithmObjects:
+                    for _, obj in self.algorithmObjects.items():
                         obj.process(self.sweep)
                     print('')
                 # Zero out all data when a sweep begin is encountered
@@ -344,7 +345,7 @@ class Radar(object):
             self.sweep.receivedRayCount += 1
             if self.sweep.receivedRayCount == self.sweep.rayCount:
                 # Call the collection of algorithms
-                for obj in self.algorithmObjects:
+                for key, obj in self.algorithmObjects.items():
                     userProductData = obj.process(self.sweep)
                     userProductDesc = json.dumps({
                                                  'productId': obj.productId,
@@ -356,7 +357,7 @@ class Radar(object):
                             continue
                         if self.verbose > 1:
                             logger.info('Sending product ...')
-                        if isinstance(userProductData, list):
+                        if obj.productCount > 1:
                             print(len(userProductData))
                             print(userProductData)
                         else:
@@ -383,11 +384,17 @@ class Radar(object):
             if curlyBracketPosition > 0:
                 payloadDict = json.loads(responseString[curlyBracketPosition:])
                 if payloadDict['type'] == 'productDescription':
-                    symbol = payloadDict['symbol']
-                    if symbol is not None:
-                        self.algorithmObjects[symbol].productId = payloadDict['pid']
-                        logger.info('Product {} registered   {}'.format(colorize(symbol, COLOR.yellow),
-                                                                        variableInString('productId', payloadDict['pid'])))
+                    key = payloadDict['key']
+                    if key is not None:
+                        #self.algorithmObjects[key].productId = payloadDict['pid']
+                        pid = payloadDict['pid']
+                        symbol = payloadDict['symbol']
+                        idx = N.argmax([symbol == x for x in self.algorithmObjects[key].symbols])
+                        logger.info('Product {} registered   {}   {} ({})'.format(colorize(symbol, COLOR.yellow),
+                                                                                  variableInString('productId', pid),
+                                                                                  variableInString('key', key),
+                                                                                  colorize(idx, COLOR.salmon)))
+                        self.algorithmObjects[key].productIds[idx] = pid
 
     """
         The run loop
@@ -403,7 +410,7 @@ class Radar(object):
 
 #        print('')
 #        print(greetCommand)
-        
+
         greetCommand = greetCommand.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
@@ -461,7 +468,8 @@ class Radar(object):
         sys.path.insert(0, self.productRoutinesFolder)
         w0 = 1
         w1 = 1
-        self.algorithmObjects = []
+        uid = 1000
+        self.algorithmObjects = {}
         for script in glob.glob('{}/*.py'.format(self.productRoutinesFolder)):
             basename = os.path.basename(script)
             #modduleName = '{}.{}'.format(self.productRoutinesFolder, basename[:-3])
@@ -469,7 +477,10 @@ class Radar(object):
             mod = __import__(modduleName)
             obj = getattr(mod, 'main')(verbose=self.verbose)
             obj.basename = basename
-            self.algorithmObjects.append(obj)
+            obj.key = uid
+            uid += 1
+            obj.productIds = N.zeros(obj.productCount)
+            self.algorithmObjects.update({obj.key: obj})
             w0 = max(w0, len(obj.basename))
             w1 = max(w1, len(obj.name))
             if obj.productCount > 1:
@@ -491,10 +502,11 @@ class Radar(object):
         if self.registerString[-1] is ';':
             self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
-        for obj in self.algorithmObjects:
-            logger.info('> {} - {} -> {}'.format(colorize(obj.basename.ljust(w0, ' '), COLOR.lime),
-                                            obj.name.center(w1, ' '),
-                                            colorize(', '.join(obj.symbols), COLOR.yellow)))
+        for key, obj in self.algorithmObjects.items():
+            logger.info('> {}: {} - {} -> {}'.format(key,
+                                                    colorize(obj.basename.ljust(w0, ' '), COLOR.lime),
+                                                    colorize(obj.name.center(w1, ' '), COLOR.salmon),
+                                                    colorize(', '.join(obj.symbols), COLOR.yellow)))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         self.wantActive = True
@@ -520,7 +532,7 @@ class Radar(object):
     def wait(self):
         while (self.active):
             time.sleep(0.1)
-    
+
     """
         Close the socket
     """
@@ -528,7 +540,7 @@ class Radar(object):
         wantActive = False
         if (self.socket):
             self.socket.close()
-        
+
     """
         Deallocate
     """
