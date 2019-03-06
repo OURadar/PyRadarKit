@@ -24,9 +24,10 @@ class main(radarkit.ProductRoutine):
 
         # Just a simple shift
         d = sweep.products['Z']
+        e = d
 
         # Print something on the screen
         if self.verbose > 0:
             radarkit.showArray(d, letter=self.symbol)
 
-        return d
+        return d, e
