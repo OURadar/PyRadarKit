@@ -61,17 +61,18 @@ class NETWORK_PACKET_TYPE:
 # An algorithm encapsulation
 class ProductRoutine(object):
     def __init__(self, verbose=0):
-        self.name = 'Algorithm'
-        self.symbol = 'X'
-        self.unit = ''
-        self.colormap = 'Default'
-        self.active = False
-        self.b = 1.0
-        self.w = 0.0
+        self.name = 'Algorithm Name'
+        self.productNames = ['ExpIPi']
+        self.productIds = [0]
+        self.symbols = ['X']
+        self.units = ['unitless']
+        self.cmaps = ['Default']
+        self.bs = [1.0]
+        self.ws = [0.0]
         self.minValue = None
         self.maxValue = None
-        self.productId = 0
         self.verbose = verbose
+        self.active = False
 
     def __str__(self):
         return '{} -> {}   {}'.format(colorize(self.name, COLOR.salmon),
@@ -79,7 +80,19 @@ class ProductRoutine(object):
                                       variableInString('active', self.active))
 
     def description(self):
-        dic = {'name': self.name, 'symbol': self.symbol, 'unit': self.unit, 'colormap': self.colormap, 'b': self.b, 'w': self.w}
+        if isinstance(self.symbols, list):
+            #print(self.productNames)
+            #print(self.symbols)
+            #print(self.units)
+            #print(self.cmaps)
+            #print(self.ws)
+            #print(self.bs)
+            strings = []
+            for name, symbol, unit, cmap, w, b in zip(self.productNames, self.symbols, self.units, self.cmaps, self.ws, self.bs):
+                dic = {'name': name, 'symbol': symbol, 'unit': unit, 'colormap': cmap, 'w': w, 'b': b}
+                strings.append(json.dumps(dic))
+            return strings
+        dic = {'name': self.productNames, 'symbol': self.symbols, 'unit': self.units, 'colormap': self.cmaps, 'w': self.ws, 'b': self.bs}
         return json.dumps(dic)
 
     # Every algorithm should have this function defined
@@ -112,7 +125,7 @@ class Sweep(object):
         self.receivedRayCount = 0
         self.validSymbols = []
         self.products = {
-            'S': N.zeros((rays, gates), dtype=N.float),
+            'Sh': N.zeros((rays, gates), dtype=N.float),
             'Z': N.zeros((rays, gates), dtype=N.float),
             'V': N.zeros((rays, gates), dtype=N.float),
             'W': N.zeros((rays, gates), dtype=N.float),
@@ -342,19 +355,23 @@ class Radar(object):
                             continue
                         if self.verbose > 1:
                             logger.info('Sending product ...')
-                        # Network delimiter (see above)
-                        bytes = len(userProductDesc)
-                        values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
-                        delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
-                        # Network delimiter (see above)
-                        bytes = self.sweep.gateCount * self.sweep.rayCount * 4
-                        values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
-                        delimiterForData = self.netDelimiterStruct.pack(*values)
-                        # Data array in plain float array
-                        r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
-                        if r is not None:
-                            logger.exception('Error sending userProduct.')
-                        logger.info('User product {} sent'.format(colorize(obj.symbol, COLOR.yellow)))
+                        if isinstance(userProductData, list):
+                            print(len(userProductData))
+                            print(userProductData)
+                        else:
+                            # Network delimiter (see above)
+                            bytes = len(userProductDesc)
+                            values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
+                            delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
+                            # Network delimiter (see above)
+                            bytes = self.sweep.gateCount * self.sweep.rayCount * 4
+                            values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
+                            delimiterForData = self.netDelimiterStruct.pack(*values)
+                            # Data array in plain float array
+                            r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
+                            if r is not None:
+                                logger.exception('Error sending userProduct.')
+                            logger.info('User product {} sent'.format(colorize(obj.symbol, COLOR.yellow)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
@@ -450,16 +467,34 @@ class Radar(object):
             mod = __import__(modduleName)
             obj = getattr(mod, 'main')(verbose=self.verbose)
             obj.basename = basename
-            self.algorithmObjects.update({obj.symbol: obj})
-            w = max(w, len(obj.basename))
-            if (obj.active):
-                self.registerString += 'u {};'.format(obj.description())
+            if isinstance(obj.symbols, list):
+                # Make sure the productNames, symbols, units, etc. are also lists
+                count = len(obj.symbols)
+                if ((not isinstance(obj.productNames, list) or not len(obj.productNames) == count) or
+                    (not isinstance(obj.symbols, list) or not len(obj.symbols) == count) or
+                    (not isinstance(obj.units, list) or not len(obj.units) == count) or
+                    (not isinstance(obj.cmaps, list) or not len(obj.cmaps) == count) or
+                    (not isinstance(obj.ws, list) or not len(obj.ws) == count) or
+                    (not isinstance(obj.bs, list) or not len(obj.bs) == count)):
+                    logger.warning('Product routine should have productNames, symbols, units, cmaps, ws, bs with same length.')
+                for symbol in obj.symbols:
+                    self.algorithmObjects.update({symbol: obj})
+                    w = max(w, len(obj.basename))
+                if (obj.active):
+                    for desc in obj.description():
+                        self.registerString += 'u {};'.format(desc)
+            else :
+                self.algorithmObjects.update({obj.symbols: obj})
+                w = max(w, len(obj.basename))
+                if (obj.active):
+                    self.registerString += 'u {};'.format(obj.description())
         # Remove the last ';'
-        self.registerString = self.registerString[:-1]
+        if self.registerString[-1] is ';':
+            self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
         stringFormat = '> {} - {}{:' + str(w) + 's}{} -> {}'
         for symbol, obj in self.algorithmObjects.items():
-            logger.info(stringFormat.format(colorize(obj.symbol, COLOR.yellow),
+            logger.info(stringFormat.format(colorize(symbol, COLOR.yellow),
                                             COLOR.lime, obj.basename, COLOR.reset, obj.name))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))

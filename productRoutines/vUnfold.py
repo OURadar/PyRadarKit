@@ -3,14 +3,15 @@ import radarkit
 class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
-        self.name = 'V-Unfold'
-        self.unit = 'MetersPerSecond'
-        self.symbol = 'U'
-        self.active = True
-        self.b = 0.117647
-        self.w = 4.25
+        self.name = 'Simple V Unfold'
+        self.productNames = 'Unfolded Velocity'
+        self.units = 'MetersPerSecond'
+        self.symbols = 'U'
+        self.bs = 0.117647
+        self.ws = 4.25
         self.minValue = -30.0
         self.maxValue = 30.0
+        self.active = True
 
     def process(self, sweep):
         super().process(sweep)
