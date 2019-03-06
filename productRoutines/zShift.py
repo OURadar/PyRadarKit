@@ -5,6 +5,7 @@ class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
         self.name = 'SCWC'
+        self.productCount = 2
         self.productNames = ['Corrected Reflectivity', 'Corrected Differential Reflectivity']
         self.symbols = ['Y', 'C']
         self.units = ['dBZ', 'dB']

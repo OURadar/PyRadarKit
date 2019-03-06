@@ -62,6 +62,7 @@ class NETWORK_PACKET_TYPE:
 class ProductRoutine(object):
     def __init__(self, verbose=0):
         self.name = 'Algorithm Name'
+        self.productCount = 1
         self.productNames = ['ExpIPi']
         self.productIds = [0]
         self.symbols = ['X']
@@ -343,7 +344,7 @@ class Radar(object):
             self.sweep.receivedRayCount += 1
             if self.sweep.receivedRayCount == self.sweep.rayCount:
                 # Call the collection of algorithms
-                for symbol, obj in self.algorithmObjects.items():
+                for obj in self.algorithmObjects:
                     userProductData = obj.process(self.sweep)
                     userProductDesc = json.dumps({
                                                  'productId': obj.productId,
@@ -458,8 +459,9 @@ class Radar(object):
         # Loop through all the files under (productRoutines) folder
         logger.info('Loading algorithms ...')
         sys.path.insert(0, self.productRoutinesFolder)
-        w = 1
-        self.algorithmObjects = {}
+        w0 = 1
+        w1 = 1
+        self.algorithmObjects = []
         for script in glob.glob('{}/*.py'.format(self.productRoutinesFolder)):
             basename = os.path.basename(script)
             #modduleName = '{}.{}'.format(self.productRoutinesFolder, basename[:-3])
@@ -467,35 +469,32 @@ class Radar(object):
             mod = __import__(modduleName)
             obj = getattr(mod, 'main')(verbose=self.verbose)
             obj.basename = basename
-            if isinstance(obj.symbols, list):
+            self.algorithmObjects.append(obj)
+            w0 = max(w0, len(obj.basename))
+            w1 = max(w1, len(obj.name))
+            if obj.productCount > 1:
                 # Make sure the productNames, symbols, units, etc. are also lists
-                count = len(obj.symbols)
-                if ((not isinstance(obj.productNames, list) or not len(obj.productNames) == count) or
-                    (not isinstance(obj.symbols, list) or not len(obj.symbols) == count) or
-                    (not isinstance(obj.units, list) or not len(obj.units) == count) or
-                    (not isinstance(obj.cmaps, list) or not len(obj.cmaps) == count) or
-                    (not isinstance(obj.ws, list) or not len(obj.ws) == count) or
-                    (not isinstance(obj.bs, list) or not len(obj.bs) == count)):
+                if ((not isinstance(obj.productNames, list) or not len(obj.productNames) == obj.productCount) or
+                    (not isinstance(obj.symbols, list) or not len(obj.symbols) == obj.productCount) or
+                    (not isinstance(obj.units, list) or not len(obj.units) == obj.productCount) or
+                    (not isinstance(obj.cmaps, list) or not len(obj.cmaps) == obj.productCount) or
+                    (not isinstance(obj.ws, list) or not len(obj.ws) == obj.productCount) or
+                    (not isinstance(obj.bs, list) or not len(obj.bs) == obj.productCount)):
                     logger.warning('Product routine should have productNames, symbols, units, cmaps, ws, bs with same length.')
-                for symbol in obj.symbols:
-                    self.algorithmObjects.update({symbol: obj})
-                    w = max(w, len(obj.basename))
                 if (obj.active):
                     for desc in obj.description():
                         self.registerString += 'u {};'.format(desc)
             else :
-                self.algorithmObjects.update({obj.symbols: obj})
-                w = max(w, len(obj.basename))
                 if (obj.active):
                     self.registerString += 'u {};'.format(obj.description())
         # Remove the last ';'
         if self.registerString[-1] is ';':
             self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
-        stringFormat = '> {} - {}{:' + str(w) + 's}{} -> {}'
-        for symbol, obj in self.algorithmObjects.items():
-            logger.info(stringFormat.format(colorize(symbol, COLOR.yellow),
-                                            COLOR.lime, obj.basename, COLOR.reset, obj.name))
+        for obj in self.algorithmObjects:
+            logger.info('> {} - {} -> {}'.format(colorize(obj.basename.ljust(w0, ' '), COLOR.lime),
+                                            obj.name.center(w1, ' '),
+                                            colorize(', '.join(obj.symbols), COLOR.yellow)))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         self.wantActive = True
