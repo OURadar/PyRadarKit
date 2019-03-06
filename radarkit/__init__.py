@@ -286,7 +286,6 @@ class Radar(object):
 
             # Parse the sweep
             sweepHeader = parseSweepHeader(self.payload, verbose=self.verbose)
-            print(sweepHeader['moments'])
             #print(sweepHeader)
             self.sweep.name = sweepHeader['name']
             self.sweep.configId = sweepHeader['configId']
@@ -378,15 +377,14 @@ class Radar(object):
     def _runLoop(self):
         if self.streams is None:
             # Prepend data stream request
-            greetCommand = 'sYUXCOQA;' + self.registerString + '\r\n'
+            greetCommand = 'sYUXCOQAH;' + self.registerString + '\r\n'
             #greetCommand = 'sYUXCOQ;' + self.registerString + '\r\n'
             #greetCommand = 'sYUCO;' + self.registerString + '\r\n'
         else:
             greetCommand = 's' + self.streams + '\r\n'
 
-        print('')
-        print(greetCommand)
-        print('')
+#        print('')
+#        print(greetCommand)
         
         greetCommand = greetCommand.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))

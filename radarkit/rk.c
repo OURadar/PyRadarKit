@@ -407,7 +407,7 @@ static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *
     RKBaseMomentList list = sweepHeader->baseMomentList;
     int count = __builtin_popcount(list);
 
-    // A list of base moment symbols from the sweep header
+    // A tuple of base moment symbols from the sweep header
     //PyObject *moments = PyList_New(count);
     PyObject *moments = PyTuple_New(count);
 

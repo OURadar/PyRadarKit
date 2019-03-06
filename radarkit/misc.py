@@ -26,7 +26,7 @@ class COLOR:
 def showArray(d, letter='U'):
     formatDesc = ' {:6.2f}'
     j = 0
-    print('    {} = [ {} ... {} ]'.format(colorize(letter, COLOR.yellow),
+    print('  {} = [ {} ... {} ]'.format(colorize(letter.rjust(3, ' '), COLOR.yellow),
                                           ' '.join([formatDesc.format(x) for x in d[j, :3]]),
                                           ' '.join([formatDesc.format(x) for x in d[j, -3:]])))
     for j in range(1, 3):

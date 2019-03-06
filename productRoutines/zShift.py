@@ -19,8 +19,6 @@ class main(radarkit.ProductRoutine):
             radarkit.logger.warning('Product Z does not exist.')
             return None
 
-        print(sweep.products)
-
         # Just a simple shift
         d = sweep.products['Z']
 
