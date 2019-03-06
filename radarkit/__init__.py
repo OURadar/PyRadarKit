@@ -78,7 +78,7 @@ class ProductRoutine(object):
 
     def __str__(self):
         return '{} -> {}   {}'.format(colorize(self.name, COLOR.salmon),
-                                      colorize(self.symbol, COLOR.yellow),
+                                      ', '.join([colorize(x, COLOR.yellow) for x in self.symbols]),
                                       variableInString('active', self.active))
 
     def description(self):
@@ -105,6 +105,7 @@ class ProductRoutine(object):
                                                         variableInString('gates', sweep.gateCount)))
         else:
             logger.info('Algorithm {}'.format(self))
+        return None
 
 # A sweep encapsulation
 class Sweep(object):
@@ -343,57 +344,58 @@ class Radar(object):
                     print('                {} = {}'.format(symbol, self.sweep.products[symbol][k, 0:10]))
                 print('>>')
             self.sweep.receivedRayCount += 1
-            if self.sweep.receivedRayCount == self.sweep.rayCount:
-                # Call the collection of algorithms
-                for key, obj in self.algorithmObjects.items():
-                    print('Calling {} for {} ({}) ...'.format(key, obj.symbols, obj.productCount))
-                    print(obj)
-                    userProductData = obj.process(self.sweep)
-                    print(userProductData)
-                    userProductDesc = []
-                    #print('ProductIds = {}'.format(obj.ProductIds))
-                    for pid in obj.productIds:
-                        userProductDesc.append(json.dumps({
-                                                          'productId': pid,
-                                                          'configId': self.sweep.configId
-                                                          }).encode('utf-8'))
-                    print(userProductDesc)
-                    if obj.active:
-                        if userProductData is None:
-                            logger.exception('Expected product(s) from {}'.format(obj))
-                            continue
-                        if self.verbose > 1:
-                            logger.info('Sending product ...')
-                        if obj.productCount > 1:
-                            for data, desc, symbol in zip(userProductData, userProductDesc, obj.symbols):
-                                print('Sending {} ...'.format(symbol))
-                                # Network delimiter (see above)
-                                bytes = len(desc)
-                                values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
-                                delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
-                                # Network delimiter (see above)
-                                bytes = self.sweep.gateCount * self.sweep.rayCount * 4
-                                values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
-                                delimiterForData = self.netDelimiterStruct.pack(*values)
-                                # Data array in plain float array
-                                r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
-                                if r is not None:
-                                    logger.exception('Error sending userProduct.')
-                                logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
-                        else:
-                            # Network delimiter (see above)
-                            bytes = len(userProductDesc)
-                            values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
-                            delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
-                            # Network delimiter (see above)
-                            bytes = self.sweep.gateCount * self.sweep.rayCount * 4
-                            values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
-                            delimiterForData = self.netDelimiterStruct.pack(*values)
-                            # Data array in plain float array
-                            r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
-                            if r is not None:
-                                logger.exception('Error sending userProduct.')
-                            logger.info('User product {} sent'.format(colorize(obj.symbol, COLOR.yellow)))
+            # The rests are at the end of a sweep, early return if it is not end of sweep
+            if not self.sweep.receivedRayCount == self.sweep.rayCount:
+                return
+            # Call the collection of algorithms
+            print(self.algorithmObjects)
+            for key, obj in self.algorithmObjects.items():
+                print('Calling {} for {} ({}) {} ...'.format(key, obj.symbols, obj.productCount, obj.productIds))
+                userProductData = obj.process(self.sweep)
+                print(obj.active)
+                print(userProductData)
+                if not obj.active:
+                    continue
+                userProductDesc = []
+                #print('productIds = {}'.format(obj.productIds))
+                for pid in obj.productIds:
+                    userProductDesc.append(json.dumps({'productId': pid, 'configId': self.sweep.configId}).encode('utf-8'))
+                print(userProductDesc)
+                if userProductData is None:
+                    logger.exception('Expected product(s) from {}'.format(obj))
+                    continue
+                if self.verbose > 1:
+                    logger.info('Sending product ...')
+                if obj.productCount > 1:
+                    for data, desc, symbol in zip(userProductData, userProductDesc, obj.symbols):
+                        print('Sending {} ...'.format(symbol))
+                        # Network delimiter (see above)
+                        bytes = len(desc)
+                        values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
+                        delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
+                        # Network delimiter (see above)
+                        bytes = self.sweep.gateCount * self.sweep.rayCount * 4
+                        values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
+                        delimiterForData = self.netDelimiterStruct.pack(*values)
+                        # Data array in plain float array
+                        r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
+                        if r is not None:
+                            logger.exception('Error sending userProduct.')
+                        logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
+                else:
+                    # Network delimiter (see above)
+                    bytes = len(userProductDesc)
+                    values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
+                    delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
+                    # Network delimiter (see above)
+                    bytes = self.sweep.gateCount * self.sweep.rayCount * 4
+                    values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
+                    delimiterForData = self.netDelimiterStruct.pack(*values)
+                    # Data array in plain float array
+                    r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
+                    if r is not None:
+                        logger.exception('Error sending userProduct.')
+                    logger.info('User product {} sent'.format(colorize(obj.symbol, COLOR.yellow)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
@@ -499,7 +501,7 @@ class Radar(object):
             obj.basename = basename
             obj.key = uid
             uid += 1
-            obj.productIds = N.zeros(obj.productCount)
+            obj.productIds = N.zeros(obj.productCount, dtype=N.int)
             self.algorithmObjects.update({obj.key: obj})
             w0 = max(w0, len(obj.basename))
             w1 = max(w1, len(obj.name))
@@ -526,7 +528,7 @@ class Radar(object):
             logger.info('> {}: {} - {} -> {}'.format(key,
                                                     colorize(obj.basename.ljust(w0, ' '), COLOR.lime),
                                                     colorize(obj.name.center(w1, ' '), COLOR.salmon),
-                                                    ', '.join([colorize(s, COLOR.yellow) for s in obj.symbols])))
+                                                    ', '.join([colorize(x, COLOR.yellow) for x in obj.symbols])))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         self.wantActive = True
