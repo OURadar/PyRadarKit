@@ -6,13 +6,13 @@ class main(radarkit.ProductRoutine):
         super().__init__(verbose=verbose)
         self.name = 'SCWC'
         self.productCount = 2
-        self.productNames = ['Corrected Reflectivity', 'Corrected Differential Reflectivity']
-        self.symbols = ['Y', 'C']
-        self.units = ['dBZ', 'dB']
-        self.cmaps = ['Z', 'D']
-        self.bs = [-32.0, -10.0]
-        self.ws = [0.5, 0.1]
-        self.active = True
+        self.productName = ['Corrected Reflectivity', 'Corrected Differential Reflectivity']
+        self.symbol = ['Y', 'C']
+        self.unit = ['dBZ', 'dB']
+        self.cmap = ['Z', 'D']
+        self.b = [-32.0, -10.0]
+        self.w = [0.5, 0.1]
+        self.active = False
 
     def process(self, sweep):
         super().process(sweep)

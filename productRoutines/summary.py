@@ -5,7 +5,7 @@ class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
         self.name = 'Summary'
-        self.symbols = 'G'
+        self.symbol = 'G'
 
         # Other internal variables
         self.threshold = 1.0

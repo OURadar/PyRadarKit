@@ -64,13 +64,13 @@ class ProductRoutine(object):
         self.key = 0
         self.name = 'Algorithm Name'
         self.productCount = 1
-        self.productNames = 'ExpIPi'
-        self.productIds = None
-        self.symbols = 'X'
-        self.units = 'unitless'
-        self.cmaps = 'Default'
-        self.bs = 1.0
-        self.ws = 0.0
+        self.productName = 'ExpIPi'
+        self.productId = None
+        self.symbol = 'X'
+        self.unit = 'unitless'
+        self.cmap = 'Default'
+        self.b = 1.0
+        self.w = 0.0
         self.minValue = None
         self.maxValue = None
         self.verbose = verbose
@@ -78,23 +78,23 @@ class ProductRoutine(object):
 
     def __str__(self):
         return '{} -> {}   {}'.format(colorize(self.name, COLOR.salmon),
-                                      ', '.join([colorize(x, COLOR.yellow) for x in self.symbols]),
+                                      ', '.join([colorize(x, COLOR.yellow) for x in self.symbol]),
                                       variableInString('active', self.active))
 
     def description(self):
-        if isinstance(self.symbols, list):
-            #print(self.productNames)
-            #print(self.symbols)
-            #print(self.units)
-            #print(self.cmaps)
-            #print(self.ws)
-            #print(self.bs)
+        if self.productCount > 1:
+            #print(self.productName)
+            #print(self.symbol)
+            #print(self.unit)
+            #print(self.cmap)
+            #print(self.w)
+            #print(self.b)
             strings = []
-            for name, symbol, unit, cmap, w, b in zip(self.productNames, self.symbols, self.units, self.cmaps, self.ws, self.bs):
+            for name, symbol, unit, cmap, w, b in zip(self.productName, self.symbol, self.unit, self.cmap, self.w, self.b):
                 dic = {'key': self.key, 'name': name, 'symbol': symbol, 'unit': unit, 'colormap': cmap, 'w': w, 'b': b}
-                strings.append(json.dumps(dic))
+                strings.append(json.dumps(dic).encode('utf-8'))
             return strings
-        dic = {'key': self.key, 'name': self.productNames, 'symbol': self.symbols, 'unit': self.units, 'colormap': self.cmaps, 'w': self.ws, 'b': self.bs}
+        dic = {'key': self.key, 'name': self.productName, 'symbol': self.symbol, 'unit': self.unit, 'colormap': self.cmap, 'w': self.w, 'b': self.b}
         return json.dumps(dic)
 
     # Every algorithm should have this function defined
@@ -105,7 +105,6 @@ class ProductRoutine(object):
                                                         variableInString('gates', sweep.gateCount)))
         else:
             logger.info('Algorithm {}'.format(self))
-        return None
 
 # A sweep encapsulation
 class Sweep(object):
@@ -350,24 +349,33 @@ class Radar(object):
             # Call the collection of algorithms
             print(self.algorithmObjects)
             for key, obj in self.algorithmObjects.items():
-                print('Calling {} for {} ({}) {} ...'.format(key, obj.symbols, obj.productCount, obj.productIds))
+                logger.info('Calling {} for {} ({}) {} ...'.format(key, obj.symbol, obj.productCount, obj.productId))
                 userProductData = obj.process(self.sweep)
-                print(obj.active)
-                print(userProductData)
                 if not obj.active:
                     continue
+#                if not isinstance(userProductData, list):
+#                    userProductData = (userProductData)
+                print(key)
+                print(obj.productId)
+                print(userProductData)
+                print('productId = {}'.format(obj.productId))
                 userProductDesc = []
-                #print('productIds = {}'.format(obj.productIds))
-                for pid in obj.productIds:
-                    userProductDesc.append(json.dumps({'productId': pid, 'configId': self.sweep.configId}).encode('utf-8'))
+                for pid in obj.productId:
+                    dic = {'key': key, 'productId': pid, 'configId': self.sweep.configId}
+                    print(dic)
+                    strings = json.dumps(dic).encode('utf-8')
+                    print(strings)
+                    userProductDesc.append(strings)
+#                userProductDesc = json.dumps({'key': key, 'productId': obj.productId, 'configId': self.sweep.configId}).encode('utf-8')
+#                userProductDesc = 'abc'
                 print(userProductDesc)
-                if userProductData is None:
-                    logger.exception('Expected product(s) from {}'.format(obj))
-                    continue
+#                if len(userProductData) == 0:
+#                    logger.exception('Expected product(s) from {}'.format(obj))
+#                    continue
                 if self.verbose > 1:
                     logger.info('Sending product ...')
                 if obj.productCount > 1:
-                    for data, desc, symbol in zip(userProductData, userProductDesc, obj.symbols):
+                    for data, desc, symbol in zip(userProductData, userProductDesc, obj.symbol):
                         print('Sending {} ...'.format(symbol))
                         # Network delimiter (see above)
                         bytes = len(desc)
@@ -411,12 +419,12 @@ class Radar(object):
                         #self.algorithmObjects[key].productId = payloadDict['pid']
                         pid = payloadDict['pid']
                         symbol = payloadDict['symbol']
-                        idx = N.argmax([symbol == x for x in self.algorithmObjects[key].symbols])
+                        idx = N.argmax([symbol == x for x in self.algorithmObjects[key].symbol])
                         logger.info('Product {} registered   {}   {} ({})'.format(colorize(symbol, COLOR.yellow),
                                                                                   variableInString('key', key),
                                                                                   variableInString('productId', pid),
                                                                                   idx))
-                        self.algorithmObjects[key].productIds[idx] = pid
+                        self.algorithmObjects[key].productId[idx] = pid
 
     """
         The run loop
@@ -501,19 +509,19 @@ class Radar(object):
             obj.basename = basename
             obj.key = uid
             uid += 1
-            obj.productIds = N.zeros(obj.productCount, dtype=N.int)
+            obj.productId = N.zeros(obj.productCount, dtype=N.int)
             self.algorithmObjects.update({obj.key: obj})
             w0 = max(w0, len(obj.basename))
             w1 = max(w1, len(obj.name))
             if obj.productCount > 1:
                 # Make sure the productNames, symbols, units, etc. are also lists
-                if ((not isinstance(obj.productNames, list) or not len(obj.productNames) == obj.productCount) or
-                    (not isinstance(obj.symbols, list) or not len(obj.symbols) == obj.productCount) or
-                    (not isinstance(obj.units, list) or not len(obj.units) == obj.productCount) or
-                    (not isinstance(obj.cmaps, list) or not len(obj.cmaps) == obj.productCount) or
-                    (not isinstance(obj.ws, list) or not len(obj.ws) == obj.productCount) or
-                    (not isinstance(obj.bs, list) or not len(obj.bs) == obj.productCount)):
-                    logger.warning('Product routine should have productNames, symbols, units, cmaps, ws, bs with same length.')
+                if ((not isinstance(obj.productName, list) or not len(obj.productName) == obj.productCount) or
+                    (not isinstance(obj.symbol, list) or not len(obj.symbol) == obj.productCount) or
+                    (not isinstance(obj.unit, list) or not len(obj.unit) == obj.productCount) or
+                    (not isinstance(obj.cmap, list) or not len(obj.cmap) == obj.productCount) or
+                    (not isinstance(obj.w, list) or not len(obj.w) == obj.productCount) or
+                    (not isinstance(obj.b, list) or not len(obj.b) == obj.productCount)):
+                    logger.warning('Product routine should have productName, symbol, unit, cmap, w, b with same length.')
                 if (obj.active):
                     for desc in obj.description():
                         self.registerString += 'u {};'.format(desc)
@@ -528,7 +536,7 @@ class Radar(object):
             logger.info('> {}: {} - {} -> {}'.format(key,
                                                     colorize(obj.basename.ljust(w0, ' '), COLOR.lime),
                                                     colorize(obj.name.center(w1, ' '), COLOR.salmon),
-                                                    ', '.join([colorize(x, COLOR.yellow) for x in obj.symbols])))
+                                                    ', '.join([colorize(x, COLOR.yellow) for x in obj.symbol])))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         self.wantActive = True
