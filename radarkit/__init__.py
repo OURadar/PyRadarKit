@@ -353,7 +353,8 @@ class Radar(object):
                 return
             # Call the collection of algorithms
             for key, obj in self.algorithmObjects.items():
-                logger.info('Calling {} for {} ({}) {} ...'.format(key, obj.symbol, obj.productCount, obj.productId))
+                if self.verbose > 1:
+                    logger.info('Calling algorithm key {} for {} ({}) {} ...'.format(key, obj.symbol, obj.productCount, obj.productId))
                 userProductData = obj.process(self.sweep)
                 if not obj.active:
                     continue
