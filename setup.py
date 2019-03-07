@@ -117,7 +117,6 @@ with open(os.path.join(here, 'README.md')) as f:
 
 setup(
     name='PyRadarKit',
-    version='1.0.1',
     description='The Python Extension of RadarKit.',
     author='Boonleng Cheong',
     author_email='boonleng@ou.edu',
