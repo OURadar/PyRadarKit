@@ -110,9 +110,6 @@ def scwc(s, z, d, p, r,
     alpha_idx = np.argmin(err)
     alpha_opt = alpha[alpha_idx]
     
-    if (verb):
-        print('Best alpha @ {} / {} -> {:.2f}'.format(alpha_idx, alpha_count, alpha_opt))
-
     # Use the original PhiDP values
     pp = np.copy(p)
     mp = np.nan_to_num(pp) <= 0.0
@@ -134,5 +131,10 @@ def scwc(s, z, d, p, r,
 
     ad = beta_opt / alpha_opt * az
     dc = d + ad
+
+    if (verb):
+        print('Best alpha @ {} / {} (0 indexing)'.format(alpha_idx, alpha_count))
+        print('alpha_opt = {:.4f}   beta_opt = {:.4f}'.format(alpha_opt, beta_opt))
+        print('beta_opt / alpha_opt = {:.4f}'.format(beta_opt / alpha_opt))
 
     return zc, dc;

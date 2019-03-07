@@ -15,6 +15,7 @@ import struct
 import json
 
 from .scwc import *
+from .zphi import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)

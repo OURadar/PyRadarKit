@@ -221,9 +221,9 @@ class Chart:
         self.colorbar = None
 
         if values is not None:
-            self.set_data(values, style=style)
+            self.set_data(values, style=style, title=title)
 
-    def set_data(self, values, a=None, r=None, style='S'):
+    def set_data(self, values, a=None, r=None, style='S', title=None):
         if values is None:
             print('No changes')
             return
@@ -232,7 +232,7 @@ class Chart:
             self.xx = rr * np.sin(aa)
             self.yy = rr * np.cos(aa)
         mask = np.isfinite(values)
-        # Pick a colormap, vmin and vmax based on style
+        # Pick a colormap, vmin, vmax, ticklabels, titlestring, etc. based on style
         if style is 'K':
             # KDP is not finalized yet
             colors = blib.kmap()
@@ -240,7 +240,7 @@ class Chart:
             vmax = 0.1 * np.pi
             cticks = np.arange(-10, 10, 2)
             cticklabels = None
-            title = 'KDP (degres / km)'
+            titlestring = 'KDP (degres / km)'
         elif style is 'R':
             # Special case, values are mapped to indices
             colors = blib.rmap()
@@ -250,21 +250,21 @@ class Chart:
             values[mask] = rho2ind(values[mask])
             cticklabels = np.array([0.73, 0.83, 0.93, 0.96, 0.99, 1.02, 1.05])
             cticks = rho2ind(cticklabels)
-            title = 'RhoHV (unitless)'
+            titlestring = 'RhoHV (unitless)'
         elif style is 'P':
             colors = blib.pmap()
             vmin = -180.0
             vmax = 180.0
             cticks = np.arange(-180, 181, 60)
             cticklabels = None
-            title = 'PhiDP (degrees)'
+            titlestring = 'PhiDP (degrees)'
         elif style is 'D':
             colors = blib.dmap()
             vmin = -10.0
             vmax = 15.5 + 0.1
             cticks = np.arange(-9, 15, 3)
             cticklabels = None
-            title = 'ZDR (dB)'
+            titlestring = 'ZDR (dB)'
         elif style is 'W':
             # I realize there is an offset of 1 but okay
             colors = blib.wmap()
@@ -272,7 +272,7 @@ class Chart:
             vmax = 12.75 + 0.05
             cticks = np.arange(0, 15, 2)
             cticklabels = None
-            title = 'Width (m/s)'
+            titlestring = 'Width (m/s)'
         elif style is 'V':
             # colors = blib.vmap()
             colors = vmap_local()
@@ -280,7 +280,7 @@ class Chart:
             vmax = 15.875 + 0.125
             cticks = np.arange(-16, 17, 4)
             cticklabels = None
-            title = 'Velocity (m/s)'
+            titlestring = 'Velocity (m/s)'
         elif style is 'Z':
             colors = blib.zmap()
             d = 0.5
@@ -288,14 +288,14 @@ class Chart:
             vmax = 95.5 + 0.5
             cticklabels = None
             cticks = np.arange(-25, 81, 15)
-            title = 'Reflectivity (dBZ)'
+            titlestring = 'Reflectivity (dBZ)'
         else:
             colors = zmap_local()
             vmin = 0.0
             vmax = 75.0 + 5.0
             cticks = np.arange(-25, 85, 15)
             cticklabels = None
-            title = 'Data'
+            titlestring = 'Data'
         cmap = matplotlib.colors.LinearSegmentedColormap.from_list('colors', colors[:, :3], N=len(colors))
         # Keep a copy of the values
         self.values = np.ma.masked_where(~mask, values)
@@ -314,7 +314,9 @@ class Chart:
         self.colorbar.set_ticks(cticks)
         if not cticklabels is None:
             self.colorbar.set_ticklabels(cticklabels)
-        self.cax.set_title(title)
+        if not title is None:
+            titlestring = title
+        self.cax.set_title(titlestring)
 
     def savefig(self, filename):
         self.fig.savefig(filename)
