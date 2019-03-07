@@ -1,5 +1,6 @@
 import radarkit
 import algorithms
+import numpy as np
 
 class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
@@ -12,7 +13,7 @@ class main(radarkit.ProductRoutine):
         self.cmap = ['Z', 'D']
         self.b = [-32.0, -10.0]
         self.w = [0.5, 0.1]
-        self.active = False
+        self.active = True
 
     def process(self, sweep):
         super().process(sweep)
@@ -23,11 +24,13 @@ class main(radarkit.ProductRoutine):
             return None
 
         # Just a simple shift
-        d = sweep.products['Z']
-        e = d
+        d = np.copy(sweep.products['Z']) + 0.1
+        e = np.copy(d) - 0.05
 
         # Print something on the screen
         if self.verbose > 0:
-            radarkit.showArray(d, letter=self.symbol)
+            radarkit.showArray(d, letter=self.symbol[0])
+            print('')
+            radarkit.showArray(e, letter=self.symbol[1])
 
         return d, e

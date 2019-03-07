@@ -10,6 +10,7 @@ import enum
 import glob
 import math
 import time
+import array
 import logging
 import threading
 import datetime
@@ -71,13 +72,13 @@ class ProductRoutine(object):
         self.cmap = 'Default'
         self.b = 1.0
         self.w = 0.0
-        self.minValue = None
-        self.maxValue = None
+        self.minValue = -999.9
+        self.maxValue = +999.9
         self.verbose = verbose
         self.active = False
 
     def __str__(self):
-        return '{} -> {}   {}'.format(colorize(self.name, COLOR.salmon),
+        return '{} -> {}   {}'.format(colorize(self.name, COLOR.iceblue),
                                       ', '.join([colorize(x, COLOR.yellow) for x in self.symbol]),
                                       variableInString('active', self.active))
 
@@ -347,36 +348,22 @@ class Radar(object):
             if not self.sweep.receivedRayCount == self.sweep.rayCount:
                 return
             # Call the collection of algorithms
-            print(self.algorithmObjects)
             for key, obj in self.algorithmObjects.items():
                 logger.info('Calling {} for {} ({}) {} ...'.format(key, obj.symbol, obj.productCount, obj.productId))
                 userProductData = obj.process(self.sweep)
                 if not obj.active:
                     continue
-#                if not isinstance(userProductData, list):
-#                    userProductData = (userProductData)
-                print(key)
-                print(obj.productId)
-                print(userProductData)
-                print('productId = {}'.format(obj.productId))
                 userProductDesc = []
                 for pid in obj.productId:
-                    dic = {'key': key, 'productId': pid, 'configId': self.sweep.configId}
-                    print(dic)
-                    strings = json.dumps(dic).encode('utf-8')
-                    print(strings)
-                    userProductDesc.append(strings)
-#                userProductDesc = json.dumps({'key': key, 'productId': obj.productId, 'configId': self.sweep.configId}).encode('utf-8')
-#                userProductDesc = 'abc'
-                print(userProductDesc)
-#                if len(userProductData) == 0:
-#                    logger.exception('Expected product(s) from {}'.format(obj))
-#                    continue
+                    jsonString = json.dumps({'key': key, 'productId': pid, 'configId': self.sweep.configId}).encode('utf-8')
+                    userProductDesc.append(jsonString)
+                if userProductData is None or len(userProductData) == 0:
+                    logger.exception('Expected product(s) from {}'.format(obj))
+                    continue
                 if self.verbose > 1:
-                    logger.info('Sending product ...')
+                    logger.info('Sending products ...')
                 if obj.productCount > 1:
                     for data, desc, symbol in zip(userProductData, userProductDesc, obj.symbol):
-                        print('Sending {} ...'.format(symbol))
                         # Network delimiter (see above)
                         bytes = len(desc)
                         values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
@@ -386,7 +373,7 @@ class Radar(object):
                         values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
                         delimiterForData = self.netDelimiterStruct.pack(*values)
                         # Data array in plain float array
-                        r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
+                        r = self.socket.sendall(delimiterForUserProductDesc + desc + delimiterForData + data.astype('f').tobytes())
                         if r is not None:
                             logger.exception('Error sending userProduct.')
                         logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
@@ -483,7 +470,7 @@ class Radar(object):
         except KeyboardInterrupt:
             print('Outside runloop KeyboardInterrupt')
         except:
-            print('Outside runloop')
+            print('Outside runloop', sys.exc_info()[0])
         # Outside of the busy loop
         logger.info('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()
@@ -509,7 +496,7 @@ class Radar(object):
             obj.basename = basename
             obj.key = uid
             uid += 1
-            obj.productId = N.zeros(obj.productCount, dtype=N.int)
+            obj.productId = [0 for _ in range(obj.productCount)]
             self.algorithmObjects.update({obj.key: obj})
             w0 = max(w0, len(obj.basename))
             w1 = max(w1, len(obj.name))
@@ -529,13 +516,13 @@ class Radar(object):
                 if (obj.active):
                     self.registerString += 'u {};'.format(obj.description())
         # Remove the last ';'
-        if self.registerString[-1] is ';':
+        if len(self.registerString) > 8 and self.registerString[-1] is ';':
             self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
         for key, obj in self.algorithmObjects.items():
             logger.info('> {}: {} - {} -> {}'.format(key,
                                                     colorize(obj.basename.ljust(w0, ' '), COLOR.lime),
-                                                    colorize(obj.name.center(w1, ' '), COLOR.salmon),
+                                                    colorize(obj.name.center(w1, ' '), COLOR.iceblue),
                                                     ', '.join([colorize(x, COLOR.yellow) for x in obj.symbol])))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))

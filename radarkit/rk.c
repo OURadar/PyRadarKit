@@ -340,12 +340,12 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductSh) {
             f32data += ray->header.gateCount;
-            fprintf(stderr, "                Sh = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+            fprintf(stderr, "               Sh = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductSv) {
             f32data += ray->header.gateCount;
-            fprintf(stderr, "                Sv = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+            fprintf(stderr, "               Sv = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
                     f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
         }
         if (ray->header.baseMomentList & RKBaseMomentListProductQ) {
