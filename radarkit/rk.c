@@ -17,7 +17,7 @@ static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
 
 // RadarKit version
 static PyObject *PyRKVersion(void) {
-    return Py_BuildValue("s", RKVersionString);
+    return Py_BuildValue("s", RKVersionString());
 }
 
 #pragma mark - Tests

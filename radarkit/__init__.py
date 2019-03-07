@@ -32,6 +32,10 @@ from .test import *
 logger = logging.getLogger(__name__)
 version_info = '2.0'
 
+branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+if branch.find('master') < 0:
+    version_info += 'b'
+
 # Constants
 class CONSTANTS:
     IP = '127.0.0.1'
