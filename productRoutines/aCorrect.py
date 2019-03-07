@@ -8,7 +8,7 @@ class main(radarkit.ProductRoutine):
         self.name = 'X-Band Attenuation Correction'
         self.productCount = 2
         self.productName = ['Corrected Reflectivity', 'Corrected Differential Reflectivity']
-        self.symbol = ['Y', 'C']
+        self.symbol = ['Zc', 'Dc']
         self.unit = ['dBZ', 'dB']
         self.cmap = ['Z', 'D']
         self.b = [-32.0, -10.0]
