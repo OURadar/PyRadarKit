@@ -5,7 +5,7 @@ import numpy as np
 class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
-        self.name = 'SCWC'
+        self.name = 'X-Band Attenuation Correction'
         self.productCount = 2
         self.productName = ['Corrected Reflectivity', 'Corrected Differential Reflectivity']
         self.symbol = ['Y', 'C']
@@ -19,18 +19,23 @@ class main(radarkit.ProductRoutine):
         super().process(sweep)
 
         # Generate a warning and return early if Z does not exist
-        if 'Z' not in sweep.products:
+        if not all([x in sweep.products for x in ['Sh', 'Z', 'D', 'P', 'R']]):
             radarkit.logger.warning('Product Z does not exist.')
             return None
 
-        # Just a simple shift
-        d = np.copy(sweep.products['Z']) + 0.1
-        e = np.copy(d) - 0.05
+        s = sweep.products['Sh']
+        z = sweep.products['Z']
+        d = sweep.products['D']
+        p = sweep.products['P']
+        r = sweep.products['R']
+
+        # Call the SCWC algorithm
+        zc, dc = algorithms.scwc(s, z, d, p, r)
 
         # Print something on the screen
         if self.verbose > 0:
-            radarkit.showArray(d, letter=self.symbol[0])
+            radarkit.showArray(zc, letter=self.symbol[0])
             print('')
-            radarkit.showArray(e, letter=self.symbol[1])
+            radarkit.showArray(dc, letter=self.symbol[1])
 
-        return d, e
+        return zc, dc

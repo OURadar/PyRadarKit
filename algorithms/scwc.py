@@ -125,11 +125,13 @@ def scwc(s, z, d, p, r,
     dm = d[range(ray_count), rm];
     mp = deltaPhi < 1.0
     deltaPhi[mp] = 1.0
-    beta = dm / deltaPhi
-    beta[mp] = np.nan
-    
-    beta_opt = np.nanmean(beta)
-    
+    if all(mp):
+        beta_opt = 0.0
+    else:
+        beta = dm / deltaPhi
+        beta[mp] = np.nan
+        beta_opt = np.nanmean(beta)
+
     ad = beta_opt / alpha_opt * az
     dc = d + ad
 

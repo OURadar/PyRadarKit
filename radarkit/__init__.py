@@ -67,7 +67,7 @@ class ProductRoutine(object):
         self.productCount = 1
         self.productName = 'ExpIPi'
         self.productId = None
-        self.symbol = 'X'
+        self.symbol = '_'
         self.unit = 'unitless'
         self.cmap = 'Default'
         self.b = 1.0

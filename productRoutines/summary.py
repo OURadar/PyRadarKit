@@ -4,8 +4,7 @@ import numpy as N
 class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
-        self.name = 'Summary'
-        self.symbol = 'G'
+        self.name = 'Product Summary'
 
         # Other internal variables
         self.threshold = 1.0

@@ -3,7 +3,7 @@ import radarkit
 class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
-        self.name = 'V-Unfold'
+        self.name = 'Velocity Unfolding'
         self.productName = 'Unfolded_Velocity'
         self.symbol = 'U'
         self.unit = 'MetersPerSecond'
