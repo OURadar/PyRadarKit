@@ -358,30 +358,19 @@ class Radar(object):
                     continue
                 if self.verbose > 1:
                     logger.info('Sending products ...')
-                if obj.productCount > 1:
-                    userProductDesc = []
-                    for pid in obj.productId:
-                        jsonString = json.dumps({'key': key, 'productId': pid, 'configId': self.sweep.configId}).encode('utf-8')
-                        userProductDesc.append(jsonString)
-                    for data, desc, symbol in zip(userProductData, userProductDesc, obj.symbol):
-                        # Network delimiter (see above)
-                        bytes = len(desc)
-                        values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
-                        delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
-                        # Network delimiter (see above)
-                        bytes = self.sweep.gateCount * self.sweep.rayCount * 4
-                        values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
-                        delimiterForData = self.netDelimiterStruct.pack(*values)
-                        # Data array in plain float array
-                        r = self.socket.sendall(delimiterForUserProductDesc + desc + delimiterForData + data.astype('f').tobytes())
-                        if r is not None:
-                            logger.exception('Error sending userProduct.')
-                        logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
+                if not isinstance(userProductData, list) and not isinstance(userProductData, tuple):
+                    userProductData = [userProductData]
+                userProductDesc = []
+                for pid in obj.productId:
+                    jsonString = json.dumps({'key': key, 'productId': pid, 'configId': self.sweep.configId}).encode('utf-8')
+                    userProductDesc.append(jsonString)
+                if not isinstance(obj.symbol, list) and not isinstance(obj.symbol, tuple):
+                    symbols = [obj.symbol]
                 else:
-                    userProductDesc = json.dumps({'key': key, 'productId': obj.productId[0], 'configId': self.sweep.configId}).encode('utf-8')
-                    print(userProductDesc)
+                    symbols = obj.symbol
+                for data, desc, symbol in zip(userProductData, userProductDesc, symbols):
                     # Network delimiter (see above)
-                    bytes = len(userProductDesc)
+                    bytes = len(desc)
                     values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
                     delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
                     # Network delimiter (see above)
@@ -389,10 +378,10 @@ class Radar(object):
                     values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
                     delimiterForData = self.netDelimiterStruct.pack(*values)
                     # Data array in plain float array
-                    r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
+                    r = self.socket.sendall(delimiterForUserProductDesc + desc + delimiterForData + data.astype('f').tobytes())
                     if r is not None:
                         logger.exception('Error sending userProduct.')
-                    logger.info('User product {} sent'.format(colorize(obj.symbol, COLOR.yellow)))
+                    logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
