@@ -339,9 +339,9 @@ class Radar(object):
                 print('   {} {} -> {} / {}'.format(colorize(' PyRadarKit ', COLOR.python),
                                                    colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(self.sweep.elevation[k], self.sweep.azimuth[k]), COLOR.yellow),
                                                    k, self.sweep.rayCount))
-                N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
+                N.set_printoptions(formatter={'float': '{:5.1f}'.format})
                 for symbol in self.sweep.products.keys():
-                    print('                {} = {}'.format(symbol, self.sweep.products[symbol][k, 0:10]))
+                    print('               {} = {}'.format(symbol.rjust(2, ' '), self.sweep.products[symbol][k, 0:10]))
                 print('>>')
             self.sweep.receivedRayCount += 1
             # The rests are at the end of a sweep, early return if it is not end of sweep
