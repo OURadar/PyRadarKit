@@ -30,7 +30,7 @@ from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-version_info = '1.0'
+version_info = '2.0'
 
 # Constants
 class CONSTANTS:
