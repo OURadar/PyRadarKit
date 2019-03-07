@@ -17,7 +17,7 @@ static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
 
 // RadarKit version
 static PyObject *PyRKVersion(void) {
-    return Py_BuildValue("s", RKVersionString);
+    return Py_BuildValue("s", RKVersionString());
 }
 
 #pragma mark - Tests
@@ -142,6 +142,7 @@ static PyObject *PyRKTestByNumberHelp(PyObject *self) {
 #pragma mark - Parsers
 
 static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords) {
+    int k;
     int verbose = 0;
     PyByteArrayObject *input;
     static char *keywordList[] = {"input", "verbose", NULL};
@@ -158,104 +159,52 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
     uint8_t *u8data;
     float *f32data;
 
+    uint64_t momentListProductOrder[] = {
+        RKBaseMomentListProductZ,
+        RKBaseMomentListProductV,
+        RKBaseMomentListProductW,
+        RKBaseMomentListProductD,
+        RKBaseMomentListProductP,
+        RKBaseMomentListProductR,
+        RKBaseMomentListProductK,
+        RKBaseMomentListProductSh,
+        RKBaseMomentListProductSv,
+        RKBaseMomentListProductQ,
+    };
+    char productSymbols[][4] = {"Z", "V", "W", "D", "P", "R", "K", "Sh", "Sv", "Q"};
+    uint64_t momentListDisplayOrder[] = {
+        RKBaseMomentListDisplayZ,
+        RKBaseMomentListDisplayV,
+        RKBaseMomentListDisplayW,
+        RKBaseMomentListDisplayD,
+        RKBaseMomentListDisplayP,
+        RKBaseMomentListDisplayR
+    };
+    char displaySymbols[][4] = {"Zi", "Vi", "Wi", "Di", "Pi", "Ri"};
+
     // Display data
     u8data = (uint8_t *)ray->data;
-    if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
-        key = Py_BuildValue("s", "Zi");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
+    for (k = 0; k < (int)(sizeof(momentListDisplayOrder) / sizeof(uint64_t)); k++) {
+        if (ray->header.baseMomentList & momentListDisplayOrder[k]) {
+            key = Py_BuildValue("s", displaySymbols[k]);
+            value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
+            PyDict_SetItem(dataDict, key, value);
+            Py_DECREF(value);
+            Py_DECREF(key);
+            u8data += ray->header.gateCount;
+        }
     }
-    if (ray->header.baseMomentList & RKBaseMomentListDisplayV) {
-        u8data += ray->header.gateCount;
-        key = Py_BuildValue("s", "Vi");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListDisplayW) {
-        u8data += ray->header.gateCount;
-        key = Py_BuildValue("s", "Wi");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListDisplayD) {
-        u8data += ray->header.gateCount;
-        key = Py_BuildValue("s", "Di");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListDisplayP) {
-        u8data += ray->header.gateCount;
-        key = Py_BuildValue("s", "Pi");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListDisplayR) {
-        u8data += ray->header.gateCount;
-        key = Py_BuildValue("s", "Ri");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_UINT8, u8data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-
     // Float data
     f32data = (float *)u8data;
-    if (ray->header.baseMomentList & RKBaseMomentListProductZ) {
-        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
-        key = Py_BuildValue("s", "Z");
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListProductV) {
-        f32data += ray->header.gateCount;
-        key = Py_BuildValue("s", "V");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListProductW) {
-        f32data += ray->header.gateCount;
-        key = Py_BuildValue("s", "W");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListProductD) {
-        f32data += ray->header.gateCount;
-        key = Py_BuildValue("s", "D");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListProductP) {
-        f32data += ray->header.gateCount;
-        key = Py_BuildValue("s", "P");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
-    }
-    if (ray->header.baseMomentList & RKBaseMomentListProductR) {
-        f32data += ray->header.gateCount;
-        key = Py_BuildValue("s", "R");
-        value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
-        PyDict_SetItem(dataDict, key, value);
-        Py_DECREF(value);
-        Py_DECREF(key);
+    for (k = 0; k < (int)(sizeof(momentListProductOrder) / sizeof(uint64_t)); k++) {
+        if (ray->header.baseMomentList & momentListProductOrder[k]) {
+            value = PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, f32data);
+            key = Py_BuildValue("s", productSymbols[k]);
+            PyDict_SetItem(dataDict, key, value);
+            Py_DECREF(value);
+            Py_DECREF(key);
+            f32data += ray->header.gateCount;
+        }
     }
 
     PyObject *ret = Py_BuildValue("{s:f,s:f,s:i,s:O,s:O,s:O}",
@@ -272,64 +221,22 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         fprintf(stderr, "   \033[38;5;15;48;5;124m  RadarKit  \033[0m \033[38;5;15mEL %.2f deg   AZ %.2f deg\033[0m -> %d\n",
                 ray->header.startElevation, ray->header.startAzimuth, (int)ray->header.startAzimuth);
         f32data = (float *)ray->data;
-        if (ray->header.baseMomentList & RKBaseMomentListProductZ) {
-            fprintf(stderr, "                Z = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListProductV) {
-            f32data += ray->header.gateCount;
-            fprintf(stderr, "                V = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListProductW) {
-            f32data += ray->header.gateCount;
-            fprintf(stderr, "                W = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListProductD) {
-            f32data += ray->header.gateCount;
-            fprintf(stderr, "                D = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListProductP) {
-            f32data += ray->header.gateCount;
-            fprintf(stderr, "                P = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListProductR) {
-            f32data += ray->header.gateCount;
-            fprintf(stderr, "                R = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
-                    f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
+        for (k = 0; k < (int)(sizeof(momentListProductOrder) / sizeof(uint64_t)); k++) {
+            if (ray->header.baseMomentList & momentListProductOrder[k]) {
+                fprintf(stderr, "               %2s = [%5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f %5.1f ...\n",
+                        productSymbols[k],
+                        f32data[0], f32data[1], f32data[2], f32data[3], f32data[4], f32data[5], f32data[6], f32data[7], f32data[8], f32data[9]);
+                f32data += ray->header.gateCount;
+            }
         }
         u8data = (uint8_t *)f32data;
-        if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
-            fprintf(stderr, "                Zi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListDisplayV) {
-            u8data += ray->header.gateCount;
-            fprintf(stderr, "                Vi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListDisplayW) {
-            u8data += ray->header.gateCount;
-            fprintf(stderr, "                Wi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListDisplayD) {
-            u8data += ray->header.gateCount;
-            fprintf(stderr, "                Di = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListDisplayP) {
-            u8data += ray->header.gateCount;
-            fprintf(stderr, "                Pi = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
-        }
-        if (ray->header.baseMomentList & RKBaseMomentListDisplayR) {
-            u8data += ray->header.gateCount;
-            fprintf(stderr, "                Ri = [%d %d %d %d %d %d %d %d %d %d ...\n",
-                    u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
+        for (k = 0; k < (int)(sizeof(momentListDisplayOrder) / sizeof(uint64_t)); k++) {
+            if (ray->header.baseMomentList & RKBaseMomentListDisplayZ) {
+                fprintf(stderr, "               %2s = [%d %d %d %d %d %d %d %d %d %d ...\n",
+                        displaySymbols[k],
+                        u8data[0], u8data[1], u8data[2], u8data[3], u8data[4], u8data[5], u8data[6], u8data[7], u8data[8], u8data[9]);
+                u8data += ray->header.gateCount;
+            }
         }
     }
 
@@ -355,7 +262,7 @@ static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *
     RKBaseMomentList list = sweepHeader->baseMomentList;
     int count = __builtin_popcount(list);
 
-    // A list of base moment symbols from the sweep header
+    // A tuple of base moment symbols from the sweep header
     //PyObject *moments = PyList_New(count);
     PyObject *moments = PyTuple_New(count);
 
@@ -388,6 +295,145 @@ static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *
 }
 
 #pragma mark - Product Reader
+
+static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keywords) {
+    int p, k;
+    int verbose = 0;
+    char *filename;
+    float *scratch;
+
+    static char *keywordList[] = {"filename", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &filename, &verbose)) {
+        fprintf(stderr, "PyRKRead() -> Nothing provided.\n");
+        return Py_None;
+    }
+
+    RKSetWantScreenOutput(true);
+
+    // Some product description
+    RKName symbol;
+    if (RKGetSymbolFromFilename(filename, symbol)) {
+        printf("symbol = %s%s%s\n", RKYellowColor, symbol, RKNoColor);
+    }
+
+    // Do this before we use any numpy array creation
+    import_array();
+
+    PyObject *ret = Py_None;
+    
+    RKLog("Using %s ...\n", filename);
+    
+    RKProductCollection *collection = RKProductCollectionInitWithFilename(filename);
+    if (collection == NULL) {
+        RKLog("Error. RKProductCollectionInitWithFilename() returned NULL.\n");
+        return Py_None;
+    }
+    
+    // Some constants
+    npy_intp dims[] = {collection->products[0].header.rayCount, collection->products[0].header.gateCount};
+
+    // Range
+    scratch = (float *)malloc(dims[1] * sizeof(float));
+    if (scratch == NULL) {
+        RKLog("Error. Unable to allocate memory for range.\n");
+        return Py_None;
+    }
+    float dr = collection->products[0].header.gateSizeMeters;
+    for (k = 0; k < (int)dims[1]; k++) {
+        scratch[k] = (float)k * dr;
+    }
+    PyArrayObject *range = (PyArrayObject *)PyArray_SimpleNewFromData(1, &dims[1], NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(range, NPY_ARRAY_OWNDATA);
+
+    // Azimuth
+    scratch = (float *)malloc(dims[0] * sizeof(float));
+    if (scratch == NULL) {
+        RKLog("Error. Unable to allocate memory for azimuth.\n");
+        return Py_None;
+    }
+    for (k = 0; k < dims[0]; k++) {
+        scratch[k] = collection->products[0].startAzimuth[k];
+    }
+    PyArrayObject *azimuth = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(azimuth, NPY_ARRAY_OWNDATA);
+    
+    // Elevation
+    scratch = (float *)malloc(dims[0] * sizeof(float));
+    if (scratch == NULL) {
+        RKLog("Error. Unable to allocate memory for elevation.\n");
+        return Py_None;
+    }
+    for (k = 0; k < dims[0]; k++) {
+        scratch[k] = collection->products[0].startElevation[k];
+    }
+    PyArrayObject *elevation = (PyArrayObject *)PyArray_SimpleNewFromData(1, dims, NPY_FLOAT32, scratch);
+    PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
+
+    // A new dictionary for output
+    PyObject *products = PyDict_New();
+
+    // Gather the products
+    RKProduct *product;
+    for (p = 0; p < (int)collection->count; p++) {
+        product = &collection->products[p];
+        
+        // A scratch space for data
+        scratch = (float *)malloc(dims[0] * dims[1] * sizeof(float));
+        if (scratch == NULL) {
+            RKLog("Error. Unable to allocate memory for moment data.\n");
+            return Py_None;
+        }
+        float *y = scratch;
+        RKFloat *x = product->data;
+        for (k = 0; k < (int)(dims[0] * dims[1]); k++) {
+            *y++ = (float)*x++;
+        }
+        PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
+        PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
+
+        // A new key for the output
+        PyObject *key = Py_BuildValue("s", collection->products[p].desc.symbol);
+        
+        // A new dictionary for output
+        PyObject *dict = Py_BuildValue("{s:s,s:s,s:s,s:O}",
+                                       "name", product->desc.name,
+                                       "unit", product->desc.unit,
+                                       "symbol", product->desc.symbol,
+                                       "data", value);
+        Py_DECREF(value);
+
+        // Add to the dictionary
+        PyDict_SetItem(products, key, dict);
+    }
+
+    // Return dictionary
+    ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+                        "name", collection->products[0].header.radarName,
+                        "configId", collection->products[0].i,
+                        "rayCount", dims[0],
+                        "gateCount", dims[1],
+                        "sweepAzimuth", product->header.sweepAzimuth,
+                        "sweepElevation", product->header.sweepElevation,
+                        "gateSizeMeters", product->header.gateSizeMeters,
+                        "latitude", product->header.latitude,
+                        "longitude", product->header.longitude,
+                        "altitude", product->header.radarHeight,
+                        "sweepBegin", Py_True,
+                        "sweepEnd", Py_False,
+                        "elevation", elevation,
+                        "azimuth", azimuth,
+                        "range", range,
+                        "products", products);
+    Py_DECREF(elevation);
+    Py_DECREF(azimuth);
+    Py_DECREF(range);
+    Py_DECREF(products);
+
+    // We are done with the product collection
+    RKProductCollectionFree(collection);
+
+    return ret;
+}
 
 static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     int p, r, k;
@@ -539,7 +585,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     } else {
 
         // Read the sweep using RKProductRead() of RadarKit
-        RKProduct *product = RKProductFileReaderNC(filename);
+        RKProduct *product = RKProductFileReaderNC(filename, true);
         if (product == NULL) {
             fprintf(stderr, "No product.\n");
             return Py_None;
@@ -598,7 +644,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
         PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
 
-        // A new dictionary for output      
+        // A new dictionary for output
         PyObject *dict = Py_BuildValue("{s:s,s:s,s:s,s:O}",
             "name", product->desc.name,
             "unit", product->desc.unit,
@@ -649,7 +695,8 @@ static PyMethodDef PyRKMethods[] = {
     {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_NOARGS                 , "Test by number help text"},
     {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
     {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
-    {"read",             (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep"},
+    {"readOne",          (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep / product"},
+    {"read",             (PyCFunction)PyRKReadProducts,       METH_VARARGS | METH_KEYWORDS, "Read a collection products"},
     {NULL, NULL, 0, NULL}
 };
 

@@ -20,12 +20,13 @@
 
 /* Begin PBXFileReference section */
 		B5559EE52055816700E5B34F /* chart.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = chart.py; sourceTree = "<group>"; };
-		B57391401EE59B9200ACF25E /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
 		B57391411EE59B9200ACF25E /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
 		B57391421EE59B9200ACF25E /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
 		B57391441EE59B9200ACF25E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B57391461EE59B9200ACF25E /* setup.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = setup.py; sourceTree = "<group>"; };
 		B5902EF01F5F027B00C7CC7A /* ppi_demo.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = ppi_demo.py; sourceTree = "<group>"; };
+		B5A2599C2229C13600909464 /* productRoutines */ = {isa = PBXFileReference; lastKnownFileType = folder; path = productRoutines; sourceTree = "<group>"; };
+		B5A2599D2229D0C400909464 /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
 		B5B2058720E3CCF6007D48E0 /* rkstruct */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rkstruct; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5FAD8D020D5582100E0A767 /* radarkit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = radarkit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -57,8 +58,9 @@
 				B57391461EE59B9200ACF25E /* setup.py */,
 				B5559EE52055816700E5B34F /* chart.py */,
 				B5902EF01F5F027B00C7CC7A /* ppi_demo.py */,
+				B5A2599D2229D0C400909464 /* algorithms */,
+				B5A2599C2229C13600909464 /* productRoutines */,
 				B5FAD8D020D5582100E0A767 /* radarkit */,
-				B57391401EE59B9200ACF25E /* algorithms */,
 				B51BE8EF20D4272600A774ED /* Main */,
 				B5B2058720E3CCF6007D48E0 /* rkstruct */,
 			);

@@ -10,6 +10,7 @@ import enum
 import glob
 import math
 import time
+import array
 import logging
 import threading
 import datetime
@@ -29,10 +30,11 @@ from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-version_info = '1.0'
+version_info = '2.0'
 
-# All algorithms are located under the folder 'algorithms'
-sys.path.insert(0, 'algorithms')
+branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+if branch.find('master') < 0:
+    version_info += 'b'
 
 # Constants
 class CONSTANTS:
@@ -62,27 +64,42 @@ class NETWORK_PACKET_TYPE:
     USER_PRODUCT_DESCRIPTION = 116
 
 # An algorithm encapsulation
-class Algorithm(object):
+class ProductRoutine(object):
     def __init__(self, verbose=0):
-        self.name = 'Algorithm'
-        self.symbol = 'X'
-        self.unit = ''
-        self.colormap = 'Default'
-        self.active = False
+        self.key = 0
+        self.name = 'Algorithm Name'
+        self.productCount = 1
+        self.productName = 'ExpIPi'
+        self.productId = None
+        self.symbol = '_'
+        self.unit = 'unitless'
+        self.cmap = 'Default'
         self.b = 1.0
         self.w = 0.0
-        self.minValue = None
-        self.maxValue = None
-        self.productId = 0
+        self.minValue = -999.9
+        self.maxValue = +999.9
         self.verbose = verbose
+        self.active = False
 
     def __str__(self):
-        return '{} -> {}   {}'.format(colorize(self.name, COLOR.salmon),
-                                      colorize(self.symbol, COLOR.yellow),
+        return '{} -> {}   {}'.format(colorize(self.name, COLOR.iceblue),
+                                      ', '.join([colorize(x, COLOR.yellow) for x in self.symbol]),
                                       variableInString('active', self.active))
 
     def description(self):
-        dic = {'name': self.name, 'symbol': self.symbol, 'unit': self.unit, 'colormap': self.colormap, 'b': self.b, 'w': self.w}
+        if self.productCount > 1:
+            #print(self.productName)
+            #print(self.symbol)
+            #print(self.unit)
+            #print(self.cmap)
+            #print(self.w)
+            #print(self.b)
+            strings = []
+            for name, symbol, unit, cmap, w, b in zip(self.productName, self.symbol, self.unit, self.cmap, self.w, self.b):
+                dic = {'key': self.key, 'name': name, 'symbol': symbol, 'unit': unit, 'colormap': cmap, 'w': w, 'b': b}
+                strings.append(json.dumps(dic).encode('utf-8'))
+            return strings
+        dic = {'key': self.key, 'name': self.productName, 'symbol': self.symbol, 'unit': self.unit, 'colormap': self.cmap, 'w': self.w, 'b': self.b}
         return json.dumps(dic)
 
     # Every algorithm should have this function defined
@@ -115,12 +132,14 @@ class Sweep(object):
         self.receivedRayCount = 0
         self.validSymbols = []
         self.products = {
+            'Sh': N.zeros((rays, gates), dtype=N.float),
             'Z': N.zeros((rays, gates), dtype=N.float),
             'V': N.zeros((rays, gates), dtype=N.float),
             'W': N.zeros((rays, gates), dtype=N.float),
             'D': N.zeros((rays, gates), dtype=N.float),
             'P': N.zeros((rays, gates), dtype=N.float),
-            'R': N.zeros((rays, gates), dtype=N.float)
+            'R': N.zeros((rays, gates), dtype=N.float),
+            'Q': N.zeros((rays, gates), dtype=N.float)
         }
 
 # Radar class
@@ -129,7 +148,7 @@ class Radar(object):
         Handles the connection to the radar (created by RadarKit)
         This class allows to retrieval of base data from the radar
     """
-    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, streams=None, algorithmFolder='algorithms', verbose=0):
+    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, streams=None, productRoutinesFolder='productRoutines', verbose=0):
         self.ipAddress = ipAddress
         self.port = port
         self.timeout = timeout
@@ -137,8 +156,8 @@ class Radar(object):
         self.verbose = verbose
         self.active = False
         self.wantActive = False
-        self.algorithmFolder = algorithmFolder[:-1] if algorithmFolder.endswith('/') else algorithmFolder
-        print('{}'.format(variableInString('algorithmFolder', self.algorithmFolder)))
+        self.productRoutinesFolder = productRoutinesFolder[:-1] if productRoutinesFolder.endswith('/') else productRoutinesFolder
+        print('{}'.format(variableInString('productRoutinesFolder', self.productRoutinesFolder)))
         self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
         # Each netlimiter has:
         # 1st component: 16-bit type
@@ -267,7 +286,7 @@ class Radar(object):
                             if letter in ray['moments']:
                                 self.sweep.products[letter][ii, 0:ng] = ray['moments'][letter][0:ng]
                     # Call the collection of algorithms (deprecating... updated 6/13/2018: how?)
-                    for obj in self.algorithmObjects:
+                    for _, obj in self.algorithmObjects.items():
                         obj.process(self.sweep)
                     print('')
                 # Zero out all data when a sweep begin is encountered
@@ -324,38 +343,50 @@ class Radar(object):
                 print('   {} {} -> {} / {}'.format(colorize(' PyRadarKit ', COLOR.python),
                                                    colorize('EL {:0.2f} deg   AZ {:0.2f} deg'.format(self.sweep.elevation[k], self.sweep.azimuth[k]), COLOR.yellow),
                                                    k, self.sweep.rayCount))
-                N.set_printoptions(formatter={'float': '{: 5.1f}'.format})
+                N.set_printoptions(formatter={'float': '{:5.1f}'.format})
                 for symbol in self.sweep.products.keys():
-                    print('                {} = {}'.format(symbol, self.sweep.products[symbol][k, 0:10]))
+                    print('               {} = {}'.format(symbol.rjust(2, ' '), self.sweep.products[symbol][k, 0:10]))
                 print('>>')
             self.sweep.receivedRayCount += 1
-            if self.sweep.receivedRayCount == self.sweep.rayCount:
-                # Call the collection of algorithms
-                for symbol, obj in self.algorithmObjects.items():
-                    userProductData = obj.process(self.sweep)
-                    userProductDesc = json.dumps({
-                                                 'productId': obj.productId,
-                                                 'configId': self.sweep.configId
-                                                 }).encode('utf-8')
-                    if obj.active:
-                        if userProductData is None:
-                            logger.exception('Expected a product from {}'.format(obj))
-                            continue
-                        if self.verbose > 1:
-                            logger.info('Sending product ...')
-                        # Network delimiter (see above)
-                        bytes = len(userProductDesc)
-                        values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
-                        delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
-                        # Network delimiter (see above)
-                        bytes = self.sweep.gateCount * self.sweep.rayCount * 4
-                        values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
-                        delimiterForData = self.netDelimiterStruct.pack(*values)
-                        # Data array in plain float array
-                        r = self.socket.sendall(delimiterForUserProductDesc + userProductDesc + delimiterForData + userProductData.astype('f').tobytes())
-                        if r is not None:
-                            logger.exception('Error sending userProduct.')
-                        logger.info('User product {} sent'.format(colorize(obj.symbol, COLOR.yellow)))
+            # The rests are at the end of a sweep, early return if it is not end of sweep
+            if not self.sweep.receivedRayCount == self.sweep.rayCount:
+                return
+            # Call the collection of algorithms
+            for key, obj in self.algorithmObjects.items():
+                if self.verbose > 1:
+                    logger.info('Calling algorithm key {} for {} ({}) {} ...'.format(key, obj.symbol, obj.productCount, obj.productId))
+                userProductData = obj.process(self.sweep)
+                if not obj.active:
+                    continue
+                if userProductData is None or len(userProductData) == 0:
+                    logger.exception('Expected product(s) from {}'.format(obj))
+                    continue
+                if self.verbose > 1:
+                    logger.info('Sending products ...')
+                if not isinstance(userProductData, list) and not isinstance(userProductData, tuple):
+                    userProductData = [userProductData]
+                userProductDesc = []
+                for pid in obj.productId:
+                    jsonString = json.dumps({'key': key, 'productId': pid, 'configId': self.sweep.configId}).encode('utf-8')
+                    userProductDesc.append(jsonString)
+                if not isinstance(obj.symbol, list) and not isinstance(obj.symbol, tuple):
+                    symbols = [obj.symbol]
+                else:
+                    symbols = obj.symbol
+                for data, desc, symbol in zip(userProductData, userProductDesc, symbols):
+                    # Network delimiter (see above)
+                    bytes = len(desc)
+                    values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
+                    delimiterForUserProductDesc = self.netDelimiterStruct.pack(*values)
+                    # Network delimiter (see above)
+                    bytes = self.sweep.gateCount * self.sweep.rayCount * 4
+                    values = (NETWORK_PACKET_TYPE.USER_SWEEP_DATA, 0, bytes, bytes, 0)
+                    delimiterForData = self.netDelimiterStruct.pack(*values)
+                    # Data array in plain float array
+                    r = self.socket.sendall(delimiterForUserProductDesc + desc + delimiterForData + data.astype('f').tobytes())
+                    if r is not None:
+                        logger.exception('Error sending userProduct.')
+                    logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
@@ -366,22 +397,32 @@ class Radar(object):
             if curlyBracketPosition > 0:
                 payloadDict = json.loads(responseString[curlyBracketPosition:])
                 if payloadDict['type'] == 'productDescription':
-                    symbol = payloadDict['symbol']
-                    if symbol is not None:
-                        self.algorithmObjects[symbol].productId = payloadDict['pid']
-                        logger.info('Product {} registered   {}'.format(colorize(symbol, COLOR.yellow),
-                                                                        variableInString('productId', payloadDict['pid'])))
+                    key = payloadDict['key']
+                    if key is not None:
+                        #self.algorithmObjects[key].productId = payloadDict['pid']
+                        pid = payloadDict['pid']
+                        symbol = payloadDict['symbol']
+                        idx = N.argmax([symbol == x for x in self.algorithmObjects[key].symbol])
+                        logger.info('Product {} registered   {}   {} ({})'.format(colorize(symbol, COLOR.yellow),
+                                                                                  variableInString('key', key),
+                                                                                  variableInString('productId', pid),
+                                                                                  idx))
+                        self.algorithmObjects[key].productId[idx] = pid
 
     """
         The run loop
     """
     def _runLoop(self):
-        if not self.streams:
+        if self.streams is None:
             # Prepend data stream request
+            greetCommand = 'sYUXCOQAH;' + self.registerString + '\r\n'
             #greetCommand = 'sYUXCOQ;' + self.registerString + '\r\n'
-            greetCommand = 'sYUCO;' + self.registerString + '\r\n'
+            #greetCommand = 'sYUCO;' + self.registerString + '\r\n'
         else:
             greetCommand = 's' + self.streams + '\r\n'
+
+#        print('')
+#        print(greetCommand)
 
         greetCommand = greetCommand.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
@@ -425,7 +466,7 @@ class Radar(object):
         except KeyboardInterrupt:
             print('Outside runloop KeyboardInterrupt')
         except:
-            print('Outside runloop')
+            print('Outside runloop', sys.exc_info()[0])
         # Outside of the busy loop
         logger.info('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()
@@ -435,26 +476,50 @@ class Radar(object):
         Start the server
     """
     def start(self):
-        # Loop through all the files under 'algorithms' folder
+        # Loop through all the files under (productRoutines) folder
         logger.info('Loading algorithms ...')
-        w = 1
+        sys.path.insert(0, self.productRoutinesFolder)
+        w0 = 1
+        w1 = 1
+        uid = 1000
         self.algorithmObjects = {}
-        for script in glob.glob('{}/*.py'.format(self.algorithmFolder)):
+        for script in glob.glob('{}/*.py'.format(self.productRoutinesFolder)):
             basename = os.path.basename(script)
-            mod = __import__(basename[:-3])
+            #modduleName = '{}.{}'.format(self.productRoutinesFolder, basename[:-3])
+            modduleName = basename[:-3]
+            mod = __import__(modduleName)
             obj = getattr(mod, 'main')(verbose=self.verbose)
             obj.basename = basename
-            self.algorithmObjects.update({obj.symbol: obj})
-            w = max(w, len(obj.basename))
-            if (obj.active):
-                self.registerString += 'u {};'.format(obj.description())
+            obj.key = uid
+            uid += 1
+            obj.productId = [0 for _ in range(obj.productCount)]
+            self.algorithmObjects.update({obj.key: obj})
+            w0 = max(w0, len(obj.basename))
+            w1 = max(w1, len(obj.name))
+            if obj.productCount > 1:
+                # Make sure the productNames, symbols, units, etc. are also lists
+                if ((not isinstance(obj.productName, list) or not len(obj.productName) == obj.productCount) or
+                    (not isinstance(obj.symbol, list) or not len(obj.symbol) == obj.productCount) or
+                    (not isinstance(obj.unit, list) or not len(obj.unit) == obj.productCount) or
+                    (not isinstance(obj.cmap, list) or not len(obj.cmap) == obj.productCount) or
+                    (not isinstance(obj.w, list) or not len(obj.w) == obj.productCount) or
+                    (not isinstance(obj.b, list) or not len(obj.b) == obj.productCount)):
+                    logger.warning('Product routine should have productName, symbol, unit, cmap, w, b with same length.')
+                if (obj.active):
+                    for desc in obj.description():
+                        self.registerString += 'u {};'.format(desc)
+            else :
+                if (obj.active):
+                    self.registerString += 'u {};'.format(obj.description())
         # Remove the last ';'
-        self.registerString = self.registerString[:-1]
+        if len(self.registerString) > 8 and self.registerString[-1] is ';':
+            self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
-        stringFormat = '> {} - {}{:' + str(w) + 's}{} -> {}'
-        for symbol, obj in self.algorithmObjects.items():
-            logger.info(stringFormat.format(colorize(obj.symbol, COLOR.yellow),
-                                            COLOR.lime, obj.basename, COLOR.reset, obj.name))
+        for key, obj in self.algorithmObjects.items():
+            logger.info('> {}: {} - {} -> {}'.format(key,
+                                                    colorize(obj.basename.ljust(w0, ' '), COLOR.lime),
+                                                    colorize(obj.name.center(w1, ' '), COLOR.iceblue),
+                                                    ', '.join([colorize(x, COLOR.yellow) for x in obj.symbol])))
         # Composite registration string is built at this point
         logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         self.wantActive = True
@@ -480,7 +545,7 @@ class Radar(object):
     def wait(self):
         while (self.active):
             time.sleep(0.1)
-    
+
     """
         Close the socket
     """
@@ -488,7 +553,7 @@ class Radar(object):
         wantActive = False
         if (self.socket):
             self.socket.close()
-        
+
     """
         Deallocate
     """

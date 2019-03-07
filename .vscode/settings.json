@@ -2,5 +2,6 @@
     "files.associations": {
         "limits": "c",
         "type_traits": "c"
-    }
+    },
+    "python.pythonPath": "/usr/local/opt/python/bin/python3.7"
 }

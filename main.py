@@ -9,6 +9,7 @@ if sys.version_info < MIN_PYTHON:
 
 import argparse
 import radarkit
+#import algorithms
 
 def showName():
     rows, columns = os.popen('stty size', 'r').read().split()
@@ -28,8 +29,8 @@ if __name__ == "__main__":
                         help='Various tests:\n'
                         '{}'
                         ' '.format(radarkit.testHelpText()))
-    parser.add_argument('-a', '--algorithm-folder', default='algorithms', type=str,
-                        help='Use a different folder for the collection of algorithms (default "algorithms")')
+    parser.add_argument('-a', '--product-routines', default='productRoutines', type=str,
+                        help='Use a different folder for the collection of product algorithms (default "products")')
     parser.add_argument('-s', '--streams', default=None, type=str, 
                         help='Overrides the initial streams. In this mode, the algorithms do not get executed.\n'
                         'This mode is primarily used for debugging.\n'
@@ -55,7 +56,7 @@ if __name__ == "__main__":
 
     try:
         showName()
-        radar = radarkit.Radar(ipAddress=args.host, streams=args.streams, algorithmFolder=args.algorithm_folder, verbose=args.verbose)
+        radar = radarkit.Radar(ipAddress=args.host, streams=args.streams, productRoutinesFolder=args.product_routines, verbose=args.verbose)
         radar.start()
         radar.wait()
     except KeyboardInterrupt:
