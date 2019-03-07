@@ -353,16 +353,16 @@ class Radar(object):
                 userProductData = obj.process(self.sweep)
                 if not obj.active:
                     continue
-                userProductDesc = []
-                for pid in obj.productId:
-                    jsonString = json.dumps({'key': key, 'productId': pid, 'configId': self.sweep.configId}).encode('utf-8')
-                    userProductDesc.append(jsonString)
                 if userProductData is None or len(userProductData) == 0:
                     logger.exception('Expected product(s) from {}'.format(obj))
                     continue
                 if self.verbose > 1:
                     logger.info('Sending products ...')
                 if obj.productCount > 1:
+                    userProductDesc = []
+                    for pid in obj.productId:
+                        jsonString = json.dumps({'key': key, 'productId': pid, 'configId': self.sweep.configId}).encode('utf-8')
+                        userProductDesc.append(jsonString)
                     for data, desc, symbol in zip(userProductData, userProductDesc, obj.symbol):
                         # Network delimiter (see above)
                         bytes = len(desc)
@@ -378,6 +378,8 @@ class Radar(object):
                             logger.exception('Error sending userProduct.')
                         logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
                 else:
+                    userProductDesc = json.dumps({'key': key, 'productId': obj.productId[0], 'configId': self.sweep.configId}).encode('utf-8')
+                    print(userProductDesc)
                     # Network delimiter (see above)
                     bytes = len(userProductDesc)
                     values = (NETWORK_PACKET_TYPE.USER_PRODUCT_DESCRIPTION, 0, bytes, bytes, 0)
