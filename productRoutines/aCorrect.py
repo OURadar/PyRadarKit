@@ -30,7 +30,8 @@ class main(radarkit.ProductRoutine):
         r = sweep.products['R']
 
         # Call the SCWC algorithm
-        zc, dc = algorithms.scwc(s, z, d, p, r)
+        #zc, dc = algorithms.scwc(s, z, d, p, r)
+        zc, dc = algorithms.zphi(z, d, p)
 
         # Print something on the screen
         if self.verbose > 0:
