@@ -13,6 +13,7 @@ class main(radarkit.ProductRoutine):
 
     # Every algorithm should have this function implemented
     def process(self, sweep):
+        super().process(sweep)
         if self.verbose < 2:
             return
         k = 0

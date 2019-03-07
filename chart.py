@@ -4,10 +4,9 @@ import numpy as np
 import matplotlib
 from scipy.interpolate import griddata
 
-bgColor = (0.89, 0.87, 0.83)
+import colormap
 
-sys.path.insert(0, '/Users/boonleng/Developer/blib-py')
-import blib
+bgColor = (0.89, 0.87, 0.83)
 
 def zmap_local():
     colors = [
@@ -31,7 +30,7 @@ def zmap_local():
     return np.array(colors)
 
 def vmap_local():
-    return blib.rgmap(32)
+    return colormap.rgmap(32)
 
 def rho2ind(values):
     m3 = values > 0.93
@@ -60,34 +59,34 @@ class Image:
 
         if symbol is 'K':
             # Not finalized yet
-            colors = blib.kmap()
+            colors = colormap.kmap()
             vmin = 0.0
             vmax = 0.1 * np.pi
         elif symbol is 'R':
             # Special, does not really matter here
-            colors = blib.rmap()
+            colors = colormap.rmap()
             vmin = 0.0
             vmax = 256.0
             zz = rho2ind(zz)
         elif symbol is 'P':
-            colors = blib.pmap()
+            colors = colormap.pmap()
             vmin = -180.0
             vmax = 180.0
         elif symbol is 'D':
-            colors = blib.dmap()
+            colors = colormap.dmap()
             vmin = -10.0
             vmax = 15.5 + 0.1
         elif symbol is 'W':
             # There is an offset of 1 but okay
-            colors = blib.wmap()
+            colors = colormap.wmap()
             vmin = 0.0
             vmax = 12.75 + 0.05
         elif symbol is 'V':
-            colors = blib.vmap()
+            colors = colormap.vmap()
             vmin = -16.0
             vmax = 15.875 + 0.125
         elif symbol is 'Z':
-            colors = blib.zmap()
+            colors = colormap.zmap()
             d = 0.5
             vmin = -32.0
             vmax = 95.5 + 0.5
@@ -235,7 +234,7 @@ class Chart:
         # Pick a colormap, vmin, vmax, ticklabels, titlestring, etc. based on style
         if style is 'K':
             # KDP is not finalized yet
-            colors = blib.kmap()
+            colors = colormap.kmap()
             vmin = 0.0
             vmax = 0.1 * np.pi
             cticks = np.arange(-10, 10, 2)
@@ -243,7 +242,7 @@ class Chart:
             titlestring = 'KDP (degres / km)'
         elif style is 'R':
             # Special case, values are mapped to indices
-            colors = blib.rmap()
+            colors = colormap.rmap()
             vmin = 0.0
             vmax = 256.0
             values = np.copy(values)
@@ -252,14 +251,14 @@ class Chart:
             cticks = rho2ind(cticklabels)
             titlestring = 'RhoHV (unitless)'
         elif style is 'P':
-            colors = blib.pmap()
+            colors = colormap.pmap()
             vmin = -180.0
             vmax = 180.0
             cticks = np.arange(-180, 181, 60)
             cticklabels = None
             titlestring = 'PhiDP (degrees)'
         elif style is 'D':
-            colors = blib.dmap()
+            colors = colormap.dmap()
             vmin = -10.0
             vmax = 15.5 + 0.1
             cticks = np.arange(-9, 15, 3)
@@ -267,14 +266,14 @@ class Chart:
             titlestring = 'ZDR (dB)'
         elif style is 'W':
             # I realize there is an offset of 1 but okay
-            colors = blib.wmap()
+            colors = colormap.wmap()
             vmin = 0.0
             vmax = 12.75 + 0.05
             cticks = np.arange(0, 15, 2)
             cticklabels = None
             titlestring = 'Width (m/s)'
         elif style is 'V':
-            # colors = blib.vmap()
+            # colors = colormap.vmap()
             colors = vmap_local()
             vmin = -16.0
             vmax = 15.875 + 0.125
@@ -282,7 +281,7 @@ class Chart:
             cticklabels = None
             titlestring = 'Velocity (m/s)'
         elif style is 'Z':
-            colors = blib.zmap()
+            colors = colormap.zmap()
             d = 0.5
             vmin = -32.0
             vmax = 95.5 + 0.5
@@ -343,34 +342,34 @@ def showPPI(x, y, z, style='S', title=None, maxrange=50.0, dpi=144):
     rect = [round(x * 72.0) / 72.0 + 0.5 / 72.0 for x in rect]
     if style is 'K':
         # Not finalized yet
-        colors = blib.kmap()
+        colors = colormap.kmap()
         vmin = 0.0
         vmax = 0.1 * np.pi
     elif style is 'R':
         # Special, does not really matter here
-        colors = blib.rmap()
+        colors = colormap.rmap()
         vmin = 0.0
         vmax = 256.0
         zz = rho2ind(zz)
     elif style is 'P':
-        colors = blib.pmap()
+        colors = colormap.pmap()
         vmin = -180.0
         vmax = 180.0
     elif style is 'D':
-        colors = blib.dmap()
+        colors = colormap.dmap()
         vmin = -10.0
         vmax = 15.5 + 0.1
     elif style is 'W':
         # There is an offset of 1 but okay
-        colors = blib.wmap()
+        colors = colormap.wmap()
         vmin = 0.0
         vmax = 12.75 + 0.05
     elif style is 'V':
-        colors = blib.vmap()
+        colors = colormap.vmap()
         vmin = -16.0
         vmax = 15.875 + 0.125
     elif style is 'Z':
-        colors = blib.zmap()
+        colors = colormap.zmap()
         d = 0.5
         vmin = -32.0
         vmax = 95.5 + 0.5

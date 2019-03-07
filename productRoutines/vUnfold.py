@@ -5,6 +5,7 @@ class main(radarkit.ProductRoutine):
         super().__init__(verbose=verbose)
         self.name = 'Velocity Unfolding'
         self.productName = 'Unfolded_Velocity'
+        self.productCount = 1
         self.symbol = 'U'
         self.unit = 'MetersPerSecond'
         self.cmap = 'Velocity'
@@ -26,7 +27,7 @@ class main(radarkit.ProductRoutine):
         d = sweep.products['V'] + 0.5
 
         # Print something on the screen
-        if self.verbose > 0:
+        if self.verbose > 1:
             radarkit.showArray(d, letter=self.symbol)
 
         return d

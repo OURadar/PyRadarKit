@@ -5,6 +5,7 @@ class main(radarkit.ProductRoutine):
         super().__init__(verbose=verbose)
         self.name = 'Z Shift'
         self.productName = 'Shifted Reflectivity'
+        self.productCount = 1
         self.symbol = 'Y'
         self.unit = 'dBZ'
         self.cmap = 'Z'
@@ -25,7 +26,7 @@ class main(radarkit.ProductRoutine):
         y = sweep.products['Z'] + 0.5
 
         # Print something on the screen
-        if self.verbose > 0:
+        if self.verbose > 1:
             radarkit.showArray(y, letter=self.symbol)
 
         return y

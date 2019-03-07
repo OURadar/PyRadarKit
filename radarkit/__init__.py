@@ -30,7 +30,7 @@ from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-version_info = '2.0'
+version_info = '2.0.1'
 
 branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
 if branch.find('master') < 0:
@@ -68,7 +68,7 @@ class ProductRoutine(object):
     def __init__(self, verbose=0):
         self.key = 0
         self.name = 'Algorithm Name'
-        self.productCount = 1
+        self.productCount = 0
         self.productName = 'ExpIPi'
         self.productId = None
         self.symbol = '_'
@@ -82,9 +82,14 @@ class ProductRoutine(object):
         self.active = False
 
     def __str__(self):
-        return '{} -> {}   {}'.format(colorize(self.name, COLOR.iceblue),
-                                      ', '.join([colorize(x, COLOR.yellow) for x in self.symbol]),
-                                      variableInString('active', self.active))
+        if self.productCount:
+            infoString = '{} -> {}'.format(colorize(self.name, COLOR.iceblue),
+                                           ', '.join([colorize(x, COLOR.yellow) for x in self.symbol]))
+        else:
+            infoString = colorize(self.name, COLOR.iceblue)
+        if self.verbose > 1:
+            infoString += '   ' + variableInString('active', self.active)
+        return infoString
 
     def description(self):
         if self.productCount > 1:
@@ -104,12 +109,8 @@ class ProductRoutine(object):
 
     # Every algorithm should have this function defined
     def process(self, sweep):
-        if self.verbose > 1:
-            logger.info('Algorithm {}   {}   {}'.format(self,
-                                                        variableInString('rays', sweep.rayCount),
-                                                        variableInString('gates', sweep.gateCount)))
-        else:
-            logger.info('Algorithm {}'.format(self))
+        logger.info('Algorithm {}'.format(self))
+        logger.debug('{}   {}'.format(variableInString('rays', sweep.rayCount), variableInString('gates', sweep.gateCount)))
 
 # A sweep encapsulation
 class Sweep(object):
@@ -157,7 +158,7 @@ class Radar(object):
         self.active = False
         self.wantActive = False
         self.productRoutinesFolder = productRoutinesFolder[:-1] if productRoutinesFolder.endswith('/') else productRoutinesFolder
-        print('{}'.format(variableInString('productRoutinesFolder', self.productRoutinesFolder)))
+        logger.debug('{}'.format(variableInString('productRoutinesFolder', self.productRoutinesFolder)))
         self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
         # Each netlimiter has:
         # 1st component: 16-bit type
@@ -184,8 +185,10 @@ class Radar(object):
         logFile = logFolder + '/' + datetime.datetime.now().strftime('pyrk-%Y%m%d.log')
         logging.basicConfig(filename=logFile, level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%I:%M:%S')
         ch = logging.StreamHandler()
-        if self.verbose > 0:
+        if self.verbose > 1:
             ch.setLevel(logging.INFO)
+        elif self.verbose:
+            ch.setLevel(logging.DEBUG)
         else:
             ch.setLevel(logging.WARNING)
         ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%I:%M:%S'))
@@ -228,8 +231,7 @@ class Radar(object):
             self.latestPayloadType = delimiter[0]
             self.latestPayloadSize = delimiter[2]
 
-            if self.verbose > 2:
-                logger.info('Delimiter: type {} size {}   k = {}'.format(self.latestPayloadType, self.latestPayloadSize, k))
+            logger.debug('Delimiter: type {} size {}   k = {}'.format(self.latestPayloadType, self.latestPayloadSize, k))
 
             # Beacon is 0 size, data payload otherwise
             if self.latestPayloadSize > 0:
@@ -325,10 +327,11 @@ class Radar(object):
             for symbol in self.sweep.validSymbols:
                 self.sweep.products[symbol] = N.zeros((self.sweep.rayCount, self.sweep.gateCount), dtype=N.float)
             # Show some sweep info
-            logger.info('New sweep   {}   {}   {}   {}'.format(variableInString('configId', self.sweep.configId),
-                                                               variableInString('rays', self.sweep.rayCount),
-                                                               variableInString('gates', self.sweep.gateCount),
-                                                               variableInString('symbols', self.sweep.validSymbols)))
+            stringOfSymbols = ', '.join([colorize(x, COLOR.yellow) for x in self.sweep.validSymbols])
+            logger.debug('New sweep   {}   {}   {}   {}'.format(variableInString('configId', self.sweep.configId),
+                                                                variableInString('rays', self.sweep.rayCount),
+                                                                variableInString('gates', self.sweep.gateCount),
+                                                                variableInString('symbols', stringOfSymbols)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.SWEEP_RAY:
 
@@ -352,17 +355,27 @@ class Radar(object):
             if not self.sweep.receivedRayCount == self.sweep.rayCount:
                 return
             # Call the collection of algorithms
+            processTime = 0.0
+            deliveryTime = 0.0
             for key, obj in self.algorithmObjects.items():
-                if self.verbose > 1:
-                    logger.info('Calling algorithm key {} for {} ({}) {} ...'.format(key, obj.symbol, obj.productCount, obj.productId))
+                if obj.productCount:
+                    stringOfProductIds = ', '.join([colorize(x, COLOR.lime) for x in obj.productId])
+                    logger.debug('Calling algorithm key {} for {}   {}   {} = [{}] ...'.format(key, obj.symbol,
+                                                                                               variableInString("productCount", obj.productCount),
+                                                                                               colorize("productId", COLOR.orange), stringOfProductIds))
+                else:
+                    logger.debug('Calling algorithm key {}   {} ...'.format(key, variableInString("productCount", obj.productCount)))
+                # Time the process
+                tic = time.time()
                 userProductData = obj.process(self.sweep)
+                toc = time.time()
+                processTime += (toc - tic)
                 if not obj.active:
                     continue
                 if userProductData is None or len(userProductData) == 0:
                     logger.exception('Expected product(s) from {}'.format(obj))
                     continue
-                if self.verbose > 1:
-                    logger.info('Sending products ...')
+                logger.debug('Sending products ...')
                 if not isinstance(userProductData, list) and not isinstance(userProductData, tuple):
                     userProductData = [userProductData]
                 userProductDesc = []
@@ -373,6 +386,8 @@ class Radar(object):
                     symbols = [obj.symbol]
                 else:
                     symbols = obj.symbol
+                # Time the delivery
+                tic = time.time()
                 for data, desc, symbol in zip(userProductData, userProductDesc, symbols):
                     # Network delimiter (see above)
                     bytes = len(desc)
@@ -386,13 +401,18 @@ class Radar(object):
                     r = self.socket.sendall(delimiterForUserProductDesc + desc + delimiterForData + data.astype('f').tobytes())
                     if r is not None:
                         logger.exception('Error sending userProduct.')
-                    logger.info('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
+                    logger.debug('User product {} sent'.format(colorize(symbol, COLOR.yellow)))
+                toc = time.time()
+                deliveryTime += (toc - tic)
+            # Log the total process and transmit time
+            logger.info('Sweep complete   {} s   {} s'.format(variableInString("processTime", processTime),
+                                                              variableInString("deliveryTime", deliveryTime)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 
             # Command response is a string
             responseString = self.payload[0:self.latestPayloadSize].decode('utf-8').rstrip('\r\n\x00')
-            logger.info('Response = {}'.format(colorize(responseString, COLOR.skyblue)))
+            logger.debug('Response = {}'.format(colorize(responseString, COLOR.skyblue)))
             curlyBracketPosition = responseString.find('{')
             if curlyBracketPosition > 0:
                 payloadDict = json.loads(responseString[curlyBracketPosition:])
@@ -403,7 +423,7 @@ class Radar(object):
                         pid = payloadDict['pid']
                         symbol = payloadDict['symbol']
                         idx = N.argmax([symbol == x for x in self.algorithmObjects[key].symbol])
-                        logger.info('Product {} registered   {}   {} ({})'.format(colorize(symbol, COLOR.yellow),
+                        logger.debug('Product {} registered   {}   {} ({})'.format(colorize(symbol, COLOR.yellow),
                                                                                   variableInString('key', key),
                                                                                   variableInString('productId', pid),
                                                                                   idx))
@@ -434,7 +454,7 @@ class Radar(object):
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.settimeout(self.timeout)
                 try:
-                    logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
+                    logger.debug('Connecting {}:{}...'.format(self.ipAddress, self.port))
                     self.socket.connect((self.ipAddress, self.port))
                 except:
                     t = 30
@@ -452,7 +472,7 @@ class Radar(object):
                     if self._recv() == True:
                         self._interpretPayload()
                     else:
-                        logger.info('Server disconnected.')
+                        logger.debug('Server disconnected.')
                         t = 30
                         while t > 0:
                             if self.verbose > 1 and t % 10 == 0:
@@ -468,7 +488,7 @@ class Radar(object):
         except:
             print('Outside runloop', sys.exc_info()[0])
         # Outside of the busy loop
-        logger.info('Connection from {} terminated.'.format(self.ipAddress))
+        logger.debug('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()
         self.active = False
 
@@ -477,7 +497,7 @@ class Radar(object):
     """
     def start(self):
         # Loop through all the files under (productRoutines) folder
-        logger.info('Loading algorithms ...')
+        logger.debug('Loading algorithms ...')
         sys.path.insert(0, self.productRoutinesFolder)
         w0 = 1
         w1 = 1
@@ -521,7 +541,7 @@ class Radar(object):
                                                     colorize(obj.name.center(w1, ' '), COLOR.iceblue),
                                                     ', '.join([colorize(x, COLOR.yellow) for x in obj.symbol])))
         # Composite registration string is built at this point
-        logger.info('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
+        logger.debug('Registration = {}'.format(colorize(self.registerString, COLOR.salmon)))
         self.wantActive = True
         threading.Thread(target=self._runLoop).start()
 
@@ -529,14 +549,14 @@ class Radar(object):
         Stop the server
     """
     def stop(self):
-        logger.info('Deactivating radar ...')
+        logger.debug('Deactivating radar ...')
         self.wantActive = False
         k = 0
         while self.active and k < 20:
             time.sleep(0.1)
             k += 1
         if k >= 20:
-            logger.info('Force exit.')
+            logger.debug('Forced exit.')
         logger.info('Done.')
 
     """

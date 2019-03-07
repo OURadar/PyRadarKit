@@ -34,7 +34,7 @@ class main(radarkit.ProductRoutine):
         zc, dc = algorithms.zphi(z, d, p)
 
         # Print something on the screen
-        if self.verbose > 0:
+        if self.verbose > 1:
             radarkit.showArray(zc, letter=self.symbol[0])
             print('')
             radarkit.showArray(dc, letter=self.symbol[1])

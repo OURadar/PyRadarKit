@@ -19,6 +19,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B506203C2231CEFF00B4C95A /* colormap.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = colormap.py; sourceTree = "<group>"; };
 		B5559EE52055816700E5B34F /* chart.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = chart.py; sourceTree = "<group>"; };
 		B57391411EE59B9200ACF25E /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
 		B57391421EE59B9200ACF25E /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
@@ -57,6 +58,7 @@
 				B57391421EE59B9200ACF25E /* Makefile */,
 				B57391461EE59B9200ACF25E /* setup.py */,
 				B5559EE52055816700E5B34F /* chart.py */,
+				B506203C2231CEFF00B4C95A /* colormap.py */,
 				B5902EF01F5F027B00C7CC7A /* ppi_demo.py */,
 				B5A2599D2229D0C400909464 /* algorithms */,
 				B5A2599C2229C13600909464 /* productRoutines */,
