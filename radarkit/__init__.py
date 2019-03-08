@@ -4,6 +4,12 @@
 
 # Standard libraries
 import os
+version_info = '2.0.2'
+branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+if branch.find('master') < 0:
+    version_info += 'b'
+
+# Libraries
 import re
 import sys
 import enum
@@ -18,8 +24,6 @@ import logging
 import socket
 import struct
 import json
-
-# Additional libraries
 import numpy as N
 import scipy as S
 
@@ -30,11 +34,6 @@ from .test import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-version_info = '2.0.1'
-
-branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
-if branch.find('master') < 0:
-    version_info += 'b'
 
 # Constants
 class CONSTANTS:
@@ -405,8 +404,9 @@ class Radar(object):
                 toc = time.time()
                 deliveryTime += (toc - tic)
             # Log the total process and transmit time
-            logger.info('Sweep complete   {} s   {} s'.format(variableInString("processTime", processTime),
-                                                              variableInString("deliveryTime", deliveryTime)))
+            logger.info('Sweep @ {} completed   {} s   {} s'.format(variableInString('configId', self.sweep.configId),
+                                                                    variableInString('processTime', processTime),
+                                                                    variableInString('deliveryTime', deliveryTime)))
 
         elif self.latestPayloadType == NETWORK_PACKET_TYPE.COMMAND_RESPONSE:
 

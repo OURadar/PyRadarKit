@@ -27,7 +27,7 @@ class main(radarkit.ProductRoutine):
         d = sweep.products['V'] + 0.5
 
         # Print something on the screen
-        if self.verbose > 1:
+        if self.verbose:
             radarkit.showArray(d, letter=self.symbol)
 
         return d
