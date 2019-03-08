@@ -96,7 +96,8 @@ install_requires = [
 ]
 scripts = [
     '__init__.py',
-    'misc.py'
+    'foundation.py',
+    'test.py'
 ]
 console_scripts = [
     'gui=gui.__main__:main'

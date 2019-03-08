@@ -1,8 +1,8 @@
 import os
 import sys
 
+from .foundation import *
 from . import rk
-from .misc import *
 
 '''
     Tests are divided into several levels:
@@ -21,11 +21,11 @@ def test(number, args=None, debug=False, verbose=0):
         201: lambda x: print('x = {}   args = {}'.format(x, args))
     }
     if number >= 0 and number < 200:
-        if verbose > 0:
+        if verbose:
             print('args for testByNumber = {}'.format(args))
         return rk.testByNumber(number, args=args, verbose=verbose)
     elif number in tests:
-        if verbose > 0:
+        if verbose:
             print('args for sub-module = {}'.format(args))
         return tests.get(number)(args)
     else:

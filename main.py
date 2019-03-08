@@ -9,17 +9,6 @@ if sys.version_info < MIN_PYTHON:
 
 import argparse
 import radarkit
-#import algorithms
-
-def showName():
-    rows, columns = os.popen('stty size', 'r').read().split()
-    c = int(columns)
-    print('Version {}\n'.format(sys.version_info))
-    #print(radarkit.colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), "\033[38;5;15;48;5;28m"))
-    print(radarkit.colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), "\033[38;5;15;48;5;241m"))
-    print(radarkit.colorize('{}\n{}\n{}'.format(' ' * c, 'PyRadarKit {}'.format(radarkit.version_info).center(c, ' '), ' ' * c), radarkit.COLOR.python))
-    print(radarkit.colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(radarkit.rk.version()).center(c, ' '), ' ' * c), radarkit.COLOR.radarkit))
-    print('')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog='main', formatter_class=argparse.RawTextHelpFormatter)
@@ -30,20 +19,7 @@ if __name__ == "__main__":
                         '{}'
                         ' '.format(radarkit.testHelpText()))
     parser.add_argument('-a', '--product-routines', default='productRoutines', type=str,
-                        help='Use a different folder for the collection of product algorithms (default "products")')
-    parser.add_argument('-s', '--streams', default=None, type=str, 
-                        help='Overrides the initial streams. In this mode, the algorithms do not get executed.\n'
-                        'This mode is primarily used for debugging.\n'
-                        'The available streams are:\n'
-                        ' z - Reflectivity\n'
-                        ' v - Velocity\n'
-                        ' w - Width\n'
-                        ' d - Differential Reflectivity (ZDR)\n'
-                        ' p - Differential Phase (PhiDP)\n'
-                        ' r - Cross-correlation Coefficient (RhoHV)\n'
-                        ' \n'
-                        ' e.g., -sZV sets the radar to receive reflectivity and velocity.\n'
-                        ' ')
+                        help='Use a different folder for the collection of product algorithms (default "productRoutines")')
     parser.add_argument('-v', '--verbose', default=0, action='count', help='increases verbosity level')
     parser.add_argument('values', nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -55,8 +31,8 @@ if __name__ == "__main__":
         quit()
 
     try:
-        showName()
-        radar = radarkit.Radar(ipAddress=args.host, streams=args.streams, productRoutinesFolder=args.product_routines, verbose=args.verbose)
+        radarkit.showName()
+        radar = radarkit.Radar(ipAddress=args.host, productRoutinesFolder=args.product_routines, verbose=args.verbose)
         radar.start()
         radar.wait()
     except KeyboardInterrupt:

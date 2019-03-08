@@ -3,6 +3,16 @@ import sys
 import time
 import threading
 
+# Standard libraries
+import os
+version_info = '2.0.2'
+branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+if branch.find('master') < 0:
+    version_info += 'b'
+
+from . import rk
+
+# Some color escape codes for pretty strings in terminal
 class COLOR:
     reset = "\033[0m"
     red = "\033[38;5;196m"
@@ -23,6 +33,47 @@ class COLOR:
     python = "\033[38;5;226;48;5;24m"
     radarkit = "\033[38;5;15;48;5;124m"
 
+
+# Constants
+class CONSTANTS:
+    IP = '127.0.0.1'
+    PORT = 10000
+    MAX_GATES = 4096
+    BUFFER_SIZE = 262144
+    PACKET_DELIM_SIZE = 16
+
+
+# Network packet type according to RadarKit
+class NETWORK_PACKET_TYPE:
+    BYTES = 0
+    BEACON = 1
+    PLAIN_TEXT = 2
+    PULSE_DATA = 3
+    RAY_DATA = 4
+    HEALTH = 5
+    CONTROLS = 6
+    COMMAND_RESPONSE = 7
+    RADAR_DESCRIPTION = 8
+    PROCESSOR_STATUS = 9
+    MOMENT_DATA = 109
+    ALERT_MESSAGE = 110
+    CONFIG = 111
+    SWEEP_HEADER = 113
+    SWEEP_RAY = 114
+    USER_SWEEP_DATA = 115
+    USER_PRODUCT_DESCRIPTION = 116
+
+
+def showName():
+    rows, columns = os.popen('stty size', 'r').read().split()
+    c = int(columns)
+    print('Version {}\n'.format(sys.version_info))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), "\033[38;5;15;48;5;241m"))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'PyRadarKit {}'.format(version_info).center(c, ' '), ' ' * c), COLOR.python))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(rk.version()).center(c, ' '), ' ' * c), COLOR.radarkit))
+    print('')
+
+
 def showArray(d, letter='U'):
     formatDesc = ' {:6.2f}'
     j = 0
@@ -39,6 +90,7 @@ def showArray(d, letter='U'):
 
 def colorize(string, color):
     return '{}{}{}'.format(color, string, COLOR.reset)
+
 
 def variableInString(name, value):
     if isinstance(value, (bool)):

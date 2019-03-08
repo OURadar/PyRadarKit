@@ -2,15 +2,9 @@
     Python wrapper for C functions to interact with RadarKit
 """
 
-# Standard libraries
-import os
-version_info = '2.0.2'
-branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
-if branch.find('master') < 0:
-    version_info += 'b'
-
 # Libraries
 import re
+import os
 import sys
 import enum
 import glob
@@ -28,39 +22,12 @@ import numpy as N
 import scipy as S
 
 # From the PyRadarKit framework
-from .rk import *
-from .misc import *
+from .foundation import *
 from .test import *
+from .rk import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger(__name__)
-
-# Constants
-class CONSTANTS:
-    IP = '127.0.0.1'
-    PORT = 10000
-    MAX_GATES = 4096
-    BUFFER_SIZE = 262144
-    PACKET_DELIM_SIZE = 16
-
-class NETWORK_PACKET_TYPE:
-    BYTES = 0
-    BEACON = 1
-    PLAIN_TEXT = 2
-    PULSE_DATA = 3
-    RAY_DATA = 4
-    HEALTH = 5
-    CONTROLS = 6
-    COMMAND_RESPONSE = 7
-    RADAR_DESCRIPTION = 8
-    PROCESSOR_STATUS = 9
-    MOMENT_DATA = 109
-    ALERT_MESSAGE = 110
-    CONFIG = 111
-    SWEEP_HEADER = 113
-    SWEEP_RAY = 114
-    USER_SWEEP_DATA = 115
-    USER_PRODUCT_DESCRIPTION = 116
 
 # An algorithm encapsulation
 class ProductRoutine(object):
@@ -436,7 +403,6 @@ class Radar(object):
         if self.streams is None:
             # Prepend data stream request
             greetCommand = 'sYUXCOQAH;' + self.registerString + '\r\n'
-            #greetCommand = 'sYUXCOQ;' + self.registerString + '\r\n'
             #greetCommand = 'sYUCO;' + self.registerString + '\r\n'
         else:
             greetCommand = 's' + self.streams + '\r\n'
