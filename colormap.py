@@ -1,3 +1,4 @@
+import colorsys
 import numpy as np
 
 def fleximap(count=15, xp=None, cp=None):
