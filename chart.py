@@ -8,6 +8,39 @@ import colormap
 
 bgColor = (0.89, 0.87, 0.83)
 
+matplotlib.rcParams['figure.dpi'] = 144
+matplotlib.rcParams['font.family'] = ['serif']
+matplotlib.rcParams['font.sans-serif'] = ['System Font',
+                                          'Arial',
+                                          'DejaVu Sans',
+                                          'Bitstream Vera Sans',
+                                          'Computer Modern Sans Serif',
+                                          'Lucida Grande',
+                                          'Verdana',
+                                          'Geneva',
+                                          'Lucid',
+                                          'Arial',
+                                          'Helvetica',
+                                          'Avant Garde',
+                                          'sans-serif']
+matplotlib.rcParams['font.serif'] = ['Arial', 
+                                     'DejaVu Serif',
+                                     'Bitstream Vera Serif',
+                                     'Computer Modern Roman',
+                                     'New Century Schoolbook',
+                                     'Century Schoolbook L',
+                                     'Utopia',
+                                     'ITC Bookman',
+                                     'Bookman',
+                                     'Nimbus Roman No9 L',
+                                     'Times New Roman',
+                                     'Times',
+                                     'Palatino',
+                                     'Charter',
+                                     'serif']
+matplotlib.rcParams['text.usetex'] = False
+
+
 def zmap_local():
     colors = [
         bgColor,
