@@ -122,16 +122,16 @@ optional arguments:
   -v, --verbose         increases verbosity level
 ```
 
-## Developing Your Own Algorithms
+## Developing Your Own Product Routines
 
-Each algorithm must be its own Python script under the folder algorithms. Here are the requirements:
-- The algorithm must be a class of itself, which is derived as a subclass from `radarkit.ProductRoutine`.
+Each product routine must be its own Python script under the defaultfolder productRoutine. Here are the requirements:
+- The routine must be an object of a subclass derived from `radarkit.RroductRoutine`.
 - Specify the number of products to be returned through the attribute `.productCount`.
 - Each algorithm is allowed to return a product, or multiple in a list.
-- The return products must be of the same size as the base moment, .e.g, Z.
+- The return products must be of the same size as the base moment, i.e., Z, V, W, etc.
 - The method `process()` must be overriden to generate and return the product(s).
 
-A trivial algorithm is provided as a `zShift.py`, which can be found under the algorithms folder. Here's an excerpt of the example to illustrate the fundamental concepts. This algorithm uses the base moment 'Z' and add an offset value to it to produce a new product 'Y'.
+A trivial product routine is provided as a `zShift.py`, which can be found under the algorithms folder. Here's an excerpt of the example to illustrate the fundamental concepts. This algorithm uses the base moment 'Z' and add an offset value to it to produce a new product with symbol 'Y'.
 
 ```python
 import radarkit
