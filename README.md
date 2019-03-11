@@ -1,7 +1,7 @@
 PyRadarKit
 ==========
 
-PyRadarKit is a Python interface to communicate with the RadarKit socket interface. The main key feature is to bridge the base moment data from the RadarKit framework to a Python processing space, which allows for array processing and simple algorithm development. New product may be requested to be sent back to RadarKit for arhiving, live distribution, etc., which are all part of the RadarKit work flow. Another key feature is parsing the pre-defined structure in RadarKit into C arrays and then to NumPy arrays.
+PyRadarKit is a Python interface to communicate the RadarKit through its socket interface. The main feature is to bridge the base moment data from the RadarKit framework to a Python processing space, which allows for array processing and simple algorithm development. New products may be requested to be sent back to the RadarKit for arhiving, live distribution, etc., which are all part of the RadarKit workflow. Another key feature is the parsing of pre-defined structures in RadarKit into NumPy arrays.
 
 It also contains extensions that utilizes [RadarKit] to perform some low-level tasks, such as reading the native product files.
 
@@ -62,13 +62,13 @@ optional arguments:
                          3 - Test modulo math macros
                          4 - Test parsing comma delimited values
                          5 - Test parsing values in a JSON string
-                         6 - Test initializing a file maanger - RKFileManagerInit()
+                         6 - Test initializing a file manager - RKFileManagerInit()
                          7 - Test reading a preference file - RKPreferenceInit()
                          8 - Test counting files using RKCountFilesInPath()
                          9 - Test the file monitor module - RKFileMonitor()
                         10 - Test the internet monitor module - RKHostMonitorInit()
                         11 - Test initializing a radar system - RKRadarInit()
-                        12 - Test converting a temperature reading to status
+                        12 - Test converting a temperature reading to RKStatus
                         13 - Test getting a country name from position
                         14 - Test generating text for buffer overview
                         15 - Test reading a netcdf file using RKSweepRead(); -T15 FILE
