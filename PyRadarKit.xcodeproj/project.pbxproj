@@ -30,6 +30,7 @@
 		B5A2599C2229C13600909464 /* productRoutines */ = {isa = PBXFileReference; lastKnownFileType = folder; path = productRoutines; sourceTree = "<group>"; };
 		B5A2599D2229D0C400909464 /* algorithms */ = {isa = PBXFileReference; lastKnownFileType = folder; path = algorithms; sourceTree = "<group>"; };
 		B5B2058720E3CCF6007D48E0 /* rkstruct */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = rkstruct; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5F557A92243C2D6009CBE01 /* data.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = data.py; sourceTree = "<group>"; };
 		B5FAD8D020D5582100E0A767 /* radarkit */ = {isa = PBXFileReference; lastKnownFileType = folder; path = radarkit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -59,6 +60,7 @@
 				B506203D2232BAD500B4C95A /* LICENSE */,
 				B57391421EE59B9200ACF25E /* Makefile */,
 				B57391461EE59B9200ACF25E /* setup.py */,
+				B5F557A92243C2D6009CBE01 /* data.py */,
 				B5559EE52055816700E5B34F /* chart.py */,
 				B506203C2231CEFF00B4C95A /* colormap.py */,
 				B5902EF01F5F027B00C7CC7A /* ppi_demo.py */,

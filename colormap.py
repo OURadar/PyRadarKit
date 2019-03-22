@@ -3,7 +3,7 @@ import numpy as np
 
 def fleximap(count=15, xp=None, cp=None):
     if xp is None and cp is None:
-        # Color provided
+        # Color provided. This array can N x 3 for RGB or N x 4 for RGBA
         cp = [
             [0.5, 0.0, 0.0],
             [1.0, 0.0, 0.0],
@@ -11,15 +11,16 @@ def fleximap(count=15, xp=None, cp=None):
             [0.0, 0.0, 1.0],
             [0.0, 0.0, 0.5],
         ]
-        # X-axis provided
+        # X-axis provided, the number of elements must be N
         xp = [0.0, 0.2, 0.5, 0.8, 1.0]
-    # If anchors are supplied but not x
+    # If x is not supplied
     if xp is None:
         xp = np.linspace(0.0, 1.0, len(cp))
+    # If color is not supplied
     if cp is None:
         print('Supply xp and cp.')
         return None
-    cp = np.array(cp)
+    cp = np.array(cp, dtype=float)
     xi = np.linspace(0.0, 1.0, count)
     rgb = np.array([np.interp(xi, xp, cp[:, i]) for i in range(cp.shape[1])]).transpose((1, 0))
     return rgb

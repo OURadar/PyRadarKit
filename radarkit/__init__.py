@@ -6,7 +6,6 @@
 import re
 import os
 import sys
-import enum
 import glob
 import math
 import time
