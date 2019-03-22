@@ -2,7 +2,7 @@ import os
 import sys
 import urllib.request
 
-folder = os.path.expanduser('data/')
+folder = os.path.expanduser('data')
 prefix = 'PX-20170220-050706-E2.4'
 
 def check(verbose=1):
@@ -15,7 +15,7 @@ def check(verbose=1):
     # Download data files if not exist
     allExist = True
     for file in files:
-        url = 'http://arrc.ou.edu/~boonleng/files/{}'.format(file)
+        url = 'https://arrc.ou.edu/~boonleng/files/{}'.format(file)
         dst = '{}/{}'.format(folder, file)
         if not os.path.isfile(dst):
             if verbose:

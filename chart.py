@@ -135,9 +135,9 @@ class Image:
 
         self.ax = matplotlib.pyplot.axes(rect, facecolor=bgColor)
 
-            # dx = (extent[1] - extent[0]) / self.wp
-            # dy = (extent[3] - extent[2]) / self.hp
-            # self.grid_x, self.grid_y = np.mgrid[extent[0]:extent[1]:dx, extent[2]:extent[3]:dy]
+        # dx = (extent[1] - extent[0]) / self.wp
+        # dy = (extent[3] - extent[2]) / self.hp
+        # self.grid_x, self.grid_y = np.mgrid[extent[0]:extent[1]:dx, extent[2]:extent[3]:dy]
 
         self.grid_x, self.grid_y = np.mgrid[-50:50:100 / self.wp, -50:50:100 / self.hp]
         if a is None and r is None:

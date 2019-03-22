@@ -7,6 +7,8 @@ MIN_PYTHON = (3, 4)
 if sys.version_info < MIN_PYTHON:
     sys.exit('Python %s or later is required.\n' % '.'.join("%s" % n for n in MIN_PYTHON))
 
+import radarkit
+
 class COLOR:
     reset = "\033[0m"
     red = "\033[38;5;196m"
@@ -89,7 +91,6 @@ print('{} inc_dirs = {}'.format(colorize('\033[34m===>\033[0m', COLOR.orange), i
 print('{} inc_libs = {}'.format(colorize('\033[34m===>\033[0m', COLOR.purple), lib_dirs))
 
 install_requires = [
-    'enum',
     'numpy',
     'scipy',
     'matplotlib'
@@ -118,6 +119,7 @@ with open(os.path.join(here, 'README.md')) as f:
 
 setup(
     name='PyRadarKit',
+    version=radarkit.version_info,
     description='The Python Extension of RadarKit.',
     author='Boonleng Cheong',
     author_email='boonleng@ou.edu',
