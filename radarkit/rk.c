@@ -685,18 +685,31 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     return ret;
 }
 
+#pragma mark - RadarKit Function Bridge
+
+static PyObject *PyRKCountryFromCoordinate(PyObject *self, PyObject *args, PyObject *keywords) {
+    static char *keywordList[] = {"latitude", "longitude", NULL};
+    double latitude, longitude;
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "dd", keywordList, &latitude, &longitude)) {
+        fprintf(stderr, "PyRKGetCountryFromCoordinate() -> Imcomplete input.\n");
+        return Py_None;
+    }
+    return Py_BuildValue("s", RKCountryFromPosition(latitude, longitude));
+}
+
 #pragma mark - C Extension Setup
 
 // Standard boiler plates
 static PyMethodDef PyRKMethods[] = {
-    {"init",             (PyCFunction)PyRKInit,               METH_NOARGS                 , "Init module"},
-    {"version",          (PyCFunction)PyRKVersion,            METH_NOARGS                 , "RadarKit Version"},
-    {"testByNumber",     (PyCFunction)PyRKTestByNumber,       METH_VARARGS | METH_KEYWORDS, "Test by number"},
-    {"testByNumberHelp", (PyCFunction)PyRKTestByNumberHelp,   METH_NOARGS                 , "Test by number help text"},
-    {"parseRay",         (PyCFunction)PyRKParseRay,           METH_VARARGS | METH_KEYWORDS, "Ray parse module"},
-    {"parseSweepHeader", (PyCFunction)PyRKParseSweepHeader,   METH_VARARGS | METH_KEYWORDS, "Sweep header parse module"},
-    {"readOne",          (PyCFunction)PyRKRead,               METH_VARARGS | METH_KEYWORDS, "Read a sweep / product"},
-    {"read",             (PyCFunction)PyRKReadProducts,       METH_VARARGS | METH_KEYWORDS, "Read a collection products"},
+    {"init"                  , (PyCFunction)PyRKInit                  , METH_NOARGS                  , "Init module"},
+    {"version"               , (PyCFunction)PyRKVersion               , METH_NOARGS                  , "RadarKit Version"},
+    {"testByNumber"          , (PyCFunction)PyRKTestByNumber          , METH_VARARGS | METH_KEYWORDS , "Test by number"},
+    {"testByNumberHelp"      , (PyCFunction)PyRKTestByNumberHelp      , METH_NOARGS                  , "Test by number help text"},
+    {"parseRay"              , (PyCFunction)PyRKParseRay              , METH_VARARGS | METH_KEYWORDS , "Ray parse module"},
+    {"parseSweepHeader"      , (PyCFunction)PyRKParseSweepHeader      , METH_VARARGS | METH_KEYWORDS , "Sweep header parse module"},
+    {"readOne"               , (PyCFunction)PyRKRead                  , METH_VARARGS | METH_KEYWORDS , "Read a sweep / product"},
+    {"read"                  , (PyCFunction)PyRKReadProducts          , METH_VARARGS | METH_KEYWORDS , "Read a collection products"},
+    {"countryFromCoordinate" , (PyCFunction)PyRKCountryFromCoordinate , METH_VARARGS | METH_KEYWORDS , "Country name from coordinate"},
     {NULL, NULL, 0, NULL}
 };
 
