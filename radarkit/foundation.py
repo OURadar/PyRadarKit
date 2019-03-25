@@ -5,7 +5,7 @@ import threading
 
 # Standard libraries
 import os
-version_info = '2.0.2'
+version_info = '2.0.3'
 branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
 if branch.find('master') < 0:
     version_info += 'b'

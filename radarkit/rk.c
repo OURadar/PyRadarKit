@@ -407,7 +407,8 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
     }
 
     // Return dictionary
-    ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+    ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:K,s:K,"
+                        "s:O,s:O,s:O,s:O,s:O,s:O}",
                         "name", collection->products[0].header.radarName,
                         "configId", collection->products[0].i,
                         "rayCount", dims[0],
@@ -418,6 +419,8 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
                         "latitude", product->header.latitude,
                         "longitude", product->header.longitude,
                         "altitude", product->header.radarHeight,
+                        "timeBegin", product->header.startTime,
+                        "timeEnd", product->header.endTime,
                         "sweepBegin", Py_True,
                         "sweepEnd", Py_False,
                         "elevation", elevation,
@@ -557,7 +560,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         }
 
         // Return dictionary
-        ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+        ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,"
+                            "s:O,s:O,s:O,s:O,s:O,s:O}",
                             "name", sweep->header.desc.name,
                             "configId", sweep->header.config.i,
                             "rayCount", sweep->header.rayCount,
@@ -657,7 +661,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         PyTuple_SetItem(moments, 0, dict);
 
         // Return dictionary
-        ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O,s:O,s:O,s:O,s:O,s:O}",
+        ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:K,s:K,"
+                            "s:O,s:O,s:O,s:O,s:O,s:O}",
                             "name", product->header.radarName,
                             "configId", product->i,
                             "rayCount", product->header.rayCount,
@@ -668,6 +673,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                             "latitude", product->header.latitude,
                             "longitude", product->header.longitude,
                             "altitude", product->header.radarHeight,
+                            "timeBegin", product->header.startTime,
+                            "timeEnd", product->header.endTime,
                             "sweepBegin", Py_True,
                             "sweepEnd", Py_False,
                             "elevation", elevation,
