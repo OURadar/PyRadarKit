@@ -3,14 +3,13 @@ import sys
 import time
 import threading
 
-# Standard libraries
-import os
 version_info = '2.0.3'
 branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
-if branch.find('master') < 0:
-    version_info += 'b'
 
 from . import rk
+
+if branch.find('master') < 0 or 'b' in rk.version():
+    version_info += 'b'
 
 # Some color escape codes for pretty strings in terminal
 class COLOR:
