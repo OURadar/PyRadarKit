@@ -312,16 +312,14 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
 
     // Some product description
     RKName symbol;
-    if (RKGetSymbolFromFilename(filename, symbol)) {
-        printf("symbol = %s%s%s\n", RKYellowColor, symbol, RKNoColor);
-    }
-
+    RKGetSymbolFromFilename(filename, symbol);
+    
     // Do this before we use any numpy array creation
     import_array();
 
     PyObject *ret = Py_None;
     
-    RKLog("Using %s ...\n", filename);
+    RKLog("Using %s ... symbol = %s%s%s\n", filename, RKYellowColor, symbol, RKNoColor);
     
     RKProductCollection *collection = RKProductCollectionInitWithFilename(filename);
     if (collection == NULL) {
