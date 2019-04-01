@@ -4,11 +4,12 @@ import time
 import threading
 
 version_info = '2.0.3'
-branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+#branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
 
 from . import rk
 
-if branch.find('master') < 0 or 'b' in rk.version():
+#if branch.find('master') < 0 or 'b' in rk.version():
+if 'b' in rk.version():
     version_info += 'b'
 
 # Some color escape codes for pretty strings in terminal
