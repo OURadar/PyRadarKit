@@ -1,6 +1,39 @@
 """
     Python wrapper for C functions to interact with RadarKit
 """
+#
+#  PyRadarKit
+#
+#  Created by Boonleng Cheong
+#
+
+#
+#  Updates
+#
+#  2.0.3  - 4/1/2019
+#         - Attenuation correction algorithms: scwc, zphi
+#         - Incorporated RadarKit 2.1.1
+#         - Logging to be compatible with iRadar
+#
+#  2.0    - 3/7/2019
+#         - Notebooks on algorithm development
+#         - Notebooks on product routine development
+#         - Product routine registration to RadarKit
+#         - Confirmation with product Id from RadarKit
+#
+#  1.1    - 3/9/2018
+#         - Added Chart class
+#
+#  1.0    - 11/29/2017
+#         - Full cycle working
+#         - Presentable main script
+#
+#  0.5    - 6/19/2017
+#         - Some parts are working
+#
+#  0.1    - 6/3/2017
+#         - Started
+#
 
 # Libraries
 import re
@@ -26,7 +59,7 @@ from .test import *
 from .rk import *
 
 # Some global objects / variables / functions
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('PyRadarKit')
 
 # An algorithm encapsulation
 class ProductRoutine(object):
