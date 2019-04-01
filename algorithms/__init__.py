@@ -17,5 +17,5 @@ from .scwc import *
 from .zphi import *
 
 # Some global objects / variables / functions
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('PyRadarKit')
 version_info = '1.0'
