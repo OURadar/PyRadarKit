@@ -58,6 +58,12 @@ from .foundation import *
 from .test import *
 from .rk import *
 
+#branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
+from ._version import __version__
+if 'b' in version():
+    __version__ += 'b'
+    version_info = __version__
+
 # Some global objects / variables / functions
 logger = logging.getLogger('PyRadarKit')
 
