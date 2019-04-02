@@ -371,7 +371,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
     PyObject *products = PyDict_New();
 
     // Gather the products
-    RKProduct *product;
+    RKProduct *product = NULL;
     for (p = 0; p < (int)collection->count; p++) {
         product = &collection->products[p];
         
