@@ -118,7 +118,7 @@ rk = Extension('radarkit.rk',
                include_dirs=inc_dirs,
                library_dirs=lib_dirs,
                libraries=['radarkit', 'fftw3f', 'netcdf'],
-               extra_compile_args=['-std=gnu99', '-Wno-strict-prototypes'])
+               extra_compile_args=['-std=gnu99', '-Wno-strict-prototypes', '-Wno-unknown-pragmas'])
 
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
