@@ -54,6 +54,15 @@ def is_installed(requirement):
         print('{} found {}'.format(requirement, result[0]))
         return True
 
+# if not is_installed('python3-devel'):
+#     print(textwrap.dedent("""
+#             Error: python-devel needs to be installed first. You can install it via:
+
+#             $ yum install python-devel
+#             $ yum install python3-devel
+#             """), file=sys.stderr)
+#     exit(1)
+
 if not is_installed('numpy>=1.11.0'):
     print(textwrap.dedent("""
         Error: numpy needs to be installed first. You can install it via:
@@ -78,15 +87,6 @@ if not is_installed('scipy>=1.0.0'):
         $ pip3 install scipy
         """), file=sys.stderr)
     exit(1)
-
-# if not is_installed('python-devel'):
-#     print(textwrap.dedent("""
-#             Error: python-devel needs to be installed first. You can install it via:
-
-#             $ yum install python-devel
-#             $ yum install python3-devel
-#             """), file=sys.stderr)
-#     exit(1)
 
 from setuptools import setup, Extension
 import numpy.distutils.misc_util
