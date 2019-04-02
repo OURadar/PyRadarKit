@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import textwrap
 import pkg_resources
@@ -7,7 +8,14 @@ MIN_PYTHON = (3, 4)
 if sys.version_info < MIN_PYTHON:
     sys.exit('Python %s or later is required.\n' % '.'.join("%s" % n for n in MIN_PYTHON))
 
-import radarkit
+# import radarkit
+VERSION_FILE = 'radarkit/_version.py'
+lines = open(VERSION_FILE, 'rt').read()
+mo = re.search(r'^__version__ = [\'"]([0-9.ab]*)[\'"]', lines)
+if mo:
+    version = mo.group(1)
+else:
+    raise RuntimeError('Unable to find version string in {}'.format(VERSION_FILE))
 
 class COLOR:
     reset = "\033[0m"
@@ -46,6 +54,15 @@ def is_installed(requirement):
         print('{} found {}'.format(requirement, result[0]))
         return True
 
+# if not is_installed('python3-devel'):
+#     print(textwrap.dedent("""
+#             Error: python-devel needs to be installed first. You can install it via:
+
+#             $ yum install python-devel
+#             $ yum install python3-devel
+#             """), file=sys.stderr)
+#     exit(1)
+
 if not is_installed('numpy>=1.11.0'):
     print(textwrap.dedent("""
         Error: numpy needs to be installed first. You can install it via:
@@ -65,20 +82,11 @@ if not is_installed('scipy>=1.0.0'):
         $ yum install scipy
 
         or
-        
+
         $ pip install scipy
         $ pip3 install scipy
         """), file=sys.stderr)
     exit(1)
-
-# if not is_installed('python-devel'):
-#     print(textwrap.dedent("""
-#             Error: python-devel needs to be installed first. You can install it via:
-
-#             $ yum install python-devel
-#             $ yum install python3-devel
-#             """), file=sys.stderr)
-#     exit(1)
 
 from setuptools import setup, Extension
 import numpy.distutils.misc_util
@@ -110,7 +118,7 @@ rk = Extension('radarkit.rk',
                include_dirs=inc_dirs,
                library_dirs=lib_dirs,
                libraries=['radarkit', 'fftw3f', 'netcdf'],
-               extra_compile_args=['-std=gnu99', '-Wno-strict-prototypes'])
+               extra_compile_args=['-std=gnu99', '-Wno-strict-prototypes', '-Wno-unknown-pragmas'])
 
 # Get the long description from the README file
 here = os.path.abspath(os.path.dirname(__file__))
@@ -119,7 +127,7 @@ with open(os.path.join(here, 'README.md')) as f:
 
 setup(
     name='PyRadarKit',
-    version=radarkit.version_info,
+    version=version,
     description='The Python Extension of RadarKit.',
     author='Boonleng Cheong',
     author_email='boonleng@ou.edu',

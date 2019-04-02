@@ -98,7 +98,7 @@
 		B57391391EE5987900ACF25E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1020;
 				TargetAttributes = {
 					B513430E1EF96BE800DE7CBC = {
 						CreatedOnToolsVersion = 8.3.3;
@@ -106,12 +106,13 @@
 					};
 				};
 			};
-			buildConfigurationList = B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "PyRadarKit" */;
+			buildConfigurationList = B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "__PyRadarKit" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = B57391381EE5987900ACF25E;
 			productRefGroup = B57391381EE5987900ACF25E;
@@ -232,6 +233,7 @@
 		B573913D1EE5987900ACF25E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -272,6 +274,7 @@
 		B573913E1EE5987900ACF25E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
@@ -319,7 +322,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "PyRadarKit" */ = {
+		B573913C1EE5987900ACF25E /* Build configuration list for PBXProject "__PyRadarKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B573913D1EE5987900ACF25E /* Debug */,
