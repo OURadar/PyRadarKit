@@ -10,6 +10,10 @@
 #
 #  Updates
 #
+#  2.0.4  - 4/3/2019
+#         - Separated version script
+#         - Updated setup.py
+#
 #  2.0.3  - 4/1/2019
 #         - Attenuation correction algorithms: scwc, zphi
 #         - Incorporated RadarKit 2.1.1
