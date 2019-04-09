@@ -692,6 +692,17 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
 #pragma mark - Product Writer
 
+//void populateFloat(RKProduct *products, count, PyObject *sweep, const char *label) {
+//    PyObject *obj = PyDict_GetItemString(sweep, label);
+//    if (obj == NULL) {
+//        RKLog("Error. Expected '%s' in the supplied sweep dictionary.\n", label);
+//    }
+//    for (int p = 0; p < count; p++) {
+//        products[p].header.sweepAzimuth = (float)PyFloat_AS_DOUBLE(obj);
+//    }
+//    RKLog("%s\n", RKVariableInString("sweepAzimuth", &products[0].header.sweepAzimuth, RKValueTypeFloat));
+//}
+
 static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *keywords) {
     int i, k, p;
     int verbose = 0;
@@ -710,8 +721,8 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
     PyObject *obj, *obj_str;
     
     char *radarName;
-    uint32_t rayCount = 0;
-    uint32_t gateCount = 0;
+    int rayCount = 0;
+    int gateCount = 0;
     
     PyArrayObject *array;
     int dim;
@@ -720,6 +731,8 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
     NpyIter_IterNextFunc *iternext;
     PyArray_Descr *dtype;
     float **fp;
+    float f;
+    double d;
     
     // Use 'products' key to get the count of products
     PyObject *py_products = PyDict_GetItemString(sweep, "products");
@@ -761,31 +774,113 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
     RKLog("%d products   %d x %d\n", productCount, rayCount, gateCount);
     //float *dst = (float *)malloc(rayCount * sizeof(float));
 
+    // Allocate product array through RadarKit
     RKProduct *products;
     RKProductBufferAlloc(&products, productCount, rayCount, gateCount);
 
+    // Top-level attributes
     obj = PyDict_GetItemString(sweep, "name");
     if (obj == NULL) {
         RKLog("Error. Expected 'name' in the supplied sweep dictionary.\n");
     }
-    if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
-        obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
-        radarName = PyBytes_AS_STRING(obj_str);
-        RKLog("%s\n", RKVariableInString("radarName", radarName, RKValueTypeString));
-        //product->name
-        Py_XDECREF(obj_str);
+    if (strcmp("str", Py_TYPE(obj)->tp_name)) {
+        RKLog("Error. Variable 'name' should be a string.\n");
     }
+    obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+    radarName = PyBytes_AS_STRING(obj_str);
+    for (p = 0; p < productCount; p++) {
+        strcpy(products[p].header.radarName, radarName);
+    }
+    RKLog("%s\n", RKVariableInString("header->radarName", products[0].header.radarName, RKValueTypeString));
+    Py_XDECREF(obj_str);
+
     obj = PyDict_GetItemString(sweep, "configId");
     if (obj == NULL) {
         RKLog("Error. Expected 'configId' in the supplied sweep dictionary.\n");
-        for (int p = 0; p < productCount; p++) {
-            products[p].i = (RKIdentifier)PyLong_AsLong(obj);
-        }
-        RKLog("%s\n", RKVariableInString("i", &products[0].i, RKValueTypeIdentifier));
-        Py_XDECREF(obj_str);
     }
+    RKIdentifier identifier = (RKIdentifier)PyLong_AsLong(obj);
+    for (p = 0; p < productCount; p++) {
+        products[p].i = identifier;
+    }
+    RKLog("%s\n", RKVariableInString("header->configId", &products[0].i, RKValueTypeIdentifier));
+    
+    obj = PyDict_GetItemString(sweep, "sweepAzimuth");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'sweepAzimuth' in the supplied sweep dictionary.\n");
+    }
+    f = (float)PyFloat_AS_DOUBLE(obj);
+    for (p = 0; p < productCount; p++) {
+        products[p].header.sweepAzimuth = f;
+    }
+    RKLog("%s\n", RKVariableInString("header->sweepAzimuth", &products[0].header.sweepAzimuth, RKValueTypeFloat));
 
-    float f;
+    obj = PyDict_GetItemString(sweep, "sweepElevation");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'sweepAzimuth' in the supplied sweep dictionary.\n");
+    }
+    f = (float)PyFloat_AS_DOUBLE(obj);
+    for (p = 0; p < productCount; p++) {
+        products[p].header.sweepElevation = f;
+    }
+    RKLog("%s\n", RKVariableInString("header->sweepElevation", &products[0].header.sweepElevation, RKValueTypeFloat));
+
+    obj = PyDict_GetItemString(sweep, "gateSizeMeters");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'gateSizeMeters' in the supplied sweep dictionary.\n");
+    }
+    f = (float)PyFloat_AS_DOUBLE(obj);
+    for (p = 0; p < productCount; p++) {
+        products[p].header.gateSizeMeters = f;
+    }
+    RKLog("%s\n", RKVariableInString("header->gateSizeMeters", &products[0].header.gateSizeMeters, RKValueTypeFloat));
+
+    obj = PyDict_GetItemString(sweep, "latitude");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'latitude' in the supplied sweep dictionary.\n");
+    }
+    d = (double)PyFloat_AS_DOUBLE(obj);
+    for (p = 0; p < productCount; p++) {
+        products[p].header.latitude = d;
+    }
+    RKLog("%s\n", RKVariableInString("header->latitude", &products[0].header.latitude, RKValueTypeDouble));
+
+    obj = PyDict_GetItemString(sweep, "longitude");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'longitude' in the supplied sweep dictionary.\n");
+    }
+    d = (double)PyFloat_AS_DOUBLE(obj);
+    for (p = 0; p < productCount; p++) {
+        products[p].header.longitude = d;
+    }
+    RKLog("%s\n", RKVariableInString("header->longitude", &products[0].header.longitude, RKValueTypeDouble));
+
+    obj = PyDict_GetItemString(sweep, "altitude");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'altitude' in the supplied sweep dictionary.\n");
+    }
+    for (p = 0; p < productCount; p++) {
+        products[p].header.radarHeight = (float)PyFloat_AS_DOUBLE(obj);
+    }
+    RKLog("%s\n", RKVariableInString("header->radarHeight", &products[0].header.radarHeight, RKValueTypeFloat));
+
+    obj = PyDict_GetItemString(sweep, "timeBegin");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'timeBegin' in the supplied sweep dictionary.\n");
+    }
+    for (p = 0; p < productCount; p++) {
+        products[p].header.startTime = (time_t)PyLong_AsLong(obj);
+    }
+    RKLog("%s\n", RKVariableInString("header->startTime", &products[0].header.startTime, RKValueTypeLong));
+
+    obj = PyDict_GetItemString(sweep, "timeEnd");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'timeEnd' in the supplied sweep dictionary.\n");
+    }
+    for (p = 0; p < productCount; p++) {
+        products[p].header.endTime = (time_t)PyLong_AsLong(obj);
+    }
+    RKLog("%s\n", RKVariableInString("header->endTime", &products[0].header.endTime, RKValueTypeLong));
+
     array = (PyArrayObject *)PyDict_GetItemString(sweep, "azimuth");
     dtype = PyArray_DescrFromType(NPY_FLOAT32);
     iter = NpyIter_New(array, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, dtype);
@@ -832,19 +927,16 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
     }
     printf("\n");
 
-    char *symbol, *name, *unit;
-
     PyObject *key, *product;
     Py_ssize_t pos = 0;
 
     
-    // Assume everything is okay from here on
+    // Less rigorous checks from here on
     p = 0;
     float *dst;
     while (PyDict_Next(py_products, &pos, &key, &product)) {
         obj_str = PyUnicode_AsEncodedString(key, "utf-8", "~E~");
-        name = PyBytes_AS_STRING(obj_str);
-        RKLog("%s\n", RKVariableInString("key", name, RKValueTypeString));
+        RKLog("%s\n", RKVariableInString("key", PyBytes_AS_STRING(obj_str), RKValueTypeString));
         Py_XDECREF(obj_str);
 
         obj = PyDict_GetItemString(product, "name");
@@ -853,8 +945,8 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
         }
         if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
             obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
-            name = PyBytes_AS_STRING(obj_str);
-            RKLog("    %s\n", RKVariableInString("name", name, RKValueTypeString));
+            strcpy(products[p].desc.name, PyBytes_AS_STRING(obj_str));
+            RKLog("    %s\n", RKVariableInString("name", products[p].desc.name, RKValueTypeString));
             Py_XDECREF(obj_str);
         }
 
@@ -864,9 +956,8 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
         }
         if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
             obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
-            unit = PyBytes_AS_STRING(obj_str);
-            //printf("   unit = %s\n", unit);
-            RKLog("    %s\n", RKVariableInString("unit", unit, RKValueTypeString));
+            strcpy(products[p].desc.unit, PyBytes_AS_STRING(obj_str));
+            RKLog("    %s\n", RKVariableInString("unit", products[p].desc.unit, RKValueTypeString));
             Py_XDECREF(obj_str);
         }
         
@@ -876,8 +967,8 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
         }
         if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
             obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
-            symbol = PyBytes_AS_STRING(obj_str);
-            RKLog("    %s\n", RKVariableInString("symbol", symbol, RKValueTypeString));
+            strcpy(products[p].desc.unit, PyBytes_AS_STRING(obj_str));
+            RKLog("    %s\n", RKVariableInString("symbol", products[p].desc.symbol, RKValueTypeString));
             Py_XDECREF(obj_str);
         }
         
