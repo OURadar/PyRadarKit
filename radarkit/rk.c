@@ -693,23 +693,222 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 #pragma mark - Product Writer
 
 static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *keywords) {
+    int i, k, p;
     int verbose = 0;
-    PyObject *dict;
+    PyObject *sweep;
     
     static char *keywordList[] = {"product", "verbose", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O|i", keywordList, &dict, &verbose)) {
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O|i", keywordList, &sweep, &verbose)) {
         fprintf(stderr, "PyRKWriteProducts() -> Nothing provided.\n");
         return Py_None;
     }
 
-    printf("%p\n", dict);
     printf("verbose = %d\n", verbose);
+    
     RKSetWantScreenOutput(true);
 
+    PyObject *obj, *obj_str;
     
-    RKProduct *product;
-    //RKProductBufferAlloc(&product, 1, 360, 8);
+    char *radarName;
+    uint32_t rayCount = 0;
+    uint32_t gateCount = 0;
+    
+    PyArrayObject *array;
+    int dim;
+    npy_intp *shape;
+    NpyIter *iter;
+    NpyIter_IterNextFunc *iternext;
+    PyArray_Descr *dtype;
+    float **fp;
+    
+    // Use 'products' key to get the count of products
+    PyObject *py_products = PyDict_GetItemString(sweep, "products");
+    if (py_products == NULL) {
+        RKLog("Error. Expected 'products' in the supplied sweep dictionary.\n");
+    }
 
+    Py_ssize_t productCount = PyDict_Size(py_products);
+    RKLog("Info. Found %d products\n", productCount);
+
+    // Use the 'elevation' array to determine the number of rays
+    obj = PyDict_GetItemString(sweep, "elevation");
+    if (!strcmp("numpy.ndarray", Py_TYPE(obj)->tp_name)) {
+        array = (PyArrayObject *)obj;
+        dim = PyArray_NDIM(array);
+        shape = PyArray_SHAPE(array);
+        if (dim > 1) {
+            RKLog("Error. Expected elevation to be a 1-d array.\n");
+        }
+        rayCount = shape[0];
+    } else {
+        RKLog("Error. Expected a numpy.ndarray from elevation.");
+    }
+    
+    // Use the 'range' array to determine the number of gates
+    obj = PyDict_GetItemString(sweep, "range");
+    if (!strcmp("numpy.ndarray", Py_TYPE(obj)->tp_name)) {
+        array = (PyArrayObject *)obj;
+        dim = PyArray_NDIM(array);
+        shape = PyArray_SHAPE(array);
+        if (dim > 1) {
+            RKLog("Error. Expected range to be a 1-d array.\n");
+        }
+        gateCount = shape[0];
+    } else {
+        RKLog("Error. Expected a numpy.ndarray from elevation.");
+    }
+
+    RKLog("%d products   %d x %d\n", productCount, rayCount, gateCount);
+    //float *dst = (float *)malloc(rayCount * sizeof(float));
+
+    RKProduct *products;
+    RKProductBufferAlloc(&products, productCount, rayCount, gateCount);
+
+    obj = PyDict_GetItemString(sweep, "name");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'name' in the supplied sweep dictionary.\n");
+    }
+    if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
+        obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+        radarName = PyBytes_AS_STRING(obj_str);
+        RKLog("%s\n", RKVariableInString("radarName", radarName, RKValueTypeString));
+        //product->name
+        Py_XDECREF(obj_str);
+    }
+    obj = PyDict_GetItemString(sweep, "configId");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'configId' in the supplied sweep dictionary.\n");
+        for (int p = 0; p < productCount; p++) {
+            products[p].i = (RKIdentifier)PyLong_AsLong(obj);
+        }
+        RKLog("%s\n", RKVariableInString("i", &products[0].i, RKValueTypeIdentifier));
+        Py_XDECREF(obj_str);
+    }
+
+    float f;
+    array = (PyArrayObject *)PyDict_GetItemString(sweep, "azimuth");
+    dtype = PyArray_DescrFromType(NPY_FLOAT32);
+    iter = NpyIter_New(array, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, dtype);
+    iternext = NpyIter_GetIterNext(iter, NULL);
+    for (p = 0; p < productCount; p++) {
+        fp = (float **) NpyIter_GetDataPtrArray(iter);
+        i = 0;
+        do {
+            //printf(" %.4f", **fp);
+            // Compute the end azimuth (will come back to this)
+            f = **fp + 1.0f;
+            if (f >= 360.0) {
+                f -= 360.0f;
+            } else if (f < -180.0) {
+                f += 360.0f;
+            }
+            products[p].startAzimuth[i] = **fp;
+            products[p].endAzimuth[i] = f;
+            i++;
+        } while (iternext(iter));
+    }
+    printf("azimuth = ");
+    for (i = 0; i < rayCount; i++) {
+        printf(" %.3f", products[0].startAzimuth[i]);
+    }
+    printf("\n");
+
+    array = (PyArrayObject *)PyDict_GetItemString(sweep, "elevation");
+    dtype = PyArray_DescrFromType(NPY_FLOAT32);
+    iter = NpyIter_New(array, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, dtype);
+    iternext = NpyIter_GetIterNext(iter, NULL);
+    for (p = 0; p < productCount; p++) {
+        fp = (float **) NpyIter_GetDataPtrArray(iter);
+        i = 0;
+        do {
+            products[p].startElevation[i] = **fp;
+            products[p].endElevation[i] = **fp;
+            i++;
+        } while (iternext(iter));
+    }
+    printf("elevation = ");
+    for (i = 0; i < rayCount; i++) {
+        printf(" %.3f", products[0].startElevation[i]);
+    }
+    printf("\n");
+
+    char *symbol, *name, *unit;
+
+    PyObject *key, *product;
+    Py_ssize_t pos = 0;
+
+    
+    // Assume everything is okay from here on
+    p = 0;
+    float *dst;
+    while (PyDict_Next(py_products, &pos, &key, &product)) {
+        obj_str = PyUnicode_AsEncodedString(key, "utf-8", "~E~");
+        name = PyBytes_AS_STRING(obj_str);
+        RKLog("%s\n", RKVariableInString("key", name, RKValueTypeString));
+        Py_XDECREF(obj_str);
+
+        obj = PyDict_GetItemString(product, "name");
+        if (obj == NULL) {
+            RKLog("Error. Expected 'name' in the supplied product dictionary.\n");
+        }
+        if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
+            obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+            name = PyBytes_AS_STRING(obj_str);
+            RKLog("    %s\n", RKVariableInString("name", name, RKValueTypeString));
+            Py_XDECREF(obj_str);
+        }
+
+        obj = PyDict_GetItemString(product, "unit");
+        if (obj == NULL) {
+            RKLog("Error. Expected 'unit' in the supplied product dictionary.\n");
+        }
+        if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
+            obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+            unit = PyBytes_AS_STRING(obj_str);
+            //printf("   unit = %s\n", unit);
+            RKLog("    %s\n", RKVariableInString("unit", unit, RKValueTypeString));
+            Py_XDECREF(obj_str);
+        }
+        
+        obj = PyDict_GetItemString(product, "symbol");
+        if (obj == NULL) {
+            RKLog("Error. Expected 'symbol' in the supplied product dictionary.\n");
+        }
+        if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
+            obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
+            symbol = PyBytes_AS_STRING(obj_str);
+            RKLog("    %s\n", RKVariableInString("symbol", symbol, RKValueTypeString));
+            Py_XDECREF(obj_str);
+        }
+        
+        array = (PyArrayObject *)PyDict_GetItemString(product, "data");
+        if (array == NULL) {
+            RKLog("Error. Expected 'data' in the supplied product dictionary.\n");
+        }
+        dim = PyArray_NDIM(array);
+        shape = PyArray_SHAPE(array);
+        RKLog("    ndim = %d   shape = %d, %d\n", dim, shape[0], shape[1]);
+        if (shape[0] != rayCount || shape[1] != gateCount) {
+            RKLog("Error. Inconsistent dimensions.  shape = %d x %d != %d x %d = rayCount x gateCount\n",
+                  shape[0], shape[1], rayCount, gateCount);
+        }
+        dtype = PyArray_DescrFromType(NPY_FLOAT32);
+        iter = NpyIter_New(array, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, dtype);
+        iternext = NpyIter_GetIterNext(iter, NULL);
+        fp = (float **)NpyIter_GetDataPtrArray(iter);
+        dst = products[p].data;
+        do {
+            *dst++ = **fp;
+        } while (iternext(iter));
+        NpyIter_Deallocate(iter);
+        p++;
+    }
+    
+
+    
+    RKProductBufferFree(products, productCount);
+
+    return Py_True;
 }
 
 #pragma mark - RadarKit Function Bridge
