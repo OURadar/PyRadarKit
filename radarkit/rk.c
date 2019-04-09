@@ -690,6 +690,28 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     return ret;
 }
 
+#pragma mark - Product Writer
+
+static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *keywords) {
+    int verbose = 0;
+    PyObject *dict;
+    
+    static char *keywordList[] = {"product", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "O|i", keywordList, &dict, &verbose)) {
+        fprintf(stderr, "PyRKWriteProducts() -> Nothing provided.\n");
+        return Py_None;
+    }
+
+    printf("%p\n", dict);
+    printf("verbose = %d\n", verbose);
+    RKSetWantScreenOutput(true);
+
+    
+    RKProduct *product;
+    //RKProductBufferAlloc(&product, 1, 360, 8);
+
+}
+
 #pragma mark - RadarKit Function Bridge
 
 static PyObject *PyRKCountryFromCoordinate(PyObject *self, PyObject *args, PyObject *keywords) {
@@ -714,6 +736,7 @@ static PyMethodDef PyRKMethods[] = {
     {"parseSweepHeader"      , (PyCFunction)PyRKParseSweepHeader      , METH_VARARGS | METH_KEYWORDS , "Sweep header parse module"},
     {"readOne"               , (PyCFunction)PyRKRead                  , METH_VARARGS | METH_KEYWORDS , "Read a sweep / product"},
     {"read"                  , (PyCFunction)PyRKReadProducts          , METH_VARARGS | METH_KEYWORDS , "Read a collection products"},
+    {"write"                 , (PyCFunction)PyRKWriteProducts         , METH_VARARGS | METH_KEYWORDS , "Write a product"},
     {"countryFromCoordinate" , (PyCFunction)PyRKCountryFromCoordinate , METH_VARARGS | METH_KEYWORDS , "Country name from coordinate"},
     {NULL, NULL, 0, NULL}
 };
