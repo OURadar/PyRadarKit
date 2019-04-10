@@ -406,7 +406,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
 
     // Return dictionary
     ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:K,s:K,"
-                        "s:O,s:O,s:O,s:O,s:O,s:O}",
+                        "s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O}",
                         "name", collection->products[0].header.radarName,
                         "configId", collection->products[0].i,
                         "rayCount", dims[0],
@@ -419,6 +419,8 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
                         "altitude", product->header.radarHeight,
                         "timeBegin", product->header.startTime,
                         "timeEnd", product->header.endTime,
+                        "isPPI", product->header.isPPI ? Py_True : Py_False,
+                        "isRHI", product->header.isRHI ? Py_True : Py_False,
                         "sweepBegin", Py_True,
                         "sweepEnd", Py_False,
                         "elevation", elevation,
@@ -559,7 +561,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
         // Return dictionary
         ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,"
-                            "s:O,s:O,s:O,s:O,s:O,s:O}",
+                            "s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O}",
                             "name", sweep->header.desc.name,
                             "configId", sweep->header.config.i,
                             "rayCount", sweep->header.rayCount,
@@ -570,6 +572,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                             "latitude", sweep->header.desc.latitude,
                             "longitude", sweep->header.desc.longitude,
                             "altitude", sweep->header.desc.radarHeight,
+                            "isPPI", sweep->header.isPPI ? Py_True : Py_False,
+                            "isRHI", sweep->header.isRHI ? Py_True : Py_False,
                             "sweepBegin", Py_True,
                             "sweepEnd", Py_False,
                             "elevation", elevation,
@@ -660,7 +664,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
         // Return dictionary
         ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:K,s:K,"
-                            "s:O,s:O,s:O,s:O,s:O,s:O}",
+                            "s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O}",
                             "name", product->header.radarName,
                             "configId", product->i,
                             "rayCount", product->header.rayCount,
@@ -673,6 +677,8 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                             "altitude", product->header.radarHeight,
                             "timeBegin", product->header.startTime,
                             "timeEnd", product->header.endTime,
+                            "isPPI", product->header.isPPI ? Py_True : Py_False,
+                            "isRHI", product->header.isRHI ? Py_True : Py_False,
                             "sweepBegin", Py_True,
                             "sweepEnd", Py_False,
                             "elevation", elevation,
@@ -714,8 +720,6 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
         return Py_None;
     }
 
-    printf("verbose = %d\n", verbose);
-    
     RKSetWantScreenOutput(true);
 
     PyObject *obj, *obj_str;
@@ -804,6 +808,22 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
     }
     RKLog("%s\n", RKVariableInString("header->configId", &products[0].i, RKValueTypeIdentifier));
     
+    obj = PyDict_GetItemString(sweep, "isPPI");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'isPPI' in the supplied sweep dictionary.\n");
+    }
+    for (p = 0; p < productCount; p++) {
+        products[p].header.isPPI = obj == Py_True ? true : false;
+    }
+
+    obj = PyDict_GetItemString(sweep, "isRHI");
+    if (obj == NULL) {
+        RKLog("Error. Expected 'isRHI' in the supplied sweep dictionary.\n");
+    }
+    for (p = 0; p < productCount; p++) {
+        products[p].header.isRHI = obj == Py_True ? true : false;
+    }
+
     obj = PyDict_GetItemString(sweep, "sweepAzimuth");
     if (obj == NULL) {
         RKLog("Error. Expected 'sweepAzimuth' in the supplied sweep dictionary.\n");
@@ -816,7 +836,7 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
 
     obj = PyDict_GetItemString(sweep, "sweepElevation");
     if (obj == NULL) {
-        RKLog("Error. Expected 'sweepAzimuth' in the supplied sweep dictionary.\n");
+        RKLog("Error. Expected 'sweepElevation' in the supplied sweep dictionary.\n");
     }
     f = (float)PyFloat_AS_DOUBLE(obj);
     for (p = 0; p < productCount; p++) {
@@ -902,12 +922,14 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
             i++;
         } while (iternext(iter));
     }
-    printf("azimuth = ");
-    for (i = 0; i < rayCount; i++) {
-        printf(" %.3f", products[0].startAzimuth[i]);
+    if (verbose > 1) {
+        printf("azimuth = ");
+        for (i = 0; i < rayCount; i++) {
+            printf(" %.3f", products[0].startAzimuth[i]);
+        }
+        printf("\n");
     }
-    printf("\n");
-
+    
     array = (PyArrayObject *)PyDict_GetItemString(sweep, "elevation");
     dtype = PyArray_DescrFromType(NPY_FLOAT32);
     iter = NpyIter_New(array, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, dtype);
@@ -921,15 +943,16 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
             i++;
         } while (iternext(iter));
     }
-    printf("elevation = ");
-    for (i = 0; i < rayCount; i++) {
-        printf(" %.3f", products[0].startElevation[i]);
+    if (verbose > 1) {
+        printf("elevation = ");
+        for (i = 0; i < rayCount; i++) {
+            printf(" %.3f", products[0].startElevation[i]);
+        }
+        printf("\n");
     }
-    printf("\n");
-
+    
     PyObject *key, *product;
     Py_ssize_t pos = 0;
-
     
     // Less rigorous checks from here on
     p = 0;
@@ -967,7 +990,7 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
         }
         if (!strcmp("str", Py_TYPE(obj)->tp_name)) {
             obj_str = PyUnicode_AsEncodedString(obj, "utf-8", "~E~");
-            strcpy(products[p].desc.unit, PyBytes_AS_STRING(obj_str));
+            strcpy(products[p].desc.symbol, PyBytes_AS_STRING(obj_str));
             RKLog("    %s\n", RKVariableInString("symbol", products[p].desc.symbol, RKValueTypeString));
             Py_XDECREF(obj_str);
         }
@@ -995,7 +1018,15 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
         p++;
     }
     
-
+    char filename[256];
+    for (p = 0; p < productCount; p++) {
+        k = sprintf(filename, "corrected/PX-");
+        k += strftime(filename + k, 16, "%Y%m%d-%H%M%S", gmtime(&products[p].header.startTime));
+        k += sprintf(filename + k, "-E%.1f-%s.nc", products[p].header.sweepElevation, products[p].desc.symbol);
+        printf("%s\n", filename);
+        
+        RKProductFileWriterNC(&products[p], filename);
+    }
     
     RKProductBufferFree(products, productCount);
 
