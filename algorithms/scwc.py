@@ -57,7 +57,7 @@ def scwc(s, z, d, p, r,
 
     # Statistical mask
     ms = np.logical_and(mq, p_var < vt)
-    ms[:, :-1] = np.logical_and(ms[:, :-1], np.abs(np.nan_to_num(p_slope, 0.0)) < 0.5)
+    ms[:, :-1] = np.logical_and(ms[:, :-1], np.abs(np.nan_to_num(p_slope)) < 0.5)
     ms_count = np.sum(ms, axis=1)
 
     # Data bounds
