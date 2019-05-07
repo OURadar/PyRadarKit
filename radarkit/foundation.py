@@ -67,7 +67,7 @@ class NETWORK_PACKET_TYPE:
 def showName():
     rows, columns = os.popen('stty size', 'r').read().split()
     c = int(columns)
-    print('Version {}\n'.format(sys.version_info))
+    print('\r{}\n'.format(sys.version_info))
     print(colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), COLOR.whiteOnGray))
     print(colorize('{}\n{}\n{}'.format(' ' * c, 'PyRadarKit {}'.format(version_info).center(c, ' '), ' ' * c), COLOR.python))
     print(colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(version()).center(c, ' '), ' ' * c), COLOR.radarkit))

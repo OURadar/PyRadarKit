@@ -190,9 +190,9 @@ class Radar(object):
         logging.basicConfig(filename=logFile, level=logging.INFO, format='%(asctime)s %(message)s', datefmt='%I:%M:%S')
         ch = logging.StreamHandler()
         if self.verbose > 1:
-            ch.setLevel(logging.INFO)
-        elif self.verbose:
             ch.setLevel(logging.DEBUG)
+        elif self.verbose:
+            ch.setLevel(logging.INFO)
         else:
             ch.setLevel(logging.WARNING)
         ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%I:%M:%S'))
@@ -428,7 +428,7 @@ class Radar(object):
                         pid = payloadDict['pid']
                         symbol = payloadDict['symbol']
                         idx = N.argmax([symbol == x for x in self.algorithmObjects[key].symbol])
-                        logger.debug('Product {} registered   {}   {} ({})'.format(colorize(symbol, COLOR.yellow),
+                        logger.info('Product {} registered   {}   {} ({})'.format(colorize(symbol, COLOR.yellow),
                                                                                   variableInString('key', key),
                                                                                   variableInString('productId', pid),
                                                                                   idx))
@@ -445,9 +445,6 @@ class Radar(object):
         else:
             greetCommand = 's' + self.streams + '\r\n'
 
-#        print('')
-#        print(greetCommand)
-
         greetCommand = greetCommand.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
@@ -458,13 +455,14 @@ class Radar(object):
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.settimeout(self.timeout)
                 try:
-                    logger.debug('Connecting {}:{}...'.format(self.ipAddress, self.port))
+                    logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
                     self.socket.connect((self.ipAddress, self.port))
                 except:
                     t = 30
                     while t > 0 and self.wantActive:
                         if self.verbose > 1 and t % 10 == 0:
-                            print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
+                            dots = '.' * int(4 - t / 10)
+                            print('Retry in {:.1f} seconds {}\r'.format(t * 0.1, dots), end='')
                         time.sleep(0.1)
                         t -= 1
                     self.socket.close()
@@ -480,7 +478,8 @@ class Radar(object):
                         t = 30
                         while t > 0:
                             if self.verbose > 1 and t % 10 == 0:
-                                print('Retry in {0:.0f} seconds ...\r'.format(t * 0.1))
+                                dots = '.' * int(4 - t / 10)
+                                print('Retry in {:.1f} seconds {}\r'.format(t * 0.1, dots), end='')
                             time.sleep(0.1)
                             t -= 1
                         self.socket.close()
@@ -488,11 +487,11 @@ class Radar(object):
                     if not self.active:
                         self.active = True
         except KeyboardInterrupt:
-            print('Outside runloop KeyboardInterrupt')
+            logger.debug('Outside runloop KeyboardInterrupt')
         except:
-            print('Outside runloop', sys.exc_info()[0])
+            logger.debug('Outside runloop', sys.exc_info()[0])
         # Outside of the busy loop
-        logger.debug('Connection from {} terminated.'.format(self.ipAddress))
+        logger.info('Connection from {} terminated.'.format(self.ipAddress))
         self.socket.close()
         self.active = False
 
