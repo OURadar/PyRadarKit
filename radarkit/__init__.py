@@ -10,6 +10,9 @@
 #
 #  Updates
 #
+#  2.0.5  - 5/7/2019
+#         - Version string
+#
 #  2.0.4  - 4/3/2019
 #         - Separated version script
 #         - Updated setup.py
@@ -60,13 +63,6 @@ import scipy as S
 # From the PyRadarKit framework
 from .foundation import *
 from .test import *
-from .rk import *
-
-#branch = os.popen('git rev-parse --abbrev-ref HEAD').read()
-from ._version import __version__
-if 'b' in version():
-    __version__ += 'b'
-    version_info = __version__
 
 # Some global objects / variables / functions
 logger = logging.getLogger('PyRadarKit')

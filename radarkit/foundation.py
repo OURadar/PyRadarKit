@@ -3,6 +3,13 @@ import sys
 import time
 import threading
 
+from ._version import __version__
+from .rk import *
+
+if 'b' in version():
+    __version__ += 'b'
+    version_info = __version__
+
 # Some color escape codes for pretty strings in terminal
 class COLOR:
     reset = "\033[0m"
@@ -21,8 +28,10 @@ class COLOR:
     pink = "\033[38;5;213m"
     deeppink = "\033[38;5;198m"
     salmon = "\033[38;5;210m"
+    white = "\033[38;5;15m"
     python = "\033[38;5;226;48;5;24m"
     radarkit = "\033[38;5;15;48;5;124m"
+    whiteOnGray = "\033[38;5;15;48;5;241m"
 
 
 # Constants
@@ -59,9 +68,9 @@ def showName():
     rows, columns = os.popen('stty size', 'r').read().split()
     c = int(columns)
     print('Version {}\n'.format(sys.version_info))
-    print(colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), "\033[38;5;15;48;5;241m"))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'Algorithm Manager'.center(c, ' '), ' ' * c), COLOR.whiteOnGray))
     print(colorize('{}\n{}\n{}'.format(' ' * c, 'PyRadarKit {}'.format(version_info).center(c, ' '), ' ' * c), COLOR.python))
-    print(colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(rk.version()).center(c, ' '), ' ' * c), COLOR.radarkit))
+    print(colorize('{}\n{}\n{}'.format(' ' * c, 'RadarKit {}'.format(version()).center(c, ' '), ' ' * c), COLOR.radarkit))
     print('')
 
 
