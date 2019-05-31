@@ -13,7 +13,7 @@ class main(radarkit.ProductRoutine):
         self.w = 4.25
         self.minValue = -30.0
         self.maxValue = 30.0
-        self.active = True
+        self.active = False
 
     def process(self, sweep):
         super().process(sweep)
