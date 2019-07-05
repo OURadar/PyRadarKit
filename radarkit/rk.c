@@ -1048,16 +1048,12 @@ static PyObject *PyRKCountryFromCoordinate(PyObject *self, PyObject *args, PyObj
     return Py_BuildValue("s", RKCountryFromPosition(latitude, longitude));
 }
 
-static PyObject *PyRKSetVerbosity(PyObject *self, PyObject *args, PyObject *keywords) {
-    return Py_True;
-}
-
-static PyObject *PyRKSetLogPrefix(PyObject *self, PyObject *args, PyObject *keywords) {
-    char *prefix;
-    int verbose;
-    static char *keywordList[] = {"prefix", "verbose", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &prefix, &verbose)) {
-        fprintf(stderr, "PyRKSetLogPrefix() -> Nothing provided.\n");
+static PyObject *PyRKSetLogFolderAndPrefix(PyObject *self, PyObject *args, PyObject *keywords) {
+    char *logFolder, *prefix;
+    int verbose = 0;
+    static char *keywordList[] = {"logFolder", "prefix", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "ss|i", keywordList, &logFolder, &prefix, &verbose)) {
+        fprintf(stderr, "PyRKSetLogFolderAndPrefix() -> Nothing provided.\n");
         return Py_None;
     }
     
@@ -1065,9 +1061,17 @@ static PyObject *PyRKSetLogPrefix(PyObject *self, PyObject *args, PyObject *keyw
         RKSetWantScreenOutput(true);
     }
     
-    printf("rkGlobalParameters.program = %s\n", rkGlobalParameters.program);
-    printf("rkGlobalParameters.rootDataFolder = %s\n", rkGlobalParameters.rootDataFolder);
-    printf("prefix = %s\n", prefix);
+    strcpy(rkGlobalParameters.program, prefix);
+    strcpy(rkGlobalParameters.logFolder, logFolder);
+    if (verbose) {
+        printf("rkGlobalParameters.program = %s\n", rkGlobalParameters.program);
+        printf("rkGlobalParameters.logFolder = %s\n", rkGlobalParameters.logFolder);
+    }
+    
+    return Py_True;
+}
+
+static PyObject *PyRKSetVerbosity(PyObject *self, PyObject *args, PyObject *keywords) {
     return Py_True;
 }
 
@@ -1085,8 +1089,8 @@ static PyMethodDef PyRKMethods[] = {
     {"read"                  , (PyCFunction)PyRKReadProducts          , METH_VARARGS | METH_KEYWORDS , "Read a collection products"},
     {"write"                 , (PyCFunction)PyRKWriteProducts         , METH_VARARGS | METH_KEYWORDS , "Write a product"},
     {"countryFromCoordinate" , (PyCFunction)PyRKCountryFromCoordinate , METH_VARARGS | METH_KEYWORDS , "Country name from coordinate"},
+    {"setLogFolderAndPrefix" , (PyCFunction)PyRKSetLogFolderAndPrefix , METH_VARARGS | METH_KEYWORDS , "Set log folder and prefix"},
     {"setVerbosity"          , (PyCFunction)PyRKSetVerbosity          , METH_VARARGS | METH_KEYWORDS , "Set verbosity level"},
-    {"setLogPrefix"          , (PyCFunction)PyRKSetLogPrefix          , METH_VARARGS | METH_KEYWORDS , "Set log prefix"},
     {NULL, NULL, 0, NULL}
 };
 
