@@ -9,6 +9,7 @@
 // Some global settings
 static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
+    RKSetUseDailyLog(true);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -308,7 +309,9 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
         return Py_None;
     }
 
-    RKSetWantScreenOutput(true);
+    if (verbose) {
+        RKSetWantScreenOutput(true);
+    }
 
     // Some product description
     RKName symbol;
@@ -1045,6 +1048,29 @@ static PyObject *PyRKCountryFromCoordinate(PyObject *self, PyObject *args, PyObj
     return Py_BuildValue("s", RKCountryFromPosition(latitude, longitude));
 }
 
+static PyObject *PyRKSetVerbosity(PyObject *self, PyObject *args, PyObject *keywords) {
+    return Py_True;
+}
+
+static PyObject *PyRKSetLogPrefix(PyObject *self, PyObject *args, PyObject *keywords) {
+    char *prefix;
+    int verbose;
+    static char *keywordList[] = {"prefix", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &prefix, &verbose)) {
+        fprintf(stderr, "PyRKSetLogPrefix() -> Nothing provided.\n");
+        return Py_None;
+    }
+    
+    if (verbose) {
+        RKSetWantScreenOutput(true);
+    }
+    
+    printf("rkGlobalParameters.program = %s\n", rkGlobalParameters.program);
+    printf("rkGlobalParameters.rootDataFolder = %s\n", rkGlobalParameters.rootDataFolder);
+    printf("prefix = %s\n", prefix);
+    return Py_True;
+}
+
 #pragma mark - C Extension Setup
 
 // Standard boiler plates
@@ -1059,6 +1085,8 @@ static PyMethodDef PyRKMethods[] = {
     {"read"                  , (PyCFunction)PyRKReadProducts          , METH_VARARGS | METH_KEYWORDS , "Read a collection products"},
     {"write"                 , (PyCFunction)PyRKWriteProducts         , METH_VARARGS | METH_KEYWORDS , "Write a product"},
     {"countryFromCoordinate" , (PyCFunction)PyRKCountryFromCoordinate , METH_VARARGS | METH_KEYWORDS , "Country name from coordinate"},
+    {"setVerbosity"          , (PyCFunction)PyRKSetVerbosity          , METH_VARARGS | METH_KEYWORDS , "Set verbosity level"},
+    {"setLogPrefix"          , (PyCFunction)PyRKSetLogPrefix          , METH_VARARGS | METH_KEYWORDS , "Set log prefix"},
     {NULL, NULL, 0, NULL}
 };
 
