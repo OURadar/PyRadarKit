@@ -9,7 +9,6 @@
 // Some global settings
 static PyObject *PyRKInit(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
-    RKSetUseDailyLog(true);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1057,17 +1056,39 @@ static PyObject *PyRKSetLogFolderAndPrefix(PyObject *self, PyObject *args, PyObj
         return Py_None;
     }
     
-    if (verbose) {
-        RKSetWantScreenOutput(true);
-    }
-    
     strcpy(rkGlobalParameters.program, prefix);
     strcpy(rkGlobalParameters.logFolder, logFolder);
+    
     if (verbose) {
+        RKSetWantScreenOutput(true);
         printf("rkGlobalParameters.program = %s\n", rkGlobalParameters.program);
         printf("rkGlobalParameters.logFolder = %s\n", rkGlobalParameters.logFolder);
     }
     
+    return Py_True;
+}
+
+static PyObject *PyRKSetLogFilename(PyObject *self, PyObject *args, PyObject *keywords) {
+    char *filename;
+    int verbose = 0;
+    static char *keywordList[] = {"filename", "verbose", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, keywords, "s|i", keywordList, &filename, &verbose)) {
+        fprintf(stderr, "PyRKSetLogFilename() -> Nothing provided.\n");
+        return Py_None;
+    }
+    
+    rkGlobalParameters.logFolder[0] = '\0';
+    rkGlobalParameters.dailyLog = false;
+    //rkGlobalParameters.logTimeOnly = true;
+    strcpy(rkGlobalParameters.logfile, filename);
+
+    if (verbose) {
+        RKSetWantScreenOutput(true);
+        printf("rkGlobalParameters.logFolder = %s\n", rkGlobalParameters.logFolder);
+        printf("rkGlobalParameters.logTimeOnly = %d\n", rkGlobalParameters.logTimeOnly);
+        printf("rkGlobalParameters.logfile = %s\n", rkGlobalParameters.logfile);
+    }
+
     return Py_True;
 }
 
@@ -1090,6 +1111,7 @@ static PyMethodDef PyRKMethods[] = {
     {"write"                 , (PyCFunction)PyRKWriteProducts         , METH_VARARGS | METH_KEYWORDS , "Write a product"},
     {"countryFromCoordinate" , (PyCFunction)PyRKCountryFromCoordinate , METH_VARARGS | METH_KEYWORDS , "Country name from coordinate"},
     {"setLogFolderAndPrefix" , (PyCFunction)PyRKSetLogFolderAndPrefix , METH_VARARGS | METH_KEYWORDS , "Set log folder and prefix"},
+    {"setLogFilename"        , (PyCFunction)PyRKSetLogFilename        , METH_VARARGS | METH_KEYWORDS , "Set log filename"},
     {"setVerbosity"          , (PyCFunction)PyRKSetVerbosity          , METH_VARARGS | METH_KEYWORDS , "Set verbosity level"},
     {NULL, NULL, 0, NULL}
 };
