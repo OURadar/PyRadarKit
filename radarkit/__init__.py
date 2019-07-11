@@ -197,6 +197,9 @@ class Radar(object):
             ch.setLevel(logging.WARNING)
         ch.setFormatter(logging.Formatter('%(asctime)s %(message)s', datefmt='%I:%M:%S'))
         logger.addHandler(ch)
+        
+        setLogFilename(logFile)
+        
         logger.info('Started.')
 
     """
