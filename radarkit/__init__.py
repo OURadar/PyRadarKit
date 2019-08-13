@@ -10,6 +10,13 @@
 #
 #  Updates
 #
+#  2.0.6  - 8/13/2019
+#         - Added several extensions to foundation
+#         - Deactivated vUnfold algorithm
+#         - Added option to set user logfile
+#         - Fixed a memory leak in read()
+#         - General bug fixes
+#
 #  2.0.5  - 5/7/2019
 #         - Version string
 #
