@@ -404,6 +404,9 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
 
         // Add to the dictionary
         PyDict_SetItem(products, key, dict);
+
+        Py_DECREF(key);
+        Py_DECREF(dict);
     }
 
     // Return dictionary
@@ -559,6 +562,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
                 "data", value);
             Py_DECREF(value);
             PyTuple_SetItem(moments, p, dict);
+            Py_DECREF(dict);
         }
 
         // Return dictionary
@@ -663,6 +667,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         // Tuple of dictionary
         PyObject *moments = PyTuple_New(1);
         PyTuple_SetItem(moments, 0, dict);
+        Py_DECREF(dict);
 
         // Return dictionary
         ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:K,s:K,"
