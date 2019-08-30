@@ -7,13 +7,13 @@ all : inplace
 inplace : .FORCE
 	rm -rf build
 	find . -name '*.o' -name '*.so' -delete
-	python setup.py build build_ext -f -i
+	python3 setup.py build build_ext -f -i
 
 radarkit : .FORCE
-	python setup.py build build_ext -f
+	python3 setup.py build build_ext -f
 
 install :
-	python setup.py install --record files.txt
+	python3 setup.py install --record files.txt
 	
 clean :
 	rm -rf build dist *.egg-info .ipynb_checkpoints

@@ -1,11 +1,10 @@
 import radarkit
 import numpy as N
 
-class main(radarkit.Algorithm):
+class main(radarkit.ProductRoutine):
     def __init__(self, verbose=0):
         super().__init__(verbose=verbose)
-        self.name = 'Summary'
-        self.symbol = 'G'
+        self.name = 'Product Summary'
 
         # Other internal variables
         self.threshold = 1.0
@@ -14,6 +13,7 @@ class main(radarkit.Algorithm):
 
     # Every algorithm should have this function implemented
     def process(self, sweep):
+        super().process(sweep)
         if self.verbose < 2:
             return
         k = 0
