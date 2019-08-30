@@ -10,7 +10,8 @@ from .rk import *
 
 if 'b' in version():
     __version__ += 'b'
-    version_info = __version__
+
+version_info = __version__
 
 # Some color escape codes for pretty strings in terminal
 class COLOR:
