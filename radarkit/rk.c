@@ -171,7 +171,7 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         RKBaseMomentListProductSv,
         RKBaseMomentListProductQ,
     };
-    char productSymbols[][4] = {"Z", "V", "W", "D", "P", "R", "K", "Sh", "Sv", "Q"};
+    char productSymbols[][8] = {"Z", "V", "W", "D", "P", "R", "K", "Sh", "Sv", "Q"};
     uint64_t momentListDisplayOrder[] = {
         RKBaseMomentListDisplayZ,
         RKBaseMomentListDisplayV,
@@ -180,10 +180,10 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         RKBaseMomentListDisplayP,
         RKBaseMomentListDisplayR
     };
-    char displaySymbols[][4] = {"Zi", "Vi", "Wi", "Di", "Pi", "Ri"};
+    char displaySymbols[][8] = {"Zi", "Vi", "Wi", "Di", "Pi", "Ri"};
 
     // Display data
-    u8data = (uint8_t *)ray->data;
+    u8data = (uint8_t *)ray + sizeof(RKRayHeader);
     for (k = 0; k < (int)(sizeof(momentListDisplayOrder) / sizeof(uint64_t)); k++) {
         if (ray->header.baseMomentList & momentListDisplayOrder[k]) {
             key = Py_BuildValue("s", displaySymbols[k]);
