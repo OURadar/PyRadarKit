@@ -10,6 +10,10 @@
 #
 #  Updates
 #
+#  2.0.7  - 8/31/2019
+#         - Added support to .tar.xz archive
+#         - Fixed a network alignment issue
+#
 #  2.0.6  - 8/13/2019
 #         - Added several extensions to foundation
 #         - Deactivated vUnfold algorithm
