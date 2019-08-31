@@ -183,7 +183,7 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
     char displaySymbols[][8] = {"Zi", "Vi", "Wi", "Di", "Pi", "Ri"};
 
     // Display data
-    u8data = (uint8_t *)ray + sizeof(RKRayHeader);
+    u8data = (uint8_t *)input->ob_bytes + sizeof(RKRayHeader);
     for (k = 0; k < (int)(sizeof(momentListDisplayOrder) / sizeof(uint64_t)); k++) {
         if (ray->header.baseMomentList & momentListDisplayOrder[k]) {
             key = Py_BuildValue("s", displaySymbols[k]);
