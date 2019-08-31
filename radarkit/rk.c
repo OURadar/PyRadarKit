@@ -913,7 +913,7 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
     iter = NpyIter_New(array, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, dtype);
     iternext = NpyIter_GetIterNext(iter, NULL);
     for (p = 0; p < productCount; p++) {
-        fp = (float **) NpyIter_GetDataPtrArray(iter);
+        fp = (float **)NpyIter_GetDataPtrArray(iter);
         i = 0;
         do {
             //printf(" %.4f", **fp);

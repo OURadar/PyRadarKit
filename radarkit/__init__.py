@@ -171,12 +171,26 @@ class Radar(object):
         self.productRoutinesFolder = productRoutinesFolder[:-1] if productRoutinesFolder.endswith('/') else productRoutinesFolder
         logger.debug('{}'.format(variableInString('productRoutinesFolder', self.productRoutinesFolder)))
         self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
+        #
+        #    From RadarKit's RKNetwork.h
+        #
+        #    typedef union rk_net_delimiter {
+        #        struct {
+        #            uint16_t     type;                                 // Type
+        #            uint16_t     subtype;                              // Sub-type
+        #            uint32_t     size;                                 // Raw size in bytes to read / skip ahead
+        #            uint32_t     decodedSize;                          // Decided size if this is a compressed block
+        #        };
+        #        RKByte bytes[16];                                      // Make this struct always fixed bytes
+        #    } RKNetDelimiter;
+        #
         # Each netlimiter has:
         # 1st component: 16-bit type
         # 2nd component: 16-bit subtype (not used)
         # 3rd component: 32-bit size
         # 4th component: 32-bit decoded size (not used)
-        # 5th component: 32-bit padding
+        # 5th component: 32-bit padding to make the delimiter to have 16 bytes
+        #
         self.netDelimiterStruct = struct.Struct(b'HHIII')
         self.netDelimiterValues = [0, 0, 0, 0, 0]
         self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
@@ -228,7 +242,6 @@ class Radar(object):
                 except (ValueError) as e:
                     logger.exception(e)
                     break
-
                 anchor = anchor[length:]
                 toRead -= length
                 k += 1
@@ -241,7 +254,7 @@ class Radar(object):
             # 2nd component: 16-bit subtype (not used)
             # 3rd component: 32-bit size
             # 4th component: 32-bit decoded size (not used)
-            # 5th component: 32-bit padding
+            # 5th component: 32-bit padding to make the delimiter to have 16 bytes
             self.latestPayloadType = delimiter[0]
             self.latestPayloadSize = delimiter[2]
 
@@ -261,7 +274,6 @@ class Radar(object):
                     except (ValueError) as e:
                         logger.exception(e)
                         break
-
                     anchor = anchor[length:]
                     toRead -= length
                     k += 1
