@@ -411,6 +411,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
 
     // Return dictionary
     ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:K,s:K,"
+                        "s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,"
                         "s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O}",
                         "name", collection->products[0].header.radarName,
                         "configId", collection->products[0].i,
@@ -424,6 +425,18 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
                         "altitude", product->header.radarHeight,
                         "timeBegin", product->header.startTime,
                         "timeEnd", product->header.endTime,
+                        "systemZCalH", product->header.systemZCal[0],
+                        "systemZCalV", product->header.systemZCal[1],
+                        "systemDCal", product->header.systemDCal,
+                        "systemPCal", product->header.systemPCal,
+                        "ZCalH1", product->header.ZCal[0][0],
+                        "ZCalH2", product->header.ZCal[0][1],
+                        "ZCalV1", product->header.ZCal[1][0],
+                        "ZCalV2", product->header.ZCal[1][1],
+                        "DCal1", product->header.DCal[0],
+                        "DCal2", product->header.DCal[1],
+                        "PCal1", product->header.PCal[0],
+                        "PCal2", product->header.PCal[1],
                         "isPPI", product->header.isPPI ? Py_True : Py_False,
                         "isRHI", product->header.isRHI ? Py_True : Py_False,
                         "sweepBegin", Py_True,
@@ -443,6 +456,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
     return ret;
 }
 
+// Deprecating ...
 static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     int p, r, k;
     int verbose = 0;
