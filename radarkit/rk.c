@@ -171,7 +171,7 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         RKBaseMomentListProductSv,
         RKBaseMomentListProductQ,
     };
-    char productSymbols[][4] = {"Z", "V", "W", "D", "P", "R", "K", "Sh", "Sv", "Q"};
+    char productSymbols[][8] = {"Z", "V", "W", "D", "P", "R", "K", "Sh", "Sv", "Q"};
     uint64_t momentListDisplayOrder[] = {
         RKBaseMomentListDisplayZ,
         RKBaseMomentListDisplayV,
@@ -180,10 +180,10 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
         RKBaseMomentListDisplayP,
         RKBaseMomentListDisplayR
     };
-    char displaySymbols[][4] = {"Zi", "Vi", "Wi", "Di", "Pi", "Ri"};
+    char displaySymbols[][8] = {"Zi", "Vi", "Wi", "Di", "Pi", "Ri"};
 
     // Display data
-    u8data = (uint8_t *)ray->data;
+    u8data = (uint8_t *)input->ob_bytes + sizeof(RKRayHeader);
     for (k = 0; k < (int)(sizeof(momentListDisplayOrder) / sizeof(uint64_t)); k++) {
         if (ray->header.baseMomentList & momentListDisplayOrder[k]) {
             key = Py_BuildValue("s", displaySymbols[k]);
@@ -411,6 +411,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
 
     // Return dictionary
     ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:K,s:K,"
+                        "s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,s:f,"
                         "s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O}",
                         "name", collection->products[0].header.radarName,
                         "configId", collection->products[0].i,
@@ -424,6 +425,18 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
                         "altitude", product->header.radarHeight,
                         "timeBegin", product->header.startTime,
                         "timeEnd", product->header.endTime,
+                        "systemZCalH", product->header.systemZCal[0],
+                        "systemZCalV", product->header.systemZCal[1],
+                        "systemDCal", product->header.systemDCal,
+                        "systemPCal", product->header.systemPCal,
+                        "ZCalH1", product->header.ZCal[0][0],
+                        "ZCalH2", product->header.ZCal[0][1],
+                        "ZCalV1", product->header.ZCal[1][0],
+                        "ZCalV2", product->header.ZCal[1][1],
+                        "DCal1", product->header.DCal[0],
+                        "DCal2", product->header.DCal[1],
+                        "PCal1", product->header.PCal[0],
+                        "PCal2", product->header.PCal[1],
                         "isPPI", product->header.isPPI ? Py_True : Py_False,
                         "isRHI", product->header.isRHI ? Py_True : Py_False,
                         "sweepBegin", Py_True,
@@ -443,6 +456,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
     return ret;
 }
 
+// Deprecating ...
 static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     int p, r, k;
     int verbose = 0;
@@ -913,7 +927,7 @@ static PyObject *PyRKWriteProducts(PyObject *self, PyObject *args, PyObject *key
     iter = NpyIter_New(array, NPY_ITER_READONLY, NPY_KEEPORDER, NPY_NO_CASTING, dtype);
     iternext = NpyIter_GetIterNext(iter, NULL);
     for (p = 0; p < productCount; p++) {
-        fp = (float **) NpyIter_GetDataPtrArray(iter);
+        fp = (float **)NpyIter_GetDataPtrArray(iter);
         i = 0;
         do {
             //printf(" %.4f", **fp);
@@ -1111,9 +1125,9 @@ static PyMethodDef PyRKMethods[] = {
     {"testByNumberHelp"      , (PyCFunction)PyRKTestByNumberHelp      , METH_NOARGS                  , "Test by number help text"},
     {"parseRay"              , (PyCFunction)PyRKParseRay              , METH_VARARGS | METH_KEYWORDS , "Ray parse module"},
     {"parseSweepHeader"      , (PyCFunction)PyRKParseSweepHeader      , METH_VARARGS | METH_KEYWORDS , "Sweep header parse module"},
-    {"readOne"               , (PyCFunction)PyRKRead                  , METH_VARARGS | METH_KEYWORDS , "Read a sweep / product"},
-    {"read"                  , (PyCFunction)PyRKReadProducts          , METH_VARARGS | METH_KEYWORDS , "Read a collection products"},
-    {"write"                 , (PyCFunction)PyRKWriteProducts         , METH_VARARGS | METH_KEYWORDS , "Write a product"},
+    {"readOneNetCDF"         , (PyCFunction)PyRKRead                  , METH_VARARGS | METH_KEYWORDS , "Read a sweep / product"},
+    {"readNetCDF"            , (PyCFunction)PyRKReadProducts          , METH_VARARGS | METH_KEYWORDS , "Read a collection products"},
+    {"writeNetCDF"           , (PyCFunction)PyRKWriteProducts         , METH_VARARGS | METH_KEYWORDS , "Write a product"},
     {"countryFromCoordinate" , (PyCFunction)PyRKCountryFromCoordinate , METH_VARARGS | METH_KEYWORDS , "Country name from coordinate"},
     {"setLogFolderAndPrefix" , (PyCFunction)PyRKSetLogFolderAndPrefix , METH_VARARGS | METH_KEYWORDS , "Set log folder and prefix"},
     {"setLogFilename"        , (PyCFunction)PyRKSetLogFilename        , METH_VARARGS | METH_KEYWORDS , "Set log filename"},

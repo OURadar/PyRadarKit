@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib
 from scipy.interpolate import griddata
 
-import colormap
+from . import colormap
 
 bgColor = (0.89, 0.87, 0.83)
 

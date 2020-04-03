@@ -1,6 +1,8 @@
 import os
+import re
 import sys
 import time
+import tarfile
 import threading
 
 from ._version import __version__
@@ -8,7 +10,8 @@ from .rk import *
 
 if 'b' in version():
     __version__ += 'b'
-    version_info = __version__
+
+version_info = __version__
 
 # Some color escape codes for pretty strings in terminal
 class COLOR:
@@ -121,7 +124,7 @@ class algorithmRunner(threading.Thread):
         # Pop a method, then run it
 
 
-class SignalHandler:
+class signalHandler:
     stopper = None
     workers = None
     def __init__(self, stopper, workers):
@@ -132,3 +135,44 @@ class SignalHandler:
         for worker in self.workers:
             worker.join()
         sys.exit(0)
+
+
+def extract(archive, path='.'):
+    zfile = None
+    files = []
+    tar = tarfile.open(archive)
+    for info in tar.getmembers():
+        basename = os.path.basename(info.name)
+        if os.path.splitext(basename)[-1] == '.nc':
+            tar.extract(info, path=path)
+            files.append('{}/{}'.format(path, basename))
+            symbols = re.findall(r'(?<=[0-9]-)[A-Za-z]+(?=.nc)', basename)
+            if len(symbols) == 0:
+                print('archive = {}    basename = {}'.format(archive, basename))
+                continue
+            symbol = symbols[0]
+            if symbol == 'Z':
+                zfile = '{}/{}'.format(path, basename)
+    tar.close()
+    return zfile, files
+
+
+def read(file):
+    extracted = []
+    if os.path.splitext(file)[-1] == '.xz':
+        tmp_folder = '/mnt/ramdisk'
+        if not os.path.exists(tmp_folder):
+            tmp_folder = '/Volumes/RAMDisk'
+            if not os.path.exists(tmp_folder):
+                tmp_folder = 'tmp'
+                if not os.path.exists(tmp_folder):
+                    os.mkdir(tmp_folder)
+        #print('Extracting archive ...')
+        file, extracted = extract(file, path=tmp_folder)
+    if not os.path.exists(file):
+        print('Somehow file {} disappeared'.format(file))
+        return None
+    sweep = readNetCDF(file)
+    for tmp in extracted:
+        os.remove(tmp)
+    return sweep
