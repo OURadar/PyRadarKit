@@ -74,6 +74,7 @@ import scipy as S
 # From the PyRadarKit framework
 from .foundation import *
 from .test import *
+from .relay import *
 
 # Some global objects / variables / functions
 logger = logging.getLogger('PyRadarKit')
