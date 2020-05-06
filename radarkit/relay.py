@@ -26,11 +26,12 @@ class Relay(object):
     """
         Relays an incoming connection to the radar (RadarKit)
     """
-    def __init__(self, ipAddress=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, streams=None, verbose=0):
-        self.ipAddress = ipAddress
+    def __init__(self, relay=None, address=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, verbose=0):
+        self.relay = relay
+        self.address = address
         self.port = port
+        self.socket = None
         self.timeout = timeout
-        self.streams = streams
         self.verbose = verbose
         self.active = False
         self.wantActive = False
@@ -116,13 +117,7 @@ class Relay(object):
         The run loop
     """
     def _runLoop(self):
-        if self.streams is None:
-            # Prepend data stream request
-            greetCommand = 'sYUXCOQAH;' + self.registerString + '\r\n'
-            #greetCommand = 'sYUCO;' + self.registerString + '\r\n'
-        else:
-            greetCommand = 's' + self.streams + '\r\n'
-        greetCommand = greetCommand.encode('utf-8')
+        greetCommand = 's\r\n'.encode('utf-8')
         logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
         try:
@@ -132,8 +127,8 @@ class Relay(object):
                 self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 self.socket.settimeout(self.timeout)
                 try:
-                    logger.info('Connecting {}:{}...'.format(self.ipAddress, self.port))
-                    self.socket.connect((self.ipAddress, self.port))
+                    logger.info('Connecting {}:{}...'.format(self.address, self.port))
+                    self.socket.connect((self.address, self.port))
                 except:
                     t = 30
                     while t > 0 and self.wantActive:
@@ -145,11 +140,11 @@ class Relay(object):
                     self.socket.close()
                     continue
                 # Send the greeting packet
-                self.socket.sendall(greetCommand)
+                # self.socket.sendall(greetCommand)
                 # Keep reading while wantActive
                 while self.wantActive:
                     if self._recv() == True:
-                        self._interpretPayload()
+                        self.relay.handleRadarMessage()
                     else:
                         logger.debug('Server disconnected.')
                         t = 30
@@ -168,19 +163,14 @@ class Relay(object):
         except:
             logger.debug('Outside runloop', sys.exc_info()[0])
         # Outside of the busy loop
-        logger.info('Connection from {} terminated.'.format(self.ipAddress))
+        logger.info('Connection from {} terminated.'.format(self.address))
         self.socket.close()
         self.active = False
+        self.socket = None
 
-    def start():
+    def start(self):
         self.wantActive = True
         threading.Thread(target=self._runLoop).start()
-
-
-    def updateStream(self, streams=None):
-        if self.streams != streams:
-            self.streams = streams
-            # Send a command to radarkit
 
     def stop(self):
         logger.debug('Deactivating radar ...')

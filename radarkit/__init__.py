@@ -600,7 +600,7 @@ class Radar(object):
         Close the socket
     """
     def close(self):
-        wantActive = False
+        self.wantActive = False
         if (self.socket):
             self.socket.close()
 
