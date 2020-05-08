@@ -23,25 +23,26 @@ from .foundation import *
 logger = logging.getLogger('iRadar')
 
 class Relay(object):
-    """
+    '''
         Relays an incoming connection to the radar (RadarKit)
-    """
+    '''
     def __init__(self, relay=None, address=CONSTANTS.IP, port=CONSTANTS.PORT, timeout=2, verbose=0):
-        self.relay = relay
         self.address = address
         self.port = port
+        self.relay = relay
         self.socket = None
         self.timeout = timeout
         self.verbose = verbose
-        self.active = False
         self.wantActive = False
+        self.active = False
+        self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.netDelimiterBytes = bytearray(CONSTANTS.PACKET_DELIM_SIZE)
         self.netDelimiterStruct = struct.Struct(b'HHIII')
         self.netDelimiterValues = [0, 0, 0, 0, 0]
-        self.payload = bytearray(CONSTANTS.BUFFER_SIZE)
         self.latestPayloadType = 0
         self.latestPayloadSize = 0
         self.registerString = ''
+
         # Initialize the C extension
         init()
 
@@ -49,10 +50,10 @@ class Relay(object):
         logger.info('Started.')
 
 
-    """
+    '''
         Receives a frame: a network delimiter and the following payload described by the delimiter
         This method always finishes the frame reading
-    """
+    '''
     def _recv(self):
         try:
             k = 0;
@@ -113,12 +114,10 @@ class Relay(object):
             logger.exception(e)
             return False
     
-    """
+    '''
         The run loop
-    """
+    '''
     def _runLoop(self):
-        greetCommand = 's\r\n'.encode('utf-8')
-        logger.debug('First packet = {}'.format(colorize(greetCommand, COLOR.salmon)))
         # Connect to the host and reconnect until it has been set not to wantActive
         try:
             while self.wantActive:
@@ -139,14 +138,13 @@ class Relay(object):
                         t -= 1
                     self.socket.close()
                     continue
-                # Send the greeting packet
-                # self.socket.sendall(greetCommand)
                 # Keep reading while wantActive
                 while self.wantActive:
                     if self._recv() == True:
                         self.relay.handleRadarMessage()
                     else:
                         logger.debug('Server disconnected.')
+                        self.relay.handleRadarClose()
                         t = 30
                         while t > 0:
                             if self.verbose > 1 and t % 10 == 0:
