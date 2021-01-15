@@ -90,35 +90,35 @@ class Image:
         self.wp = dpi * rect[2] * width
         self.hp = dpi * rect[3] * height
 
-        if symbol is 'K':
+        if symbol == 'K':
             # Not finalized yet
             colors = colormap.kmap()
             vmin = 0.0
             vmax = 0.1 * np.pi
-        elif symbol is 'R':
+        elif symbol == 'R':
             # Special, does not really matter here
             colors = colormap.rmap()
             vmin = 0.0
             vmax = 256.0
             zz = rho2ind(zz)
-        elif symbol is 'P':
+        elif symbol == 'P':
             colors = colormap.pmap()
             vmin = -180.0
             vmax = 180.0
-        elif symbol is 'D':
+        elif symbol == 'D':
             colors = colormap.dmap()
             vmin = -10.0
             vmax = 15.5 + 0.1
-        elif symbol is 'W':
+        elif symbol == 'W':
             # There is an offset of 1 but okay
             colors = colormap.wmap()
             vmin = 0.0
             vmax = 12.75 + 0.05
-        elif symbol is 'V':
+        elif symbol == 'V':
             colors = colormap.vmap()
             vmin = -16.0
             vmax = 15.875 + 0.125
-        elif symbol is 'Z':
+        elif symbol == 'Z':
             colors = colormap.zmap()
             d = 0.5
             vmin = -32.0
@@ -167,33 +167,33 @@ class Image:
             self.points = np.vstack([x.flatten(), y.flatten()]).transpose()
         zi = griddata(self.points, z.flatten(), (self.grid_x, self.grid_y), method='linear')
         self.im.set_data(zi)
-        if symbol is 'K':
+        if symbol == 'K':
             self.colorbar.set_ticks(np.arange(-10, 10, 2))
             if title is None:
                 title = 'KDP (degres / km)'
-        elif symbol is 'R':
+        elif symbol == 'R':
             values = np.array([0.73, 0.83, 0.93, 0.96, 0.99, 1.02, 1.05])
             self.colorbar.set_ticks(rho2ind(values))
             self.colorbar.set_ticklabels(values)
             if title is None:
                 title = 'RhoHV (unitless)'
-        elif symbol is 'P':
+        elif symbol == 'P':
             self.colorbar.set_ticks(np.arange(-180, 181, 60))
             if title is None:
                 title = 'PhiDP (degrees)'
-        elif symbol is 'D':
+        elif symbol == 'D':
             self.colorbar.set_ticks(np.arange(-9, 15, 3))
             if title is None:
                 title = 'ZDR (dB)'
-        elif symbol is 'W':
+        elif symbol == 'W':
             self.colorbar.set_ticks(np.arange(0, 15, 2))
             if title is None:
                 title = 'Width (m/s)'
-        elif symbol is 'V':
+        elif symbol == 'V':
             self.colorbar.set_ticks(np.arange(-15, 16, 3))
             if title is None:
                 title = 'Velocity (m/s)'
-        elif symbol is 'Z':
+        elif symbol == 'Z':
             self.colorbar.set_ticks(np.arange(-25, 85, 15))
             if title is None:
                 title = 'Reflectivity (dBZ)'
@@ -265,7 +265,7 @@ class Chart:
             self.yy = rr * np.cos(aa)
         mask = np.isfinite(values)
         # Pick a colormap, vmin, vmax, ticklabels, titlestring, etc. based on style
-        if style is 'K':
+        if style == 'K':
             # KDP is not finalized yet
             colors = colormap.kmap()
             vmin = 0.0
@@ -273,7 +273,7 @@ class Chart:
             cticks = np.arange(-10, 10, 2)
             cticklabels = None
             titlestring = 'KDP (degres / km)'
-        elif style is 'R':
+        elif style == 'R':
             # Special case, values are mapped to indices
             colors = colormap.rmap()
             vmin = 0.0
@@ -283,21 +283,21 @@ class Chart:
             cticklabels = np.array([0.73, 0.83, 0.93, 0.96, 0.99, 1.02, 1.05])
             cticks = rho2ind(cticklabels)
             titlestring = 'RhoHV (unitless)'
-        elif style is 'P':
+        elif style == 'P':
             colors = colormap.pmap()
             vmin = -180.0
             vmax = 180.0
             cticks = np.arange(-180, 181, 60)
             cticklabels = None
             titlestring = 'PhiDP (degrees)'
-        elif style is 'D':
+        elif style == 'D':
             colors = colormap.dmap()
             vmin = -10.0
             vmax = 15.5 + 0.1
             cticks = np.arange(-9, 15, 3)
             cticklabels = None
             titlestring = 'ZDR (dB)'
-        elif style is 'W':
+        elif style == 'W':
             # I realize there is an offset of 1 but okay
             colors = colormap.wmap()
             vmin = 0.0
@@ -305,7 +305,7 @@ class Chart:
             cticks = np.arange(0, 15, 2)
             cticklabels = None
             titlestring = 'Width (m/s)'
-        elif style is 'V':
+        elif style == 'V':
             # colors = colormap.vmap()
             colors = vmap_local()
             vmin = -16.0
@@ -313,7 +313,7 @@ class Chart:
             cticks = np.arange(-16, 17, 4)
             cticklabels = None
             titlestring = 'Velocity (m/s)'
-        elif style is 'Z':
+        elif style == 'Z':
             colors = colormap.zmap()
             d = 0.5
             vmin = -32.0
@@ -373,35 +373,35 @@ def showPPI(x, y, z, style='S', title=None, maxrange=50.0, dpi=144):
     else:
         rect = [0.14, 0.1, 0.8, 0.8 * w / h]
     rect = [round(x * 72.0) / 72.0 + 0.5 / 72.0 for x in rect]
-    if style is 'K':
+    if style == 'K':
         # Not finalized yet
         colors = colormap.kmap()
         vmin = 0.0
         vmax = 0.1 * np.pi
-    elif style is 'R':
+    elif style == 'R':
         # Special, does not really matter here
         colors = colormap.rmap()
         vmin = 0.0
         vmax = 256.0
         zz = rho2ind(zz)
-    elif style is 'P':
+    elif style == 'P':
         colors = colormap.pmap()
         vmin = -180.0
         vmax = 180.0
-    elif style is 'D':
+    elif style == 'D':
         colors = colormap.dmap()
         vmin = -10.0
         vmax = 15.5 + 0.1
-    elif style is 'W':
+    elif style == 'W':
         # There is an offset of 1 but okay
         colors = colormap.wmap()
         vmin = 0.0
         vmax = 12.75 + 0.05
-    elif style is 'V':
+    elif style == 'V':
         colors = colormap.vmap()
         vmin = -16.0
         vmax = 15.875 + 0.125
-    elif style is 'Z':
+    elif style == 'Z':
         colors = colormap.zmap()
         d = 0.5
         vmin = -32.0
@@ -422,33 +422,33 @@ def showPPI(x, y, z, style='S', title=None, maxrange=50.0, dpi=144):
     # pos = fig.add_axes((0.88, 0.3, 0.03, 0.5))
     cax = fig.add_axes((rect[0], rect[1] + rect[3] + 0.06, rect[2], 0.03))
     cb = matplotlib.pyplot.colorbar(ax=ax2, cax=cax, orientation='horizontal')
-    if style is 'K':
+    if style == 'K':
         cb.set_ticks(np.arange(-10, 10, 2))
         if title is None:
             title = 'KDP (degres / km)'
-    elif style is 'R':
+    elif style == 'R':
         values = np.array([0.73, 0.83, 0.93, 0.96, 0.99, 1.02, 1.05])
         cb.set_ticks(rho2ind(values))
         cb.set_ticklabels(values)
         if title is None:
             title = 'RhoHV (unitless)'
-    elif style is 'P':
+    elif style == 'P':
         cb.set_ticks(np.arange(-180, 181, 60))
         if title is None:
             title = 'PhiDP (degrees)'
-    elif style is 'D':
+    elif style == 'D':
         cb.set_ticks(np.arange(-9, 15, 3))
         if title is None:
             title = 'ZDR (dB)'
-    elif style is 'W':
+    elif style == 'W':
         cb.set_ticks(np.arange(0, 15, 2))
         if title is None:
             title = 'Width (m/s)'
-    elif style is 'V':
+    elif style == 'V':
         cb.set_ticks(np.arange(-15, 16, 3))
         if title is None:
             title = 'Velocity (m/s)'
-    elif style is 'Z':
+    elif style == 'Z':
         cb.set_ticks(np.arange(-25, 85, 15))
         if title is None:
             title = 'Reflectivity (dBZ)'
