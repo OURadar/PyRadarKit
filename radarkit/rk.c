@@ -244,7 +244,7 @@ static PyObject *PyRKParseRay(PyObject *self, PyObject *args, PyObject *keywords
 }
 
 static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *keywords) {
-    int k, r;
+    int k;
     int verbose = 0;
     PyByteArrayObject *object;
     static char *keywordList[] = {"input", "verbose", NULL};
@@ -256,9 +256,6 @@ static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *
     // Type cast it to RadarKit's sweep header
     RKSweepHeader *sweepHeader = (RKSweepHeader *)object->ob_bytes;
 
-    RKName name;
-    RKName symbol;
-    RKBaseMomentIndex index;
     RKBaseMomentList list = sweepHeader->baseMomentList;
     int count = __builtin_popcount(list);
 
@@ -268,14 +265,8 @@ static PyObject *PyRKParseSweepHeader(PyObject *self, PyObject *args, PyObject *
 
     for (k = 0; k < count; k++) {
         // Get the symbol, name, unit, colormap, etc. from the product list
-        r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
-        if (r != RKResultSuccess) {
-            fprintf(stderr, "Early return.\n");
-            break;
-        }
-        // List does not increase the reference count
-        //PyList_SetItem(symbols, k, Py_BuildValue("s", symbol));
-        PyTuple_SetItem(moments, k, Py_BuildValue("s", symbol));
+        RKProductDesc desc = RKGetNextProductDescription(&list);
+        PyTuple_SetItem(moments, k, Py_BuildValue("s", desc.symbol));
     }
     PyObject *ret = Py_BuildValue("{s:s,s:K,s:i,s:i,s:f,s:f,s:f,s:d,s:d,s:f,s:O}",
                                   "name", sweepHeader->desc.name,
@@ -458,7 +449,7 @@ static PyObject *PyRKReadProducts(PyObject *self, PyObject *args, PyObject *keyw
 
 // Deprecating ...
 static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
-    int p, r, k;
+    int p, k;
     int verbose = 0;
     char *filename;
     float *scratch;
@@ -472,7 +463,6 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
     RKSetWantScreenOutput(true);
 
     // Some product description
-    RKName name;
     RKName symbol;
     if (RKGetSymbolFromFilename(filename, symbol)) {
         printf("symbol = %s%s%s\n", RKYellowColor, symbol, RKNoColor);
@@ -538,7 +528,6 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         PyArray_ENABLEFLAGS(elevation, NPY_ARRAY_OWNDATA);
 
         // A shadow copy of productList so we can manipulate it without affecting the original ray
-        RKBaseMomentIndex index;
         RKBaseMomentList list = sweep->header.baseMomentList;
         int count = __builtin_popcount(list);
 
@@ -549,11 +538,7 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
         // Gather the base moments
         for (p = 0; p < count; p++) {
             // Get the symbol, name, unit, colormap, etc. from the product list
-            r = RKGetNextProductDescription(symbol, name, NULL, NULL, &index, &list);
-            if (r != RKResultSuccess) {
-                fprintf(stderr, "Early return.\n");
-                break;
-            }
+            RKProductDesc desc = RKGetNextProductDescription(&list);
 
             // A scratch space for data
             scratch = (float *)malloc(sweep->header.rayCount * sweep->header.gateCount * sizeof(float));
@@ -564,15 +549,15 @@ static PyObject *PyRKRead(PyObject *self, PyObject *args, PyObject *keywords) {
 
             // Arrange the data in an array
             for (k = 0; k < (int)sweep->header.rayCount; k++) {
-                memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], index), sweep->header.gateCount * sizeof(float));
+                memcpy(scratch + k * sweep->header.gateCount, RKGetFloatDataFromRay(sweep->rays[k], desc.index), sweep->header.gateCount * sizeof(float));
             }
 
             // Create a dictionary of this sweep
             PyObject *value = PyArray_SimpleNewFromData(2, dims, NPY_FLOAT32, scratch);
             PyArray_ENABLEFLAGS((PyArrayObject *)value, NPY_ARRAY_OWNDATA);
             dict = Py_BuildValue("{s:s,s:s,s:O}",
-                "name", name,
-                "symbol", symbol,
+                "name", desc.name,
+                "symbol", desc.symbol,
                 "data", value);
             Py_DECREF(value);
             PyTuple_SetItem(moments, p, dict);

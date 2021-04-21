@@ -10,6 +10,9 @@
 #
 #  Updates
 #
+#  2.1    - 4/20/2021
+#         - Adopted RadarKit 2.5
+#
 #  2.0.7  - 8/31/2019
 #         - Added support to .tar.xz archive
 #         - Fixed a network alignment issue
