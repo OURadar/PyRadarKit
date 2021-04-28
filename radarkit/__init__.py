@@ -565,7 +565,7 @@ class Radar(object):
                 if (obj.active):
                     self.registerString += 'u {};'.format(obj.description())
         # Remove the last ';'
-        if len(self.registerString) > 8 and self.registerString[-1] is ';':
+        if len(self.registerString) > 8 and self.registerString[-1] == ';':
             self.registerString = self.registerString[:-1]
         # Build a format so that the basename uses the widest name width
         for key, obj in self.algorithmObjects.items():
